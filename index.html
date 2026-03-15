@@ -466,7 +466,10 @@ function extractTopic(text) {
     /(?:flashcards?|cards?)\s+(.+)/i,
   ];
   for(const p of patterns){const m=text.match(p);if(m&&m[1])return m[1].trim().replace(/[?.!]$/,'').replace(/\s+and\s+(a\s+)?quiz.*$/i,'').trim();}
-  return text.replace(/flashcards?|flash\s*cards?|quiz(zes)?|make|create|generate|about|on|me|test|cards?|and|a\b/gi,'').trim()||text;
+  // Strip all action words — if nothing is left, return empty string so caller can fallback
+  const stripped=text.replace(/flashcards?|flash\s*cards?|quiz(zes)?|make|create|generate|about|on|me|test|cards?|and|a\b/gi,'').trim();
+  // If stripped result is very short or same as original noise words, signal vagueness
+  return stripped.length>1?stripped:'';
 }
 const CTX_PATS=[/^(it|this|that|them|same|the same)$/i,/^(the topic|same topic|this topic|that topic)$/i,/\b(at this basis|based on (this|that|above|it)|on (this|that))\b/i,/\b(as (discussed|mentioned|above|explained)|what (we|i) (just )?(discussed|talked|said|covered))\b/i,/\b(previous(ly)?|last (topic|subject|thing))\b/i];
 function isVague(t){return CTX_PATS.some(p=>p.test(t.trim()));}
@@ -479,7 +482,9 @@ function getLastTopic() {
 }
 function resolveTopic(msg) {
   let t=extractTopic(msg);
-  if(isVague(t)||t.length<=2){const l=getLastTopic();if(l)return l;}
+  // Empty string (bare "flashcards"), vague phrases, or too-short strings all
+  // trigger context lookup — so "flashcards" after a PDF upload finds the PDF topic
+  if(!t||isVague(t)||t.length<=2){const l=getLastTopic();if(l)return l;}
   return t;
 }
 
@@ -490,13 +495,45 @@ async function sendMessage() {
   if(!text)return;
   input.value=''; input.style.height='auto';
   addMsg('user',text);
+
+  const intent=detectIntent(text);
+
+  // PDF MODE — but still honour flashcard/quiz intents from PDF context
   if(currentPdf){
+    // If user asks for flashcards/quiz, extract topic from PDF name or message
+    // then route to proper UI handlers with PDF topic context
+    if(intent==='flashcard'||intent==='both'||intent==='quiz'){
+      // Resolve topic: if vague/short, use the PDF filename (strip extension)
+      let topic=resolveTopic(text);
+      if(isVague(topic)||topic.length<=2){
+        topic=currentPdf.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ').trim();
+      }
+      try{
+        if(intent==='both'){
+          showTyping();
+          pushHistory('user',text);
+          await handleFlashcards(topic,text,false);
+          showTyping();
+          await handleQuiz(topic,text,false);
+          pushHistory('assistant','Generated flashcards and a quiz about '+topic);
+        } else if(intent==='flashcard'){
+          showTyping();
+          await handleFlashcards(topic,text,true);
+        } else {
+          showTyping();
+          await handleQuiz(topic,text,true);
+        }
+      }catch(err){hideTyping();addMsg('ai','Could not generate: '+err.message);console.error(err);}
+      return;
+    }
+    // All other messages (explain, summarize, questions) → pdf-chat
     showTyping();
     try{await handlePdfChat(text,currentPdf);}
     catch(err){hideTyping();addMsg('ai','PDF processing failed: '+err.message);console.error(err);}
     return;
   }
-  const intent=detectIntent(text);
+
+  // NORMAL MODE (no PDF attached)
   const topic=resolveTopic(text);
   try{
     if(intent==='both'){showTyping();pushHistory('user',text);await handleFlashcards(topic,text,false);showTyping();await handleQuiz(topic,text,false);pushHistory('assistant','Generated flashcards and a quiz about '+topic);}

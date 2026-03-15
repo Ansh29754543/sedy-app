@@ -6,170 +6,86 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Sedy — AI Study Companion</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<title>Sedy - AI Study Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <style>
-/* ── TOKENS ────────────────────────────────────────────────────── */
 :root {
-  --bg:#080b12; --bg2:#0d1120; --bg3:#121828;
-  --card:#141a28; --card2:#1a2235;
-  --border:#1e2d45; --border2:#243350;
-  --accent:#4f8eff; --accent2:#7c5cfc; --accent3:#00e5c0;
-  --text:#e8edf5; --text2:#8899bb; --text3:#4a5a7a;
-  --danger:#ff4f6a; --success:#00e5a0; --warning:#ffb547;
+  --bg:#080b12;--bg2:#0d1120;--bg3:#121828;
+  --card:#141a28;--card2:#1a2235;
+  --border:#1e2d45;--border2:#243350;
+  --accent:#4f8eff;--accent2:#7c5cfc;--accent3:#00e5c0;
+  --text:#e8edf5;--text2:#8899bb;--text3:#4a5a7a;
+  --danger:#ff4f6a;--success:#00e5a0;--warning:#ffb547;
   --glow:0 0 40px rgba(79,142,255,0.15);
   --sidebar-w:260px;
-  --header-h:56px;
-  --input-h:68px;          /* desktop */
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-top:    env(safe-area-inset-top,    0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
 }
-
-/* ── RESET ─────────────────────────────────────────────────────── */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
-
-/* grid background */
 body::before{content:'';position:fixed;inset:0;
-  background-image:linear-gradient(rgba(79,142,255,.03) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(79,142,255,.03) 1px,transparent 1px);
+  background-image:linear-gradient(rgba(79,142,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(79,142,255,.03) 1px,transparent 1px);
   background-size:40px 40px;pointer-events:none;z-index:0;}
-
-/* orbs */
 .orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;}
 .orb1{width:400px;height:400px;background:rgba(79,142,255,.06);top:-100px;right:-100px;}
 .orb2{width:300px;height:300px;background:rgba(124,92,252,.06);bottom:100px;left:-100px;}
-
-/* ── APP SHELL ──────────────────────────────────────────────────── */
 .app{display:flex;height:100%;position:relative;z-index:1;}
-
-/* ── SIDEBAR (desktop only) ─────────────────────────────────────── */
-.sidebar{
-  width:var(--sidebar-w);min-width:var(--sidebar-w);
-  background:var(--bg2);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;padding:24px 0;
-  transition:transform .3s cubic-bezier(.4,0,.2,1);
-  z-index:50;
-}
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:50;}
 .logo{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:20px;}
-.logo-text{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.logo-sub{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;
-  letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.logo-text{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
 .sidebar-section{padding:0 12px;margin-bottom:20px;}
-.sidebar-label{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;
-  letter-spacing:1px;text-transform:uppercase;padding:0 8px;margin-bottom:8px;}
-.quick-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;
-  cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;
-  transition:all .2s;margin-bottom:3px;border:1px solid transparent;
-  background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;}
+.sidebar-label{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;padding:0 8px;margin-bottom:8px;}
+.quick-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all .2s;margin-bottom:3px;border:1px solid transparent;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;}
 .quick-btn:hover{background:var(--card);color:var(--text);border-color:var(--border);}
 .quick-btn .qb-icon{font-size:16px;}
-.clear-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;
-  cursor:pointer;color:var(--danger);font-size:13px;font-weight:500;
-  transition:all .2s;border:1px solid transparent;
-  background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;}
+.clear-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;cursor:pointer;color:var(--danger);font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;}
 .clear-btn:hover{background:rgba(255,79,106,.08);border-color:rgba(255,79,106,.2);}
 .sidebar-footer{padding:16px 20px 0;border-top:1px solid var(--border);margin-top:auto;}
 .made-by{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
 .made-by span{color:var(--accent2);}
-.status-pill{display:flex;align-items:center;gap:6px;margin-top:10px;
-  font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--success);
-  box-shadow:0 0 6px var(--success);}
-
-/* ── MOBILE DRAWER OVERLAY ──────────────────────────────────────── */
-.drawer-overlay{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
-  z-index:49;backdrop-filter:blur(4px);opacity:0;
-  transition:opacity .3s;pointer-events:none;
-}
+.status-pill{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 6px var(--success);}
+/* DRAWER */
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:49;backdrop-filter:blur(4px);opacity:0;transition:opacity .3s;pointer-events:none;}
 .drawer-overlay.open{opacity:1;pointer-events:all;}
-
-/* ── MAIN COLUMN ────────────────────────────────────────────────── */
+/* MAIN */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
-
-/* ── HEADER ─────────────────────────────────────────────────────── */
-.header{
-  height:var(--header-h);padding:0 16px;
-  border-bottom:1px solid var(--border);
-  background:var(--bg2);flex-shrink:0;
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding-top:var(--safe-top);
-}
+/* HEADER */
+.header{padding:0 16px;padding-top:var(--safe-t);min-height:56px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .header-left{display:flex;align-items:center;gap:10px;}
-/* hamburger — hidden on desktop */
-.menu-btn{
-  display:none;width:36px;height:36px;border-radius:9px;
-  background:var(--card);border:1px solid var(--border2);
-  cursor:pointer;flex-direction:column;align-items:center;
-  justify-content:center;gap:5px;flex-shrink:0;
-}
-.menu-btn span{width:16px;height:2px;background:var(--text2);border-radius:1px;transition:all .2s;}
+.menu-btn{display:none;width:36px;height:36px;border-radius:9px;background:var(--card);border:1px solid var(--border2);cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex-shrink:0;}
+.menu-btn span{width:16px;height:2px;background:var(--text2);border-radius:1px;}
 .header-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
 .header-sub{font-size:11px;color:var(--text3);margin-top:1px;}
-.memory-badge{
-  display:flex;align-items:center;gap:6px;padding:5px 10px;
-  background:var(--card);border:1px solid var(--border);
-  border-radius:20px;font-size:11px;color:var(--text2);
-  font-family:'DM Mono',monospace;white-space:nowrap;flex-shrink:0;
-}
-.memory-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);
-  box-shadow:0 0 6px var(--accent2);}
-
-/* ── MESSAGES ────────────────────────────────────────────────────── */
-.chat-messages{
-  flex:1;overflow-y:auto;overflow-x:hidden;
-  padding:16px 16px 8px;
-  display:flex;flex-direction:column;gap:16px;
-  -webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain;
-}
+.memory-badge{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;white-space:nowrap;flex-shrink:0;}
+.memory-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);box-shadow:0 0 6px var(--accent2);}
+/* MESSAGES */
+.chat-messages{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 16px 8px;display:flex;flex-direction:column;gap:16px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .chat-messages::-webkit-scrollbar{width:3px;}
 .chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-
-/* messages */
 .msg{display:flex;gap:8px;animation:msgIn .25s ease;}
 @keyframes msgIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 .msg.user{flex-direction:row-reverse;}
-.msg-avatar{
-  width:30px;height:30px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:14px;flex-shrink:0;align-self:flex-start;
-}
+.msg-avatar{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;align-self:flex-start;}
 .msg.ai .msg-avatar{background:linear-gradient(135deg,var(--accent),var(--accent2));}
 .msg.user .msg-avatar{background:var(--card2);border:1px solid var(--border2);}
 .msg-content{max-width:82%;display:flex;flex-direction:column;}
 .msg.user .msg-content{align-items:flex-end;}
-.msg-bubble{
-  padding:10px 13px;border-radius:14px;
-  font-size:14px;line-height:1.75;word-break:break-word;overflow-wrap:anywhere;
-}
-.msg.ai .msg-bubble{
-  background:var(--card);border:1px solid var(--border);
-  border-top-left-radius:3px;color:var(--text);
-}
-.msg.user .msg-bubble{
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:white;border-top-right-radius:3px;
-}
-
-/* ── RICH TEXT ────────────────────────────────────────────────────── */
-.msg-bubble h1{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  margin:10px 0 6px;border-bottom:1px solid var(--border);padding-bottom:5px;}
-.msg-bubble h2{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
-  color:var(--accent);margin:8px 0 4px;}
-.msg-bubble h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;
-  color:var(--accent2);margin:6px 0 3px;}
+.msg-bubble{padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.75;word-break:break-word;overflow-wrap:anywhere;}
+.msg.ai .msg-bubble{background:var(--card);border:1px solid var(--border);border-top-left-radius:3px;color:var(--text);}
+.msg.user .msg-bubble{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border-top-right-radius:3px;}
+/* RICH TEXT */
+.msg-bubble h1{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0 6px;border-bottom:1px solid var(--border);padding-bottom:5px;}
+.msg-bubble h2{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent);margin:8px 0 4px;}
+.msg-bubble h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--accent2);margin:6px 0 3px;}
 .msg-bubble strong{color:var(--text);font-weight:700;}
 .msg-bubble em{color:var(--accent3);font-style:italic;}
 .msg-bubble ul,.msg-bubble ol{padding-left:18px;margin:6px 0;}
@@ -177,248 +93,124 @@ body::before{content:'';position:fixed;inset:0;
 .msg-bubble ul li::marker{color:var(--accent);}
 .msg-bubble ol li::marker{color:var(--accent2);font-weight:600;}
 .msg-bubble p{margin:5px 0;}
-.msg-bubble code:not(.hljs){
-  background:var(--bg3);border:1px solid var(--border2);border-radius:4px;
-  padding:1px 5px;font-family:'DM Mono',monospace;
-  font-size:12px;color:var(--accent3);}
-.msg-bubble .highlight-box{
-  background:linear-gradient(135deg,rgba(79,142,255,.08),rgba(124,92,252,.05));
-  border:1px solid rgba(79,142,255,.2);border-left:3px solid var(--accent);
-  border-radius:8px;padding:9px 12px;margin:7px 0;font-size:13px;}
-.msg-bubble .warning-box{
-  background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.2);
-  border-left:3px solid var(--warning);border-radius:8px;
-  padding:9px 12px;margin:7px 0;font-size:13px;color:var(--warning);}
-.msg-bubble .success-box{
-  background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);
-  border-left:3px solid var(--success);border-radius:8px;
-  padding:9px 12px;margin:7px 0;font-size:13px;color:var(--success);}
+.msg-bubble code:not(.hljs){background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3);}
+.msg-bubble .highlight-box{background:linear-gradient(135deg,rgba(79,142,255,.08),rgba(124,92,252,.05));border:1px solid rgba(79,142,255,.2);border-left:3px solid var(--accent);border-radius:8px;padding:9px 12px;margin:7px 0;font-size:13px;}
+.msg-bubble .warning-box{background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.2);border-left:3px solid var(--warning);border-radius:8px;padding:9px 12px;margin:7px 0;font-size:13px;color:var(--warning);}
+.msg-bubble .success-box{background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);border-left:3px solid var(--success);border-radius:8px;padding:9px 12px;margin:7px 0;font-size:13px;color:var(--success);}
 .msg-bubble table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px;display:block;overflow-x:auto;}
-.msg-bubble th{background:var(--bg3);border:1px solid var(--border2);padding:6px 10px;
-  text-align:left;font-weight:600;color:var(--accent);
-  font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.5px;}
+.msg-bubble th{background:var(--bg3);border:1px solid var(--border2);padding:6px 10px;text-align:left;font-weight:600;color:var(--accent);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.5px;}
 .msg-bubble td{border:1px solid var(--border);padding:6px 10px;background:var(--card);line-height:1.5;}
 .msg-bubble tr:hover td{background:var(--card2);}
-
-/* ── CODE BLOCK ─────────────────────────────────────────────────── */
+/* CODE */
 .code-block-wrap{margin:8px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border2);}
-.code-block-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:7px 12px;background:#1a1f2e;border-bottom:1px solid var(--border2);}
-.code-lang{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent2);
-  text-transform:uppercase;letter-spacing:1px;}
-.copy-btn{
-  background:none;border:1px solid var(--border2);border-radius:5px;
-  padding:3px 9px;color:var(--text2);font-size:10px;cursor:pointer;
-  font-family:'DM Mono',monospace;transition:all .2s;}
+.code-block-header{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:#1a1f2e;border-bottom:1px solid var(--border2);}
+.code-lang{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;}
+.copy-btn{background:none;border:1px solid var(--border2);border-radius:5px;padding:3px 9px;color:var(--text2);font-size:10px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .2s;}
 .copy-btn:hover{border-color:var(--accent);color:var(--accent);}
 .code-block-wrap pre{margin:0!important;border-radius:0!important;background:#141922!important;overflow-x:auto;}
-.code-block-wrap pre code{
-  font-family:'DM Mono',monospace!important;font-size:12px!important;
-  line-height:1.6!important;padding:12px!important;
-  background:none!important;border:none!important;color:inherit!important;
-  white-space:pre;display:block;}
-
-/* ── MATH ───────────────────────────────────────────────────────── */
+.code-block-wrap pre code{font-family:'DM Mono',monospace!important;font-size:12px!important;line-height:1.6!important;padding:12px!important;background:none!important;border:none!important;color:inherit!important;white-space:pre;display:block;}
+/* MATH */
 .msg-bubble .katex-display{overflow-x:auto;overflow-y:hidden;padding:6px 0;}
 .msg-bubble .katex{font-size:1em;}
-
-/* ── FLASHCARDS ─────────────────────────────────────────────────── */
+/* FLASHCARDS */
 .fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:10px;}
 .fc-card{height:140px;perspective:800px;cursor:pointer;}
-.fc-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;
-  transition:transform .5s cubic-bezier(.4,0,.2,1);}
+.fc-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);}
 .fc-card.flipped .fc-inner{transform:rotateY(180deg);}
-.fc-front,.fc-back{
-  position:absolute;inset:0;backface-visibility:hidden;
-  border-radius:11px;padding:12px;
-  display:flex;flex-direction:column;justify-content:space-between;
-  border:1px solid var(--border);}
-.fc-front{background:var(--bg3);
-  background-image:linear-gradient(135deg,rgba(79,142,255,.07) 0%,transparent 60%);}
-.fc-back{
-  background:linear-gradient(135deg,rgba(79,142,255,.12),rgba(124,92,252,.08));
-  border-color:rgba(79,142,255,.25);transform:rotateY(180deg);}
+.fc-front,.fc-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:11px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--border);}
+.fc-front{background:var(--bg3);background-image:linear-gradient(135deg,rgba(79,142,255,.07) 0%,transparent 60%);}
+.fc-back{background:linear-gradient(135deg,rgba(79,142,255,.12),rgba(124,92,252,.08));border-color:rgba(79,142,255,.25);transform:rotateY(180deg);}
 .fc-tag{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;}
 .fc-front .fc-tag{color:var(--accent);}
 .fc-back .fc-tag{color:var(--accent3);}
-.fc-text{font-size:12px;color:var(--text);line-height:1.5;font-weight:500;
-  flex:1;display:flex;align-items:center;margin:6px 0;}
+.fc-text{font-size:12px;color:var(--text);line-height:1.5;font-weight:500;flex:1;display:flex;align-items:center;margin:6px 0;}
 .fc-hint{font-size:9px;color:var(--text3);text-align:right;}
-
-/* ── QUIZ ────────────────────────────────────────────────────────── */
+/* QUIZ */
 .quiz-wrap{margin-top:2px;}
 .quiz-prog{height:3px;background:var(--border);border-radius:2px;margin-bottom:12px;overflow:hidden;}
 .quiz-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;}
-.quiz-qnum{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);
-  letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
-.quiz-q{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;
-  line-height:1.4;margin-bottom:12px;color:var(--text);}
+.quiz-qnum{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.quiz-q{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;line-height:1.4;margin-bottom:12px;color:var(--text);}
 .quiz-opts{display:flex;flex-direction:column;gap:7px;}
-.quiz-opt{
-  padding:11px 12px;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:9px;cursor:pointer;font-size:13px;color:var(--text);
-  transition:all .2s;display:flex;align-items:center;gap:9px;
-  /* bigger tap target on mobile */
-  min-height:46px;}
+.quiz-opt{padding:11px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text);transition:all .2s;display:flex;align-items:center;gap:9px;min-height:46px;}
 .quiz-opt:active:not(.disabled){transform:scale(.98);}
 .quiz-opt:hover:not(.disabled){border-color:var(--accent);background:var(--card2);}
 .quiz-opt.correct{border-color:var(--success);background:rgba(0,229,160,.08);color:var(--success);}
 .quiz-opt.wrong{border-color:var(--danger);background:rgba(255,79,106,.08);color:var(--danger);}
 .quiz-opt.disabled{cursor:default;}
-.opt-l{
-  width:24px;height:24px;border-radius:5px;background:var(--border);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'DM Mono',monospace;font-size:10px;flex-shrink:0;}
+.opt-l{width:24px;height:24px;border-radius:5px;background:var(--border);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10px;flex-shrink:0;}
 .quiz-opt.correct .opt-l{background:rgba(0,229,160,.2);}
 .quiz-opt.wrong .opt-l{background:rgba(255,79,106,.2);}
-.quiz-exp{
-  margin-top:8px;padding:8px 10px;
-  background:rgba(79,142,255,.06);border:1px solid rgba(79,142,255,.15);
-  border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6;display:none;}
-.quiz-next{
-  margin-top:10px;padding:11px 20px;width:100%;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border:none;border-radius:10px;color:white;
-  font-size:14px;font-weight:600;cursor:pointer;
-  font-family:'DM Sans',sans-serif;transition:all .2s;display:none;}
+.quiz-exp{margin-top:8px;padding:8px 10px;background:rgba(79,142,255,.06);border:1px solid rgba(79,142,255,.15);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6;display:none;}
+.quiz-next{margin-top:10px;padding:11px 20px;width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:none;}
 .quiz-next:active{transform:scale(.97);}
-
-/* ── QUIZ RESULT ─────────────────────────────────────────────────── */
+/* RESULT */
 .quiz-result{text-align:center;padding:16px 8px;}
-.qr-pct{font-family:'Syne',sans-serif;font-size:56px;font-weight:800;
-  background:linear-gradient(135deg,var(--accent),var(--accent3));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
+.qr-pct{font-family:'Syne',sans-serif;font-size:56px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
 .qr-lbl{font-size:13px;color:var(--text2);margin:5px 0 14px;}
 .qr-stats{display:flex;gap:8px;justify-content:center;}
-.qr-stat{padding:10px 16px;background:var(--bg3);border:1px solid var(--border);
-  border-radius:9px;text-align:center;flex:1;max-width:90px;}
+.qr-stat{padding:10px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;text-align:center;flex:1;max-width:90px;}
 .qr-n{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;}
 .qr-n.g{color:var(--success);}
 .qr-n.r{color:var(--danger);}
 .qr-sl{font-size:10px;color:var(--text3);margin-top:2px;}
-
-/* ── TYPING ─────────────────────────────────────────────────────── */
+/* TYPING */
 .typing-indicator{display:flex;gap:5px;padding:3px 0;}
 .typing-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:bounce 1.2s infinite;}
 .typing-dot:nth-child(2){animation-delay:.2s;}
 .typing-dot:nth-child(3){animation-delay:.4s;}
 @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-6px);opacity:1;}}
-
-/* ── INPUT AREA ─────────────────────────────────────────────────── */
-.input-area{
-  padding:10px 14px;
-  padding-bottom:calc(10px + var(--safe-bottom));
-  border-top:1px solid var(--border);
-  background:var(--bg2);flex-shrink:0;
-}
-.input-wrap{
-  display:flex;align-items:flex-end;gap:8px;
-  background:var(--card);border:1px solid var(--border2);
-  border-radius:16px;padding:8px 10px;
-  transition:border-color .2s;
-}
+/* PDF UPLOAD */
+.upload-btn{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;flex-shrink:0;}
+.upload-btn:hover,.upload-btn.active{border-color:var(--accent2);background:rgba(124,92,252,.15);}
+.upload-btn:active{transform:scale(.93);}
+#pdf-input{display:none;}
+.pdf-chip{display:none;align-items:center;gap:8px;padding:6px 10px;margin-bottom:6px;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.3);border-radius:10px;animation:msgIn .2s ease;}
+.pdf-chip.visible{display:flex;}
+.pdf-chip-icon{font-size:15px;flex-shrink:0;}
+.pdf-chip-info{flex:1;min-width:0;}
+.pdf-chip-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--accent2);font-family:'DM Mono',monospace;}
+.pdf-chip-size{font-size:9px;color:var(--text3);margin-top:1px;font-family:'DM Mono',monospace;}
+.pdf-chip-remove{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;line-height:1;padding:0 2px;transition:color .15s;flex-shrink:0;}
+.pdf-chip-remove:hover{color:var(--danger);}
+.pdf-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;margin-bottom:7px;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.2);border-radius:20px;font-size:10px;color:var(--accent2);font-family:'DM Mono',monospace;}
+/* INPUT */
+.input-area{padding:10px 14px;padding-bottom:calc(10px + var(--safe-b));border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.input-wrap{display:flex;align-items:flex-end;gap:8px;background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:8px 10px;transition:border-color .2s;}
 .input-wrap:focus-within{border-color:var(--accent);box-shadow:var(--glow);}
-#chat-input{
-  flex:1;background:none;border:none;outline:none;
-  color:var(--text);font-size:15px;
-  font-family:'DM Sans',sans-serif;resize:none;
-  max-height:120px;line-height:1.5;
-  /* prevent iOS zoom on focus */
-  font-size:16px;
-}
+.input-wrap.pdf-mode{border-color:rgba(124,92,252,.4);}
+#chat-input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:16px;font-family:'DM Sans',sans-serif;resize:none;max-height:120px;line-height:1.5;}
 #chat-input::placeholder{color:var(--text3);}
-.send-btn{
-  width:36px;height:36px;border-radius:10px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border:none;cursor:pointer;display:flex;align-items:center;
-  justify-content:center;font-size:15px;
-  transition:all .2s;flex-shrink:0;
-}
+.send-btn{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s;flex-shrink:0;}
 .send-btn:active{transform:scale(.93);}
-.input-hint{font-size:10px;color:var(--text3);text-align:center;
-  margin-top:5px;font-family:'DM Mono',monospace;}
-
-/* ── MOBILE BOTTOM NAV ──────────────────────────────────────────── */
-.bottom-nav{
-  display:none;
-  flex-shrink:0;
-  background:var(--bg2);
-  border-top:1px solid var(--border);
-  padding:6px 8px;
-  padding-bottom:calc(6px + var(--safe-bottom));
-  overflow-x:auto;
-  gap:6px;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-}
+.input-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:5px;font-family:'DM Mono',monospace;}
+/* BOTTOM NAV */
+.bottom-nav{display:none;flex-shrink:0;background:var(--bg2);border-top:1px solid var(--border);padding:6px 8px;padding-bottom:calc(6px + var(--safe-b));overflow-x:auto;gap:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .bottom-nav::-webkit-scrollbar{display:none;}
-.bnav-btn{
-  display:flex;flex-direction:column;align-items:center;gap:2px;
-  padding:7px 12px;border-radius:10px;border:1px solid var(--border2);
-  background:var(--card);cursor:pointer;white-space:nowrap;flex-shrink:0;
-  transition:all .15s;
-}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 12px;border-radius:10px;border:1px solid var(--border2);background:var(--card);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;}
 .bnav-btn:active{transform:scale(.94);background:var(--card2);}
 .bnav-icon{font-size:18px;line-height:1;}
 .bnav-label{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.5px;}
-
-/* ── MOBILE DRAWER SIDEBAR ──────────────────────────────────────── */
-/* on mobile, sidebar becomes a fixed drawer from the left */
-
-/* ═══════════════════════════════════════════════════════════════════
-   RESPONSIVE BREAKPOINTS
-   ═══════════════════════════════════════════════════════════════════ */
-
-/* ── TABLET (≤900px) ─── */
-@media (max-width:900px){
-  :root{--sidebar-w:240px;}
-}
-
-/* ── MOBILE (≤640px) ─── */
-@media (max-width:640px){
+/* RESPONSIVE */
+@media(max-width:900px){:root{--sidebar-w:240px;}}
+@media(max-width:640px){
   :root{--sidebar-w:280px;}
-
-  /* sidebar becomes a slide-in drawer */
-  .sidebar{
-    position:fixed;top:0;left:0;bottom:0;
-    transform:translateX(-100%);
-    box-shadow:4px 0 40px rgba(0,0,0,.5);
-    padding-top:calc(16px + var(--safe-top));
-    overflow-y:auto;
-  }
+  .sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%);box-shadow:4px 0 40px rgba(0,0,0,.5);padding-top:calc(16px + var(--safe-t));overflow-y:auto;}
   .sidebar.open{transform:translateX(0);}
   .drawer-overlay{display:block;}
-
-  /* show hamburger */
   .menu-btn{display:flex;}
-
-  /* header tighter */
-  .header{padding:0 12px;padding-top:var(--safe-top);}
+  .header{padding:0 12px;padding-top:var(--safe-t);}
   .header-sub{display:none;}
   .memory-badge{padding:4px 8px;font-size:10px;}
-  #memory-count::before{content:"💾 ";}
-
-  /* messages full width */
   .chat-messages{padding:12px 10px 8px;}
   .msg-content{max-width:88%;}
-  .msg-bubble{font-size:14px;padding:10px 12px;}
-
-  /* flashcards: 1 or 2 column */
   .fc-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
   .fc-card{height:130px;}
-
-  /* show bottom nav, hide input hint */
   .bottom-nav{display:flex;}
   .input-hint{display:none;}
-
-  /* input area less padding */
-  .input-area{padding:8px 10px;padding-bottom:calc(6px + var(--safe-bottom));}
-  #chat-input{font-size:16px;}/* prevent iOS zoom */
+  .input-area{padding:8px 10px;padding-bottom:calc(6px + var(--safe-b));}
 }
-
-/* ── VERY SMALL (≤380px) ─── */
-@media (max-width:380px){
+@media(max-width:380px){
   .msg-content{max-width:92%;}
   .fc-grid{grid-template-columns:1fr 1fr;}
   .fc-card{height:120px;}
@@ -429,13 +221,8 @@ body::before{content:'';position:fixed;inset:0;
 <body>
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
-
-<!-- Mobile drawer overlay -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeSidebar()"></div>
-
 <div class="app">
-
-  <!-- ── SIDEBAR ─────────────────────────────────────────────────── -->
   <aside class="sidebar" id="sidebar">
     <div class="logo">
       <div class="logo-text">Sedy</div>
@@ -443,25 +230,24 @@ body::before{content:'';position:fixed;inset:0;
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Quick Actions</div>
-      <button class="quick-btn" onclick="quickSend('Generate flashcards about Photosynthesis');closeSidebar()"><span class="qb-icon">🃏</span> Flashcards</button>
-      <button class="quick-btn" onclick="quickSend('Quiz me on Newton\'s Laws');closeSidebar()"><span class="qb-icon">📝</span> Start a Quiz</button>
-      <button class="quick-btn" onclick="quickSend('Flashcards and a quiz on the Solar System');closeSidebar()"><span class="qb-icon">🌟</span> Cards + Quiz</button>
-      <button class="quick-btn" onclick="quickSend('Explain quantum physics simply');closeSidebar()"><span class="qb-icon">💡</span> Explain Topic</button>
-      <button class="quick-btn" onclick="quickSend('Summarize the French Revolution');closeSidebar()"><span class="qb-icon">📖</span> Summarize</button>
-      <button class="quick-btn" onclick="quickSend('Solve step by step: integrate x^2 + 3x dx');closeSidebar()"><span class="qb-icon">🧮</span> Math Problem</button>
-      <button class="quick-btn" onclick="quickSend('Write a Python bubble sort function');closeSidebar()"><span class="qb-icon">💻</span> Coding Help</button>
+      <button class="quick-btn" onclick="quickSend('Generate flashcards about Photosynthesis');closeSidebar()"><span class="qb-icon">&#x1F3CF;</span> Flashcards</button>
+      <button class="quick-btn" onclick="quickSend('Quiz me on Newtons Laws');closeSidebar()"><span class="qb-icon">&#x1F4DD;</span> Start a Quiz</button>
+      <button class="quick-btn" onclick="quickSend('Flashcards and a quiz on the Solar System');closeSidebar()"><span class="qb-icon">&#x1F31F;</span> Cards + Quiz</button>
+      <button class="quick-btn" onclick="quickSend('Explain quantum physics simply');closeSidebar()"><span class="qb-icon">&#x1F4A1;</span> Explain Topic</button>
+      <button class="quick-btn" onclick="quickSend('Summarize the French Revolution');closeSidebar()"><span class="qb-icon">&#x1F4D6;</span> Summarize</button>
+      <button class="quick-btn" onclick="quickSend('Solve step by step: integrate x^2 + 3x dx');closeSidebar()"><span class="qb-icon">&#x1F9EE;</span> Math Problem</button>
+      <button class="quick-btn" onclick="quickSend('Write a Python bubble sort function');closeSidebar()"><span class="qb-icon">&#x1F4BB;</span> Coding Help</button>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Chat</div>
-      <button class="clear-btn" onclick="clearChat();closeSidebar()"><span class="qb-icon">🗑️</span> Clear Chat</button>
+      <button class="clear-btn" onclick="clearChat();closeSidebar()"><span class="qb-icon">&#x1F5D1;&#xFE0F;</span> Clear Chat</button>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Tips</div>
       <div style="font-size:12px;color:var(--text3);padding:0 8px;line-height:1.7;">
-        Say <span style="color:var(--accent)">"flashcards about X"</span>,
-        <span style="color:var(--accent)">"quiz me on X"</span>, or both at once!<br><br>
-        Code, math & rich text auto-render ✨<br><br>
-        <span style="color:var(--success)">💾 Memory saved</span> across refreshes!
+        Upload a <span style="color:var(--accent2)">PDF</span> with the paperclip button and ask questions, get summaries, or generate flashcards from it!<br><br>
+        Say <span style="color:var(--accent)">"flashcards about X"</span> or <span style="color:var(--accent)">"quiz me on X"</span><br><br>
+        <span style="color:var(--success)">Memory saved</span> across page refreshes
       </div>
     </div>
     <div class="sidebar-footer">
@@ -469,744 +255,343 @@ body::before{content:'';position:fixed;inset:0;
       <div class="status-pill"><div class="status-dot"></div><span>Sedy is online</span></div>
     </div>
   </aside>
-
-  <!-- ── MAIN ───────────────────────────────────────────────────── -->
   <main class="main">
-
-    <!-- Header -->
     <div class="header">
       <div class="header-left">
-        <!-- hamburger (mobile only) -->
-        <button class="menu-btn" onclick="openSidebar()" aria-label="Menu">
-          <span></span><span></span><span></span>
-        </button>
+        <button class="menu-btn" onclick="openSidebar()" aria-label="Menu"><span></span><span></span><span></span></button>
         <div>
           <div class="header-title">Sedy</div>
-          <div class="header-sub">Ask anything • Code • Math • Flashcards • Quizzes</div>
+          <div class="header-sub">Ask anything &bull; PDF &bull; Code &bull; Math &bull; Flashcards &bull; Quizzes</div>
         </div>
       </div>
-      <div class="memory-badge">
-        <div class="memory-dot"></div>
-        <span id="memory-count">0 messages</span>
-      </div>
+      <div class="memory-badge"><div class="memory-dot"></div><span id="memory-count">0 messages</span></div>
     </div>
-
-    <!-- Messages -->
     <div class="chat-messages" id="chat-messages"></div>
-
-    <!-- Input -->
     <div class="input-area">
-      <div class="input-wrap">
-        <textarea id="chat-input" rows="1"
-          placeholder="Ask anything, flashcards, quiz..."
-          onkeydown="handleKey(event)"
-          oninput="autoResize(this)"></textarea>
-        <button class="send-btn" onclick="sendMessage()">➤</button>
+      <div class="pdf-chip" id="pdf-chip">
+        <span class="pdf-chip-icon">&#x1F4C4;</span>
+        <div class="pdf-chip-info">
+          <div class="pdf-chip-name" id="pdf-chip-name"></div>
+          <div class="pdf-chip-size" id="pdf-chip-size"></div>
+        </div>
+        <button class="pdf-chip-remove" onclick="removePdf()" title="Remove PDF">&#x2715;</button>
       </div>
-      <div class="input-hint">💾 memory saved ✦ renders code & math ✦ auto-detects flashcards & quizzes</div>
+      <input type="file" id="pdf-input" accept=".pdf" onchange="handlePdfSelect(event)">
+      <div class="input-wrap" id="input-wrap">
+        <button class="upload-btn" id="upload-btn" onclick="document.getElementById('pdf-input').click()" title="Upload PDF">&#x1F4CE;</button>
+        <textarea id="chat-input" rows="1" placeholder="Ask anything, flashcards, quiz... or upload a PDF" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" onclick="sendMessage()">&#x27A4;</button>
+      </div>
+      <div class="input-hint">&#x1F4CE; upload PDF &bull; memory saved &bull; renders code &amp; math &bull; flashcards &amp; quizzes</div>
     </div>
-
-    <!-- Mobile bottom quick-action strip -->
-    <div class="bottom-nav" id="bottom-nav">
-      <button class="bnav-btn" onclick="quickSend('Generate flashcards about ')"><span class="bnav-icon">🃏</span><span class="bnav-label">Cards</span></button>
-      <button class="bnav-btn" onclick="quickSend('Quiz me on ')"><span class="bnav-icon">📝</span><span class="bnav-label">Quiz</span></button>
-      <button class="bnav-btn" onclick="quickSend('Explain ')"><span class="bnav-icon">💡</span><span class="bnav-label">Explain</span></button>
-      <button class="bnav-btn" onclick="quickSend('Solve step by step: ')"><span class="bnav-icon">🧮</span><span class="bnav-label">Math</span></button>
-      <button class="bnav-btn" onclick="quickSend('Write a Python function for ')"><span class="bnav-icon">💻</span><span class="bnav-label">Code</span></button>
-      <button class="bnav-btn" onclick="clearChat()"><span class="bnav-icon">🗑️</span><span class="bnav-label">Clear</span></button>
+    <div class="bottom-nav">
+      <button class="bnav-btn" onclick="document.getElementById('pdf-input').click()"><span class="bnav-icon">&#x1F4CE;</span><span class="bnav-label">PDF</span></button>
+      <button class="bnav-btn" onclick="quickSend('Generate flashcards about ')"><span class="bnav-icon">&#x1F3CF;</span><span class="bnav-label">Cards</span></button>
+      <button class="bnav-btn" onclick="quickSend('Quiz me on ')"><span class="bnav-icon">&#x1F4DD;</span><span class="bnav-label">Quiz</span></button>
+      <button class="bnav-btn" onclick="quickSend('Explain ')"><span class="bnav-icon">&#x1F4A1;</span><span class="bnav-label">Explain</span></button>
+      <button class="bnav-btn" onclick="quickSend('Solve step by step: ')"><span class="bnav-icon">&#x1F9EE;</span><span class="bnav-label">Math</span></button>
+      <button class="bnav-btn" onclick="quickSend('Write a Python function for ')"><span class="bnav-icon">&#x1F4BB;</span><span class="bnav-label">Code</span></button>
+      <button class="bnav-btn" onclick="clearChat()"><span class="bnav-icon">&#x1F5D1;</span><span class="bnav-label">Clear</span></button>
     </div>
-
   </main>
 </div>
-
 <script>
-
 const API_URL = 'https://sedy-ai-6j7c.onrender.com';
 const STORAGE_KEY = 'sedy_chat_history';
-const STORAGE_MSGS_KEY = 'sedy_chat_messages';
 let activeQuiz = null;
+let currentPdf = null;
 
-// ── MEMORY: Load history from localStorage on startup ─────────────────
+// MEMORY
 let chatHistory = [];
 try {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    chatHistory = JSON.parse(saved);
-    // Sanitize: only keep last 40 turns to avoid very old stale data
-    if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40);
-  }
-} catch(e) {
-  chatHistory = [];
-}
+  if (saved) { chatHistory = JSON.parse(saved); if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40); }
+} catch(e) { chatHistory = []; }
 
-// ── MEMORY: Save history to localStorage ─────────────────────────────
 function persistHistory() {
-  try {
-    // Keep only last 40 messages in storage
-    const toSave = chatHistory.slice(-40);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-  } catch(e) {
-    console.warn('Could not save history to localStorage:', e);
-  }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory.slice(-40))); } catch(e) {}
 }
-
-// ── MEMORY: Update badge ──────────────────────────────────────────────
 function updateMemoryBadge() {
-  document.getElementById('memory-count').textContent = `Memory: ${chatHistory.length} messages`;
+  document.getElementById('memory-count').textContent = chatHistory.length + ' messages';
 }
-
-// ── MEMORY: Clear everything ─────────────────────────────────────────
 function clearChat() {
-  chatHistory = [];
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(STORAGE_MSGS_KEY);
-  activeQuiz = null;
+  chatHistory = []; localStorage.removeItem(STORAGE_KEY);
   document.getElementById('chat-messages').innerHTML = '';
-  addMsg('ai', 'Chat cleared! Memory wiped. Ready to help you study again 😊');
+  removePdf(); activeQuiz = null;
+  addMsg('ai', 'Chat cleared! Ready to help you study again.');
   updateMemoryBadge();
 }
-
-// ── Helpers ──────────────────────────────────────────────────────────
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+function pushHistory(role, content) {
+  chatHistory.push({role, content});
+  if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40);
+  persistHistory(); updateMemoryBadge();
 }
 
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+// PDF UPLOAD
+function handlePdfSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.type !== 'application/pdf') { addMsg('ai', 'Please upload a valid .pdf file.'); return; }
+  if (file.size > 25 * 1024 * 1024) { addMsg('ai', 'PDF too large (max 25 MB). Try a smaller file.'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const base64 = reader.result.split(',')[1];
+    const sizeKb = Math.round(file.size / 1024);
+    currentPdf = { name: file.name, base64, sizeKb };
+    document.getElementById('pdf-chip-name').textContent = file.name;
+    document.getElementById('pdf-chip-size').textContent = sizeKb + ' KB';
+    document.getElementById('pdf-chip').classList.add('visible');
+    document.getElementById('upload-btn').classList.add('active');
+    document.getElementById('input-wrap').classList.add('pdf-mode');
+    document.getElementById('chat-input').placeholder = 'Ask anything about "' + file.name + '"...';
+    document.getElementById('chat-input').focus();
+    addMsg('ai', '<div class="pdf-badge">PDF ' + _esc(file.name) + ' - ' + sizeKb + ' KB</div>PDF uploaded! I can now answer questions about it, summarize it, generate flashcards or a quiz from it. What would you like to know?', true);
+  };
+  reader.onerror = () => addMsg('ai', 'Could not read the PDF. Please try again.');
+  reader.readAsDataURL(file);
+  event.target.value = '';
 }
 
-function quickSend(text) {
-  document.getElementById('chat-input').value = text;
-  sendMessage();
+function removePdf() {
+  currentPdf = null;
+  document.getElementById('pdf-chip').classList.remove('visible');
+  document.getElementById('pdf-input').value = '';
+  document.getElementById('upload-btn').classList.remove('active');
+  document.getElementById('input-wrap').classList.remove('pdf-mode');
+  document.getElementById('chat-input').placeholder = 'Ask anything, flashcards, quiz... or upload a PDF';
 }
 
-function scrollBottom() {
-  const el = document.getElementById('chat-messages');
-  setTimeout(() => el.scrollTop = el.scrollHeight, 100);
+async function handlePdfChat(text, pdf) {
+  const res = await fetch(API_URL + '/pdf-chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: text, pdf_base64: pdf.base64, pdf_name: pdf.name, history: chatHistory.slice(-20) })
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || 'HTTP ' + res.status); }
+  const data = await res.json();
+  hideTyping();
+  const reply = data.reply || 'Could not process the PDF.';
+  addMsg('ai', '<div class="pdf-badge">PDF ' + _esc(pdf.name) + '</div>' + renderMarkdown(reply), true);
+  pushHistory('user', '[PDF: ' + pdf.name + '] ' + text);
+  pushHistory('assistant', reply);
 }
 
+// HELPERS
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function quickSend(text) { document.getElementById('chat-input').value = text; sendMessage(); }
+function scrollBottom() { const el = document.getElementById('chat-messages'); setTimeout(() => el.scrollTop = el.scrollHeight, 80); }
 const _esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-// ── Rich Text / Markdown Renderer ────────────────────────────────────
+// MARKDOWN RENDERER
 function renderMarkdown(text) {
   let html = text;
-  const codeBlocks = [];
-  const mathBlocks = [];   // FIX: protect math from markdown mangling
-
-  // Stash code blocks first
-  html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang, code) => {
-    const idx = codeBlocks.length;
-    codeBlocks.push({ lang: lang || 'plaintext', code: code.trim() });
-    return `%%CODE_${idx}%%`;
-  });
-
-  // Stash $$...$$ display math BEFORE html-escaping so dollar signs survive
-  html = html.replace(/\$\$([\s\S]+?)\$\$/g, (_, inner) => {
-    const idx = mathBlocks.length;
-    mathBlocks.push({ display: true, inner });
-    return `%%MATH_${idx}%%`;
-  });
-
-  // Stash $...$ inline math
-  html = html.replace(/\$([^$\n]+?)\$/g, (_, inner) => {
-    const idx = mathBlocks.length;
-    mathBlocks.push({ display: false, inner });
-    return `%%MATH_${idx}%%`;
-  });
-
-  // Stash \(...\) inline math
-  html = html.replace(/\\\((.+?)\\\)/g, (_, inner) => {
-    const idx = mathBlocks.length;
-    mathBlocks.push({ display: false, inner });
-    return `%%MATH_${idx}%%`;
-  });
-
-  // Stash \[...\] display math
-  html = html.replace(/\\\[([\s\S]+?)\\\]/g, (_, inner) => {
-    const idx = mathBlocks.length;
-    mathBlocks.push({ display: true, inner });
-    return `%%MATH_${idx}%%`;
-  });
-
-  // Now safe to HTML-escape (math is stashed)
+  const codeBlocks = [], mathBlocks = [];
+  html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang, code) => { const i = codeBlocks.length; codeBlocks.push({lang:lang||'plaintext',code:code.trim()}); return '%%CODE_'+i+'%%'; });
+  html = html.replace(/\$\$([\s\S]+?)\$\$/g, (_,inner) => { const i=mathBlocks.length; mathBlocks.push({display:true,inner}); return '%%MATH_'+i+'%%'; });
+  html = html.replace(/\$([^$\n]+?)\$/g, (_,inner) => { const i=mathBlocks.length; mathBlocks.push({display:false,inner}); return '%%MATH_'+i+'%%'; });
+  html = html.replace(/\\\((.+?)\\\)/g, (_,inner) => { const i=mathBlocks.length; mathBlocks.push({display:false,inner}); return '%%MATH_'+i+'%%'; });
+  html = html.replace(/\\\[([\s\S]+?)\\\]/g, (_,inner) => { const i=mathBlocks.length; mathBlocks.push({display:true,inner}); return '%%MATH_'+i+'%%'; });
   html = html.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-
-  html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-  html = html.replace(/\[!NOTE\]\s*(.+)/g, '<div class="highlight-box">💡 $1</div>');
-  html = html.replace(/\[!WARNING\]\s*(.+)/g, '<div class="warning-box">⚠️ $1</div>');
-  html = html.replace(/\[!SUCCESS\]\s*(.+)/g, '<div class="success-box">✅ $1</div>');
-
-  html = html.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">');
-
-  html = html.replace(/(\|.+\|\n)((\|[-| :]+)+\|)\n((?:\|.+\|\n?)+)/g, (match) => {
+  html = html.replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  html = html.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>');
+  html = html.replace(/`([^`]+)`/g,'<code>$1</code>');
+  html = html.replace(/\[!NOTE\]\s*(.+)/g,'<div class="highlight-box">$1</div>').replace(/\[!WARNING\]\s*(.+)/g,'<div class="warning-box">$1</div>').replace(/\[!SUCCESS\]\s*(.+)/g,'<div class="success-box">$1</div>');
+  html = html.replace(/^---$/gm,'<hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">');
+  html = html.replace(/(\|.+\|\n)((\|[-| :]+)+\|)\n((?:\|.+\|\n?)+)/g, match => {
     const lines = match.trim().split('\n');
-    const headers = lines[0].split('|').filter(c => c.trim());
-    const rows = lines.slice(2).map(r => r.split('|').filter(c => c.trim()));
-    let t = '<table><thead><tr>';
-    headers.forEach(h => t += `<th>${h.trim()}</th>`);
-    t += '</tr></thead><tbody>';
-    rows.forEach(row => {
-      t += '<tr>';
-      row.forEach(cell => t += `<td>${cell.trim()}</td>`);
-      t += '</tr>';
-    });
-    return t + '</tbody></table>';
+    const headers = lines[0].split('|').filter(c=>c.trim());
+    const rows = lines.slice(2).map(r=>r.split('|').filter(c=>c.trim()));
+    let t='<table><thead><tr>'; headers.forEach(h=>t+='<th>'+h.trim()+'</th>'); t+='</tr></thead><tbody>';
+    rows.forEach(row=>{t+='<tr>';row.forEach(cell=>t+='<td>'+cell.trim()+'</td>');t+='</tr>';}); return t+'</tbody></table>';
   });
-
-  html = html.replace(/((?:^[-*] .+\n?)+)/gm, match => {
-    const items = match.trim().split('\n').map(i => `<li>${i.replace(/^[-*] /,'')}</li>`).join('');
-    return `<ul>${items}</ul>`;
-  });
-  html = html.replace(/((?:^\d+\. .+\n?)+)/gm, match => {
-    const items = match.trim().split('\n').map(i => `<li>${i.replace(/^\d+\. /,'')}</li>`).join('');
-    return `<ol>${items}</ol>`;
-  });
-
-  html = html.replace(/\n\n/g, '<br><br>');
-  html = html.replace(/\n/g, '<br>');
-
-  codeBlocks.forEach(({lang, code}, idx) => {
+  html = html.replace(/((?:^[-*] .+\n?)+)/gm, m => '<ul>'+m.trim().split('\n').map(i=>'<li>'+i.replace(/^[-*] /,'')+'</li>').join('')+'</ul>');
+  html = html.replace(/((?:^\d+\. .+\n?)+)/gm, m => '<ol>'+m.trim().split('\n').map(i=>'<li>'+i.replace(/^\d+\. /,'')+'</li>').join('')+'</ol>');
+  html = html.replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+  codeBlocks.forEach(({lang,code},i) => {
     const safe = code.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
-    let highlighted;
-    try { highlighted = hljs.highlight(safe, {language: lang, ignoreIllegals:true}).value; }
-    catch(e) { highlighted = hljs.highlightAuto(safe).value; }
-    html = html.replace(`%%CODE_${idx}%%`, `
-      <div class="code-block-wrap">
-        <div class="code-block-header">
-          <span class="code-lang">${lang}</span>
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-        </div>
-        <pre><code class="hljs">${highlighted}</code></pre>
-      </div>`);
+    let hi; try{hi=hljs.highlight(safe,{language:lang,ignoreIllegals:true}).value;}catch(e){hi=hljs.highlightAuto(safe).value;}
+    html = html.replace('%%CODE_'+i+'%%','<div class="code-block-wrap"><div class="code-block-header"><span class="code-lang">'+lang+'</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code class="hljs">'+hi+'</code></pre></div>');
   });
-
-  // FIX: restore math blocks as KaTeX-ready delimiters
-  // Inline: $...$ and display: $$...$$
-  // We restore them as-is so KaTeX's auto-render picks them up after addMsg inserts into DOM
-  mathBlocks.forEach(({display, inner}, idx) => {
-    const restored = display ? `$$${inner}$$` : `$${inner}$`;
-    html = html.replace(`%%MATH_${idx}%%`, restored);
-  });
-
+  mathBlocks.forEach(({display,inner},i) => { html = html.replace('%%MATH_'+i+'%%', display?'$$'+inner+'$$':'$'+inner+'$'); });
   return html;
 }
 
 function copyCode(btn) {
-  const code = btn.closest('.code-block-wrap').querySelector('code').innerText;
-  navigator.clipboard.writeText(code).then(() => {
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy', 2000);
-  });
+  navigator.clipboard.writeText(btn.closest('.code-block-wrap').querySelector('code').innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});
 }
 
 function renderMath(el) {
-  try {
-    renderMathInElement(el, {
-      delimiters: [
-        {left:'$$', right:'$$', display:true},
-        {left:'$', right:'$', display:false},
-        {left:'\\(', right:'\\)', display:false},
-        {left:'\\[', right:'\\]', display:true},
-      ],
-      throwOnError: false
-    });
-  } catch(e) {}
+  try { renderMathInElement(el, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false}); } catch(e) {}
 }
 
-// ── Add Message ──────────────────────────────────────────────────────
+// ADD MESSAGE
 function addMsg(role, content, isHtml=false) {
   const wrap = document.getElementById('chat-messages');
   const div = document.createElement('div');
-  div.className = `msg ${role}`;
-
-  let bubbleContent;
-  if (role === 'ai' && !isHtml) {
-    bubbleContent = renderMarkdown(content);
-  } else if (isHtml) {
-    bubbleContent = content;
-  } else {
-    bubbleContent = _esc(content).replace(/\n/g,'<br>');
-  }
-
-  div.innerHTML = `
-    <div class="msg-avatar">${role==='ai'?'🤖':'👤'}</div>
-    <div class="msg-content">
-      <div class="msg-bubble">${bubbleContent}</div>
-    </div>`;
-
+  div.className = 'msg ' + role;
+  let bubbleContent = isHtml ? content : (role==='ai' ? renderMarkdown(content) : _esc(content).replace(/\n/g,'<br>'));
+  div.innerHTML = '<div class="msg-avatar">'+(role==='ai'?'🤖':'👤')+'</div><div class="msg-content"><div class="msg-bubble">'+bubbleContent+'</div></div>';
   wrap.appendChild(div);
-
   if (role === 'ai') {
-    // FIX: always run renderMath on ALL ai bubbles, including isHtml=true ones.
-    // Previously it was only called for plain-text responses, so math in chat
-    // responses worked but math inside flashcard/quiz HTML was never rendered.
     const bubble = div.querySelector('.msg-bubble');
-    if (bubble) {
-      renderMath(bubble);
-      bubble.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
-    }
+    if (bubble) { renderMath(bubble); bubble.querySelectorAll('pre code').forEach(el=>hljs.highlightElement(el)); }
   }
-
   scrollBottom();
   return div;
 }
 
 function showTyping() {
-  const wrap = document.getElementById('chat-messages');
   if (document.getElementById('typing')) return;
-  const div = document.createElement('div');
-  div.className = 'msg ai'; div.id = 'typing';
-  div.innerHTML = `
-    <div class="msg-avatar">🤖</div>
-    <div class="msg-content"><div class="msg-bubble">
-      <div class="typing-indicator">
-        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
-      </div>
-    </div></div>`;
-  wrap.appendChild(div);
-  scrollBottom();
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div'); div.className='msg ai'; div.id='typing';
+  div.innerHTML='<div class="msg-avatar">🤖</div><div class="msg-content"><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>';
+  wrap.appendChild(div); scrollBottom();
 }
+function hideTyping() { const t=document.getElementById('typing'); if(t)t.remove(); }
 
-function hideTyping() {
-  const t = document.getElementById('typing');
-  if (t) t.remove();
-}
-
-// ── Intent Detection ─────────────────────────────────────────────────
-const FC_WORDS = ['flashcard','flashcards','flash card','flash cards','make cards',
-  'create cards','generate cards','cards on','cards about','cards for','study cards'];
-const QZ_WORDS = ['quiz','test me','question me','mcq','multiple choice',
-  'quiz me','start quiz','give me a quiz','a quiz'];
-
+// INTENT
+const FC_WORDS=['flashcard','flashcards','flash card','flash cards','make cards','create cards','generate cards','cards on','cards about','cards for','study cards'];
+const QZ_WORDS=['quiz','test me','question me','mcq','multiple choice','quiz me','start quiz','give me a quiz','a quiz'];
 function detectIntent(text) {
-  const t = text.toLowerCase();
-  const wantsFC = FC_WORDS.some(w => t.includes(w));
-  const wantsQuiz = QZ_WORDS.some(w => t.includes(w));
-  if (wantsFC && wantsQuiz) return 'both';
-  if (wantsFC) return 'flashcard';
-  if (wantsQuiz) return 'quiz';
-  return 'chat';
+  const t=text.toLowerCase();
+  const fc=FC_WORDS.some(w=>t.includes(w)), qz=QZ_WORDS.some(w=>t.includes(w));
+  return fc&&qz?'both':fc?'flashcard':qz?'quiz':'chat';
 }
-
 function extractTopic(text) {
-  const patterns = [
+  const patterns=[
     /(?:flashcards?|cards?)\s+(?:about|on|for|regarding)\s+(.+)/i,
     /(?:generate|make|create)\s+(?:\d+\s+)?(?:flashcards?|cards?)\s+(?:about|on|for)?\s*(.+)/i,
     /(?:quiz me on|test me on|quiz on|quiz about|a quiz on)\s+(.+)/i,
     /(?:flashcards?|cards?)\s+(.+)/i,
-    /(?:quiz|flashcard)s?\s+and\s+(?:a\s+)?(?:quiz|flashcard)s?\s+(?:on|about)\s+(.+)/i,
   ];
-  for (const p of patterns) {
-    const m = text.match(p);
-    if (m && m[1]) return m[1].trim().replace(/[?.!]$/, '').replace(/\s+and\s+(a\s+)?quiz.*$/i, '').trim();
-  }
-  return text.replace(/flashcards?|flash\s*cards?|quiz(zes)?|make|create|generate|about|on|me|test|cards?|and|a\b/gi,'').trim() || text;
+  for(const p of patterns){const m=text.match(p);if(m&&m[1])return m[1].trim().replace(/[?.!]$/,'').replace(/\s+and\s+(a\s+)?quiz.*$/i,'').trim();}
+  return text.replace(/flashcards?|flash\s*cards?|quiz(zes)?|make|create|generate|about|on|me|test|cards?|and|a\b/gi,'').trim()||text;
 }
-
-// ── Words/phrases that signal "use the last topic from context" ───────
-const CONTEXT_REF_PATTERNS = [
-  /^(it|this|that|them|same|the same)$/i,
-  /^(the topic|same topic|this topic|that topic)$/i,
-  /^(above|the above|this one|that one)$/i,
-  /\b(at this basis|based on (this|that|above|it)|on (this|that)|from (this|that|above))\b/i,
-  /\b(as (discussed|mentioned|above|explained)|what (we|i) (just )?(discussed|talked|said|covered))\b/i,
-  /\b(previous(ly)?|last (topic|subject|thing)|what you (just |just)?explained)\b/i,
-];
-
-function isVagueTopic(topic) {
-  const t = topic.trim();
-  return CONTEXT_REF_PATTERNS.some(p => p.test(t));
-}
-
-// ── Pull the last meaningful subject from chat history ────────────────
-function getLastTopicFromHistory() {
-  if (!chatHistory.length) return null;
-
-  // Check assistant messages for what topic was last generated/discussed
-  const reversed = [...chatHistory].reverse();
-
-  // First: look for explicit "Generated X flashcards/quiz about TOPIC" entries
-  for (const h of reversed) {
-    if (h.role === 'assistant') {
-      const m = h.content.match(/(?:flashcards?|quiz)\s+(?:about|on)\s+(.+)/i);
-      if (m && m[1]) return m[1].trim();
-    }
-  }
-
-  // Second: look for the last user message that had a real topic (not vague)
-  for (const h of reversed) {
-    if (h.role === 'user') {
-      const extracted = extractTopic(h.content);
-      if (extracted && !isVagueTopic(extracted) && extracted.length > 1) {
-        return extracted;
-      }
-    }
-  }
-
-  // Third: look for subject nouns in last assistant reply (e.g. "Introduction to Python")
-  for (const h of reversed) {
-    if (h.role === 'assistant') {
-      // Try to find a heading like "## Introduction to Python" or "# Python"
-      const headingMatch = h.content.match(/(?:^|\n)#{1,3}\s+(?:introduction to\s+)?([A-Za-z][^\n]{2,40})/i);
-      if (headingMatch) return headingMatch[1].trim();
-    }
-  }
-
+const CTX_PATS=[/^(it|this|that|them|same|the same)$/i,/^(the topic|same topic|this topic|that topic)$/i,/\b(at this basis|based on (this|that|above|it)|on (this|that))\b/i,/\b(as (discussed|mentioned|above|explained)|what (we|i) (just )?(discussed|talked|said|covered))\b/i,/\b(previous(ly)?|last (topic|subject|thing))\b/i];
+function isVague(t){return CTX_PATS.some(p=>p.test(t.trim()));}
+function getLastTopic() {
+  const rev=[...chatHistory].reverse();
+  for(const h of rev){if(h.role==='assistant'){const m=h.content.match(/(?:flashcards?|quiz)\s+(?:about|on)\s+(.+)/i);if(m)return m[1].trim();}}
+  for(const h of rev){if(h.role==='user'){const e=extractTopic(h.content);if(e&&!isVague(e)&&e.length>1)return e;}}
+  for(const h of rev){if(h.role==='assistant'){const m=h.content.match(/(?:^|\n)#{1,3}\s+(?:introduction to\s+)?([A-Za-z][^\n]{2,40})/i);if(m)return m[1].trim();}}
   return null;
 }
-
-// ── FIX: Fully context-aware topic resolver ───────────────────────────
-function resolveVagueTopic(topic) {
-  if (isVagueTopic(topic)) {
-    const lastTopic = getLastTopicFromHistory();
-    if (lastTopic) {
-      console.log(`[Sedy] Resolved vague topic "${topic}" → "${lastTopic}"`);
-      return lastTopic;
-    }
-  }
-  return topic;
+function resolveTopic(msg) {
+  let t=extractTopic(msg);
+  if(isVague(t)||t.length<=2){const l=getLastTopic();if(l)return l;}
+  return t;
 }
 
-// ── Also resolve the full user message for "at this basis generate flashcards"
-// style requests where topic extraction itself returns a vague phrase ──
-function resolveTopicFromMessage(message) {
-  // First try normal extraction
-  let topic = extractTopic(message);
-
-  // If extracted topic is vague OR very short/meaningless, try context
-  if (isVagueTopic(topic) || topic.length <= 2) {
-    const lastTopic = getLastTopicFromHistory();
-    if (lastTopic) {
-      console.log(`[Sedy] Resolved from message context "${topic}" → "${lastTopic}"`);
-      return lastTopic;
-    }
-  }
-
-  return topic;
-}
-
-// ── FIX: Push to history + persist ───────────────────────────────────
-function pushHistory(role, content) {
-  chatHistory.push({ role, content });
-  // Keep memory lean: cap at 40 entries
-  if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40);
-  persistHistory();      // ← write to localStorage immediately
-  updateMemoryBadge();
-}
-
-// ── Send Message ─────────────────────────────────────────────────────
+// SEND
 async function sendMessage() {
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = ''; input.style.height = 'auto';
-
-  addMsg('user', text);
-
-  const intent = detectIntent(text);
-  // FIX: use context-aware resolver that handles "at this basis", "on this", etc.
-  const topic = resolveTopicFromMessage(text);
-
-  try {
-    if (intent === 'both') {
-      showTyping();
-      // FIX: save user message once before both requests
-      pushHistory('user', text);
-      await handleFlashcards(topic, text, false);
-      showTyping();
-      await handleQuiz(topic, text, false);
-      // FIX: save combined assistant entry
-      pushHistory('assistant', `Generated flashcards and a quiz about ${topic}`);
-    } else if (intent === 'flashcard') {
-      showTyping();
-      await handleFlashcards(topic, text, true);
-    } else if (intent === 'quiz') {
-      showTyping();
-      await handleQuiz(topic, text, true);
-    } else {
-      showTyping();
-      await handleChat(text);
-    }
-  } catch(err) {
-    hideTyping();
-    addMsg('ai', '❌ Could not reach Sedy. Please check your connection and try again.');
-    console.error('Sedy API error:', err);
+  const input=document.getElementById('chat-input');
+  const text=input.value.trim();
+  if(!text)return;
+  input.value=''; input.style.height='auto';
+  addMsg('user',text);
+  if(currentPdf){
+    showTyping();
+    try{await handlePdfChat(text,currentPdf);}
+    catch(err){hideTyping();addMsg('ai','PDF processing failed: '+err.message);console.error(err);}
+    return;
   }
+  const intent=detectIntent(text);
+  const topic=resolveTopic(text);
+  try{
+    if(intent==='both'){showTyping();pushHistory('user',text);await handleFlashcards(topic,text,false);showTyping();await handleQuiz(topic,text,false);pushHistory('assistant','Generated flashcards and a quiz about '+topic);}
+    else if(intent==='flashcard'){showTyping();await handleFlashcards(topic,text,true);}
+    else if(intent==='quiz'){showTyping();await handleQuiz(topic,text,true);}
+    else{showTyping();await handleChat(text);}
+  }catch(err){hideTyping();addMsg('ai','Could not reach Sedy. Please check your connection.');console.error(err);}
 }
 
-// ── Chat ─────────────────────────────────────────────────────────────
+// CHAT
 async function handleChat(text) {
-  // FIX: send the FULL chatHistory (up to last 20 turns) for context
-  const historyToSend = chatHistory.slice(-20);
-
-  const res = await fetch(`${API_URL}/chat`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ message: text, history: historyToSend })
-  });
-
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  hideTyping();
-
-  const reply = data.reply || 'Sorry, I could not get a response.';
-
-  // FIX: push BOTH sides to history and persist
-  pushHistory('user', text);
-  pushHistory('assistant', reply);
-
-  addMsg('ai', reply);
+  const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const data=await res.json(); hideTyping();
+  const reply=data.reply||'Sorry, no response.';
+  pushHistory('user',text); pushHistory('assistant',reply); addMsg('ai',reply);
 }
 
-// ── Flashcards ───────────────────────────────────────────────────────
-async function handleFlashcards(topic, originalText, saveHistory=true) {
-  topic = isVagueTopic(topic) ? (getLastTopicFromHistory() || topic) : topic;
-
-  const res = await fetch(`${API_URL}/flashcards`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    // FIX: send history so backend can resolve vague topics like "at this basis"
-    body: JSON.stringify({ topic, count: 6, history: chatHistory.slice(-20) })
-  });
-
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  hideTyping();
-
-  // FIX: backend may return a better-resolved topic (e.g. "Python" instead of "at this basis")
-  const resolvedTopic = data.topic || topic;
-  const cards = data.cards || [];
-  if (!cards.length) {
-    addMsg('ai', `Sorry, couldn't generate flashcards for "${resolvedTopic}".`);
-    return;
-  }
-
-  if (saveHistory) {
-    pushHistory('user', originalText);
-    pushHistory('assistant', `Generated ${cards.length} flashcards about ${resolvedTopic}`);
-  }
-
-  let html = `<strong>🃏 ${cards.length} Flashcards — ${_esc(resolvedTopic)}</strong><br>
-    <small style="color:var(--text3);font-size:11px;">Click each card to reveal the answer</small>
-    <div class="fc-grid">`;
-
-  cards.forEach(card => {
-    html += `
-      <div class="fc-card" onclick="this.classList.toggle('flipped')">
-        <div class="fc-inner">
-          <div class="fc-front">
-            <div class="fc-tag">Question</div>
-            <div class="fc-text">${_esc(card.question||card.front||'')}</div>
-            <div class="fc-hint">tap to flip →</div>
-          </div>
-          <div class="fc-back">
-            <div class="fc-tag">Answer</div>
-            <div class="fc-text">${_esc(card.answer||card.back||'')}</div>
-            <div class="fc-hint">tap to flip back</div>
-          </div>
-        </div>
-      </div>`;
-  });
-
-  html += `</div>`;
-  addMsg('ai', html, true);
+// FLASHCARDS
+async function handleFlashcards(topic,originalText,saveHistory=true) {
+  topic=isVague(topic)?(getLastTopic()||topic):topic;
+  const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,count:6,history:chatHistory.slice(-20)})});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const data=await res.json(); hideTyping();
+  const rt=data.topic||topic; const cards=data.cards||[];
+  if(!cards.length){addMsg('ai','Could not generate flashcards for "'+rt+'".');return;}
+  if(saveHistory){pushHistory('user',originalText);pushHistory('assistant','Generated '+cards.length+' flashcards about '+rt);}
+  let html='<strong>🃏 '+cards.length+' Flashcards — '+_esc(rt)+'</strong><br><small style="color:var(--text3);font-size:11px;">Tap each card to reveal the answer</small><div class="fc-grid">';
+  cards.forEach(c=>{html+='<div class="fc-card" onclick="this.classList.toggle(\'flipped\')"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Question</div><div class="fc-text">'+_esc(c.question||c.front||'')+'</div><div class="fc-hint">tap to flip</div></div><div class="fc-back"><div class="fc-tag">Answer</div><div class="fc-text">'+_esc(c.answer||c.back||'')+'</div><div class="fc-hint">tap back</div></div></div></div>';});
+  addMsg('ai',html+'</div>',true);
 }
 
-// ── Quiz ─────────────────────────────────────────────────────────────
-async function handleQuiz(topic, originalText, saveHistory=true) {
-  topic = isVagueTopic(topic) ? (getLastTopicFromHistory() || topic) : topic;
-
-  let difficulty = 'medium';
-  if (/easy|simple|basic/i.test(originalText)) difficulty = 'easy';
-  if (/hard|difficult|advanced/i.test(originalText)) difficulty = 'hard';
-
-  const res = await fetch(`${API_URL}/quiz`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    // FIX: send history so backend can resolve vague topics like "at this basis"
-    body: JSON.stringify({ topic, difficulty, count: 5, history: chatHistory.slice(-20) })
-  });
-
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  hideTyping();
-
-  // FIX: backend may return a better-resolved topic
-  const resolvedTopic = data.topic || topic;
-  const questions = data.questions || [];
-  if (!questions.length) {
-    addMsg('ai', `Sorry, couldn't generate a quiz for "${resolvedTopic}".`);
-    return;
-  }
-
-  if (saveHistory) {
-    pushHistory('user', originalText);
-    pushHistory('assistant', `Started a ${difficulty} quiz about ${resolvedTopic}`);
-  }
-
-  activeQuiz = { questions, idx: 0, score: 0, topic: resolvedTopic, answered: false };
-  addMsg('ai', `📝 <strong>Quiz — ${_esc(resolvedTopic)}</strong> · ${difficulty} · ${questions.length} questions<br>
-    <small style="color:var(--text3);font-size:11px;">Select an answer for each question</small>`, true);
+// QUIZ
+async function handleQuiz(topic,originalText,saveHistory=true) {
+  topic=isVague(topic)?(getLastTopic()||topic):topic;
+  let diff='medium'; if(/easy|simple|basic/i.test(originalText))diff='easy'; if(/hard|difficult|advanced/i.test(originalText))diff='hard';
+  const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,difficulty:diff,count:5,history:chatHistory.slice(-20)})});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const data=await res.json(); hideTyping();
+  const rt=data.topic||topic; const qs=data.questions||[];
+  if(!qs.length){addMsg('ai','Could not generate a quiz for "'+rt+'".');return;}
+  if(saveHistory){pushHistory('user',originalText);pushHistory('assistant','Started a '+diff+' quiz about '+rt);}
+  activeQuiz={questions:qs,idx:0,score:0,topic:rt,answered:false};
+  addMsg('ai','<strong>📝 Quiz — '+_esc(rt)+'</strong> · '+diff+' · '+qs.length+' questions<br><small style="color:var(--text3);font-size:11px;">Select an answer for each question</small>',true);
   renderQuizQ();
 }
 
 function renderQuizQ() {
-  if (!activeQuiz) return;
-  const { questions, idx } = activeQuiz;
-  const q = questions[idx];
-  const total = questions.length;
-  const letters = ['A','B','C','D'];
-
-  let opts = '';
-  q.options.forEach((opt, i) => {
-    opts += `<div class="quiz-opt" id="qo-${i}" onclick="answerQ(${i})">
-      <div class="opt-l">${letters[i]}</div>${_esc(opt)}
-    </div>`;
-  });
-
-  addMsg('ai', `
-    <div class="quiz-wrap" id="quiz-wrap">
-      <div class="quiz-prog"><div class="quiz-fill" style="width:${(idx/total)*100}%"></div></div>
-      <div class="quiz-qnum">Question ${idx+1} of ${total}</div>
-      <div class="quiz-q">${_esc(q.question)}</div>
-      <div class="quiz-opts">${opts}</div>
-      <div class="quiz-exp" id="quiz-exp"></div>
-      <button class="quiz-next" id="quiz-next" onclick="nextQ()">Next →</button>
-    </div>`, true);
-  activeQuiz.answered = false;
+  if(!activeQuiz)return;
+  const {questions:qs,idx}=activeQuiz; const q=qs[idx]; const tot=qs.length; const L=['A','B','C','D'];
+  let opts=''; q.options.forEach((o,i)=>opts+='<div class="quiz-opt" id="qo-'+i+'" onclick="answerQ('+i+')"><div class="opt-l">'+L[i]+'</div>'+_esc(o)+'</div>');
+  addMsg('ai','<div class="quiz-wrap" id="quiz-wrap"><div class="quiz-prog"><div class="quiz-fill" style="width:'+(idx/tot*100)+'%"></div></div><div class="quiz-qnum">Question '+(idx+1)+' of '+tot+'</div><div class="quiz-q">'+_esc(q.question)+'</div><div class="quiz-opts">'+opts+'</div><div class="quiz-exp" id="quiz-exp"></div><button class="quiz-next" id="quiz-next" onclick="nextQ()">Next</button></div>',true);
+  activeQuiz.answered=false;
 }
 
 function answerQ(idx) {
-  if (!activeQuiz || activeQuiz.answered) return;
-  activeQuiz.answered = true;
-
-  const q = activeQuiz.questions[activeQuiz.idx];
-  document.querySelectorAll('.quiz-opt').forEach((el, i) => {
-    el.classList.add('disabled');
-    if (i === q.answer) el.classList.add('correct');
-    else if (i === idx && idx !== q.answer) el.classList.add('wrong');
-  });
-
-  if (idx === q.answer) activeQuiz.score++;
-
-  if (q.explanation) {
-    const exp = document.getElementById('quiz-exp');
-    if (exp) { exp.textContent = `💡 ${q.explanation}`; exp.style.display='block'; }
-  }
-
-  const btn = document.getElementById('quiz-next');
-  if (btn) {
-    btn.style.display = 'block';
-    btn.textContent = activeQuiz.idx+1 < activeQuiz.questions.length ? 'Next →' : 'See Results 🎉';
-  }
+  if(!activeQuiz||activeQuiz.answered)return; activeQuiz.answered=true;
+  const q=activeQuiz.questions[activeQuiz.idx];
+  document.querySelectorAll('.quiz-opt').forEach((el,i)=>{el.classList.add('disabled');if(i===q.answer)el.classList.add('correct');else if(i===idx&&idx!==q.answer)el.classList.add('wrong');});
+  if(idx===q.answer)activeQuiz.score++;
+  if(q.explanation){const exp=document.getElementById('quiz-exp');if(exp){exp.textContent='💡 '+q.explanation;exp.style.display='block';}}
+  const btn=document.getElementById('quiz-next');if(btn){btn.style.display='block';btn.textContent=activeQuiz.idx+1<activeQuiz.questions.length?'Next →':'See Results 🎉';}
 }
-
 function nextQ() {
-  if (!activeQuiz) return;
-  activeQuiz.idx++; activeQuiz.answered = false;
-  const old = document.getElementById('quiz-wrap');
-  if (old) old.closest('.msg').remove();
-  if (activeQuiz.idx < activeQuiz.questions.length) renderQuizQ();
-  else showQuizResult();
+  if(!activeQuiz)return; activeQuiz.idx++; activeQuiz.answered=false;
+  const old=document.getElementById('quiz-wrap'); if(old)old.closest('.msg').remove();
+  if(activeQuiz.idx<activeQuiz.questions.length)renderQuizQ(); else showQuizResult();
 }
-
 function showQuizResult() {
-  const { score, questions, topic } = activeQuiz;
-  const total = questions.length;
-  const pct = Math.round((score/total)*100);
-  const labels = ['Keep practicing! 💪','Good effort! 📚','Well done! ⭐','Excellent! 🎉','Perfect! 🏆'];
-  const label = pct<40?labels[0]:pct<60?labels[1]:pct<80?labels[2]:pct<100?labels[3]:labels[4];
-
-  addMsg('ai', `
-    <div class="quiz-result">
-      <div class="qr-pct">${pct}%</div>
-      <div class="qr-lbl">${label}</div>
-      <div class="qr-stats">
-        <div class="qr-stat"><div class="qr-n g">${score}</div><div class="qr-sl">Correct</div></div>
-        <div class="qr-stat"><div class="qr-n r">${total-score}</div><div class="qr-sl">Wrong</div></div>
-        <div class="qr-stat"><div class="qr-n" style="color:var(--accent)">${total}</div><div class="qr-sl">Total</div></div>
-      </div>
-    </div>`, true);
-
-  // FIX: persist quiz result to history
-  pushHistory('assistant', `Quiz on ${topic} completed. Score: ${score}/${total} (${pct}%)`);
-
-  addMsg('ai', `Great job on the **${topic}** quiz! Want to try again or explore another topic? 😊`);
-  activeQuiz = null;
+  const {score,questions,topic}=activeQuiz; const tot=questions.length; const pct=Math.round(score/tot*100);
+  const labels=['Keep practicing!','Good effort!','Well done!','Excellent!','Perfect!'];
+  const label=pct<40?labels[0]:pct<60?labels[1]:pct<80?labels[2]:pct<100?labels[3]:labels[4];
+  addMsg('ai','<div class="quiz-result"><div class="qr-pct">'+pct+'%</div><div class="qr-lbl">'+label+'</div><div class="qr-stats"><div class="qr-stat"><div class="qr-n g">'+score+'</div><div class="qr-sl">Correct</div></div><div class="qr-stat"><div class="qr-n r">'+(tot-score)+'</div><div class="qr-sl">Wrong</div></div><div class="qr-stat"><div class="qr-n" style="color:var(--accent)">'+tot+'</div><div class="qr-sl">Total</div></div></div></div>',true);
+  pushHistory('assistant','Quiz on '+topic+' completed. Score: '+score+'/'+tot+' ('+pct+'%)');
+  addMsg('ai','Great job on the **'+topic+'** quiz! Want to try again or explore another topic?');
+  activeQuiz=null;
 }
 
-// ── INIT: Restore session on page load ───────────────────────────────
-function initSession() {
-  const wrap = document.getElementById('chat-messages');
+// MOBILE SIDEBAR
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('drawer-overlay').classList.add('open');document.body.style.overflow='hidden';}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('drawer-overlay').classList.remove('open');document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSidebar();});
+if(window.visualViewport){let last=window.visualViewport.height;window.visualViewport.addEventListener('resize',()=>{const vh=window.visualViewport.height;if(last-vh>100){setTimeout(()=>{const m=document.getElementById('chat-messages');m.scrollTop=m.scrollHeight;},100);}last=vh;});}
 
-  if (chatHistory.length === 0) {
-    // Fresh session — show welcome message
-    addMsg('ai',
-      `Hey! I\'m **Sedy**, your AI study companion made by Ansh Verma 👋\n\n` +
-      `I remember our conversation — even after you refresh the page! 💾\n\n` +
-      `🃏 *"Flashcards about X"* — flip cards\n` +
-      `📝 *"Quiz me on X"* — interactive quiz\n` +
-      `🌟 *"Flashcards and a quiz on X"* — both at once!\n` +
-      `💻 *Code* — syntax highlighted with copy button\n` +
-      `🧮 *Math* — rendered formulas like \\(E = mc^2\\)\n` +
-      `📖 *Rich text* — headings, lists, tables & highlights`
-    );
+// INIT
+function initSession() {
+  if(chatHistory.length===0){
+    addMsg('ai','Hey! I\'m **Sedy**, your AI study companion made by Ansh Verma\n\nMemory saved across page refreshes!\n\n**📎 Upload a PDF** — ask questions, get summaries, generate flashcards from any document\n**Flashcards** — "flashcards about X"\n**Quiz** — "quiz me on X"\n**Math** — formulas rendered with KaTeX \\(E=mc^2\\)\n**Code** — syntax highlighted');
   } else {
-    // Returning session — show a brief restored notice then replay summary
-    const userCount = chatHistory.filter(h => h.role === 'user').length;
-    addMsg('ai',
-      `👋 Welcome back! I remember our previous conversation (${userCount} message${userCount!==1?'s':''}).\n\n` +
-      `You can keep asking questions and I\'ll have full context. Type anything to continue!`
-    );
+    const uc=chatHistory.filter(h=>h.role==='user').length;
+    addMsg('ai','Welcome back! I remember our previous conversation ('+uc+' message'+(uc!==1?'s':'')+').\n\nUpload a PDF with the paperclip button, or just type to continue!');
     updateMemoryBadge();
   }
 }
-
-// Boot
 initSession();
-
-
-// ── MOBILE SIDEBAR ────────────────────────────────────────────────
-function openSidebar() {
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('drawer-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('drawer-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-// close on Escape
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
-
-// ── FIX: iOS virtual keyboard — resize chat area when keyboard opens ──
-// This prevents the keyboard from covering the input box on Safari
-if (window.visualViewport) {
-  let lastVH = window.visualViewport.height;
-  window.visualViewport.addEventListener('resize', () => {
-    const vh = window.visualViewport.height;
-    const diff = lastVH - vh;
-    lastVH = vh;
-    // if keyboard appeared (viewport shrank) scroll to bottom
-    if (diff > 100) {
-      setTimeout(() => {
-        const msgs = document.getElementById('chat-messages');
-        msgs.scrollTop = msgs.scrollHeight;
-      }, 100);
-    }
-  });
-}
 </script>
 </body>
 </html>

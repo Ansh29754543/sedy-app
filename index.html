@@ -314,13 +314,44 @@ const _esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/
 function renderMarkdown(text) {
   let html = text;
   const codeBlocks = [];
+  const mathBlocks = [];   // FIX: protect math from markdown mangling
 
+  // Stash code blocks first
   html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang, code) => {
     const idx = codeBlocks.length;
     codeBlocks.push({ lang: lang || 'plaintext', code: code.trim() });
     return `%%CODE_${idx}%%`;
   });
 
+  // Stash $$...$$ display math BEFORE html-escaping so dollar signs survive
+  html = html.replace(/\$\$([\s\S]+?)\$\$/g, (_, inner) => {
+    const idx = mathBlocks.length;
+    mathBlocks.push({ display: true, inner });
+    return `%%MATH_${idx}%%`;
+  });
+
+  // Stash $...$ inline math
+  html = html.replace(/\$([^$\n]+?)\$/g, (_, inner) => {
+    const idx = mathBlocks.length;
+    mathBlocks.push({ display: false, inner });
+    return `%%MATH_${idx}%%`;
+  });
+
+  // Stash \(...\) inline math
+  html = html.replace(/\\\((.+?)\\\)/g, (_, inner) => {
+    const idx = mathBlocks.length;
+    mathBlocks.push({ display: false, inner });
+    return `%%MATH_${idx}%%`;
+  });
+
+  // Stash \[...\] display math
+  html = html.replace(/\\\[([\s\S]+?)\\\]/g, (_, inner) => {
+    const idx = mathBlocks.length;
+    mathBlocks.push({ display: true, inner });
+    return `%%MATH_${idx}%%`;
+  });
+
+  // Now safe to HTML-escape (math is stashed)
   html = html.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
   html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
@@ -381,6 +412,14 @@ function renderMarkdown(text) {
       </div>`);
   });
 
+  // FIX: restore math blocks as KaTeX-ready delimiters
+  // Inline: $...$ and display: $$...$$
+  // We restore them as-is so KaTeX's auto-render picks them up after addMsg inserts into DOM
+  mathBlocks.forEach(({display, inner}, idx) => {
+    const restored = display ? `$$${inner}$$` : `$${inner}$`;
+    html = html.replace(`%%MATH_${idx}%%`, restored);
+  });
+
   return html;
 }
 
@@ -430,8 +469,14 @@ function addMsg(role, content, isHtml=false) {
   wrap.appendChild(div);
 
   if (role === 'ai') {
-    renderMath(div.querySelector('.msg-bubble'));
-    div.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+    // FIX: always run renderMath on ALL ai bubbles, including isHtml=true ones.
+    // Previously it was only called for plain-text responses, so math in chat
+    // responses worked but math inside flashcard/quiz HTML was never rendered.
+    const bubble = div.querySelector('.msg-bubble');
+    if (bubble) {
+      renderMath(bubble);
+      bubble.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+    }
   }
 
   scrollBottom();

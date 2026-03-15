@@ -202,7 +202,8 @@
       <div style="font-size:12px;color:var(--text3);padding:0 8px;line-height:1.7;">
         Say <span style="color:var(--accent)">"flashcards about X"</span>,
         <span style="color:var(--accent)">"quiz me on X"</span>, or both at once!<br><br>
-        Code, math <span style="color:var(--accent3)">$E=mc^2$</span> & rich text auto-render ✨
+        Code, math <span style="color:var(--accent3)">$E=mc^2$</span> & rich text auto-render ✨<br><br>
+        <span style="color:var(--success)">💾 Memory is saved</span> across page refreshes!
       </div>
     </div>
     <div class="sidebar-footer">
@@ -225,21 +226,7 @@
     </div>
 
     <div class="chat-messages" id="chat-messages">
-      <div class="msg ai">
-        <div class="msg-avatar">🤖</div>
-        <div class="msg-content">
-          <div class="msg-bubble">
-            Hey! I'm <strong>Sedy</strong>, your AI study companion made by Ansh Verma 👋<br><br>
-            I remember our conversation and render everything beautifully:<br><br>
-            🃏 <em>"Flashcards about X"</em> — flip cards<br>
-            📝 <em>"Quiz me on X"</em> — interactive quiz<br>
-            🌟 <em>"Flashcards and a quiz on X"</em> — both at once!<br>
-            💻 <em>Code</em> — syntax highlighted with copy button<br>
-            🧮 <em>Math</em> — rendered formulas like \(E = mc^2\)<br>
-            📖 <em>Rich text</em> — headings, lists, tables & highlights
-          </div>
-        </div>
-      </div>
+      <!-- Messages rendered here by JS -->
     </div>
 
     <div class="input-area">
@@ -250,15 +237,56 @@
           oninput="autoResize(this)"></textarea>
         <button class="send-btn" onclick="sendMessage()">➤</button>
       </div>
-      <div class="input-hint">Remembers context ✦ Renders code & math ✦ Typos OK ✦ Auto-detects flashcards & quizzes ✨</div>
+      <div class="input-hint">Memory saved across sessions 💾 ✦ Renders code & math ✦ Auto-detects flashcards & quizzes ✨</div>
     </div>
   </main>
 </div>
 
 <script>
 const API_URL = 'https://sedy-ai-6j7c.onrender.com';
+const STORAGE_KEY = 'sedy_chat_history';
+const STORAGE_MSGS_KEY = 'sedy_chat_messages';
 let activeQuiz = null;
+
+// ── MEMORY: Load history from localStorage on startup ─────────────────
 let chatHistory = [];
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    chatHistory = JSON.parse(saved);
+    // Sanitize: only keep last 40 turns to avoid very old stale data
+    if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40);
+  }
+} catch(e) {
+  chatHistory = [];
+}
+
+// ── MEMORY: Save history to localStorage ─────────────────────────────
+function persistHistory() {
+  try {
+    // Keep only last 40 messages in storage
+    const toSave = chatHistory.slice(-40);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  } catch(e) {
+    console.warn('Could not save history to localStorage:', e);
+  }
+}
+
+// ── MEMORY: Update badge ──────────────────────────────────────────────
+function updateMemoryBadge() {
+  document.getElementById('memory-count').textContent = `Memory: ${chatHistory.length} messages`;
+}
+
+// ── MEMORY: Clear everything ─────────────────────────────────────────
+function clearChat() {
+  chatHistory = [];
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(STORAGE_MSGS_KEY);
+  activeQuiz = null;
+  document.getElementById('chat-messages').innerHTML = '';
+  addMsg('ai', 'Chat cleared! Memory wiped. Ready to help you study again 😊');
+  updateMemoryBadge();
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────
 function autoResize(el) {
@@ -280,22 +308,6 @@ function scrollBottom() {
   setTimeout(() => el.scrollTop = el.scrollHeight, 100);
 }
 
-function updateMemoryBadge() {
-  document.getElementById('memory-count').textContent = `Memory: ${chatHistory.length} messages`;
-}
-
-function clearChat() {
-  chatHistory = [];
-  document.getElementById('chat-messages').innerHTML = `
-    <div class="msg ai">
-      <div class="msg-avatar">🤖</div>
-      <div class="msg-content">
-        <div class="msg-bubble">Chat cleared! Ready to help you study again 😊</div>
-      </div>
-    </div>`;
-  updateMemoryBadge();
-}
-
 const _esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
 // ── Rich Text / Markdown Renderer ────────────────────────────────────
@@ -303,38 +315,30 @@ function renderMarkdown(text) {
   let html = text;
   const codeBlocks = [];
 
-  // Extract code blocks first
   html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang, code) => {
     const idx = codeBlocks.length;
     codeBlocks.push({ lang: lang || 'plaintext', code: code.trim() });
     return `%%CODE_${idx}%%`;
   });
 
-  // Escape HTML
   html = html.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  // Headings
   html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
   html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
   html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
 
-  // Bold + italic
   html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
 
-  // Inline code
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-  // Callout boxes
   html = html.replace(/\[!NOTE\]\s*(.+)/g, '<div class="highlight-box">💡 $1</div>');
   html = html.replace(/\[!WARNING\]\s*(.+)/g, '<div class="warning-box">⚠️ $1</div>');
   html = html.replace(/\[!SUCCESS\]\s*(.+)/g, '<div class="success-box">✅ $1</div>');
 
-  // HR
   html = html.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">');
 
-  // Tables
   html = html.replace(/(\|.+\|\n)((\|[-| :]+)+\|)\n((?:\|.+\|\n?)+)/g, (match) => {
     const lines = match.trim().split('\n');
     const headers = lines[0].split('|').filter(c => c.trim());
@@ -350,7 +354,6 @@ function renderMarkdown(text) {
     return t + '</tbody></table>';
   });
 
-  // Lists
   html = html.replace(/((?:^[-*] .+\n?)+)/gm, match => {
     const items = match.trim().split('\n').map(i => `<li>${i.replace(/^[-*] /,'')}</li>`).join('');
     return `<ul>${items}</ul>`;
@@ -360,11 +363,9 @@ function renderMarkdown(text) {
     return `<ol>${items}</ol>`;
   });
 
-  // Newlines
   html = html.replace(/\n\n/g, '<br><br>');
   html = html.replace(/\n/g, '<br>');
 
-  // Restore code blocks
   codeBlocks.forEach(({lang, code}, idx) => {
     const safe = code.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
     let highlighted;
@@ -489,13 +490,31 @@ function extractTopic(text) {
   return text.replace(/flashcards?|flash\s*cards?|quiz(zes)?|make|create|generate|about|on|me|test|cards?|and|a\b/gi,'').trim() || text;
 }
 
+// ── FIX: Resolve vague topics using chatHistory ──────────────────────
 function resolveVagueTopic(topic) {
   const vague = ['it','that','this','them','same','the topic','same topic','this topic','the same'];
   if (vague.includes(topic.toLowerCase().trim()) && chatHistory.length > 0) {
-    const lastUser = [...chatHistory].reverse().find(h => h.role === 'user');
-    if (lastUser) return extractTopic(lastUser.content) || topic;
+    // Look back through history for the last user message with a real topic
+    const history = [...chatHistory].reverse();
+    for (const h of history) {
+      if (h.role === 'user') {
+        const extracted = extractTopic(h.content);
+        if (extracted && !vague.includes(extracted.toLowerCase().trim())) {
+          return extracted;
+        }
+      }
+    }
   }
   return topic;
+}
+
+// ── FIX: Push to history + persist ───────────────────────────────────
+function pushHistory(role, content) {
+  chatHistory.push({ role, content });
+  // Keep memory lean: cap at 40 entries
+  if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40);
+  persistHistory();      // ← write to localStorage immediately
+  updateMemoryBadge();
 }
 
 // ── Send Message ─────────────────────────────────────────────────────
@@ -508,15 +527,19 @@ async function sendMessage() {
   addMsg('user', text);
 
   const intent = detectIntent(text);
-  const topic = resolveVagueTopic(extractTopic(text));
+  const rawTopic = extractTopic(text);
+  const topic = resolveVagueTopic(rawTopic);
 
   try {
     if (intent === 'both') {
-      // ✅ Generate flashcards THEN quiz sequentially
       showTyping();
-      await handleFlashcards(topic, text, false); // false = don't save history yet
+      // FIX: save user message once before both requests
+      pushHistory('user', text);
+      await handleFlashcards(topic, text, false);
       showTyping();
-      await handleQuiz(topic, text, true); // true = save history at end
+      await handleQuiz(topic, text, false);
+      // FIX: save combined assistant entry
+      pushHistory('assistant', `Generated flashcards and a quiz about ${topic}`);
     } else if (intent === 'flashcard') {
       showTyping();
       await handleFlashcards(topic, text, true);
@@ -529,25 +552,32 @@ async function sendMessage() {
     }
   } catch(err) {
     hideTyping();
-    addMsg('ai', '❌ Could not reach Sedy. Please try again in a moment.');
+    addMsg('ai', '❌ Could not reach Sedy. Please check your connection and try again.');
+    console.error('Sedy API error:', err);
   }
 }
 
 // ── Chat ─────────────────────────────────────────────────────────────
 async function handleChat(text) {
+  // FIX: send the FULL chatHistory (up to last 20 turns) for context
+  const historyToSend = chatHistory.slice(-20);
+
   const res = await fetch(`${API_URL}/chat`, {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({message: text, history: chatHistory})
+    body: JSON.stringify({ message: text, history: historyToSend })
   });
+
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   hideTyping();
 
   const reply = data.reply || 'Sorry, I could not get a response.';
-  chatHistory.push({role:'user', content:text});
-  chatHistory.push({role:'assistant', content:reply});
-  if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
-  updateMemoryBadge();
+
+  // FIX: push BOTH sides to history and persist
+  pushHistory('user', text);
+  pushHistory('assistant', reply);
+
   addMsg('ai', reply);
 }
 
@@ -558,19 +588,23 @@ async function handleFlashcards(topic, originalText, saveHistory=true) {
   const res = await fetch(`${API_URL}/flashcards`, {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({topic, count:6})
+    body: JSON.stringify({ topic, count: 6 })
   });
+
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   hideTyping();
 
   const cards = data.cards || [];
-  if (!cards.length) { addMsg('ai', `Sorry, couldn't generate flashcards for "${topic}".`); return; }
+  if (!cards.length) {
+    addMsg('ai', `Sorry, couldn't generate flashcards for "${topic}".`);
+    return;
+  }
 
+  // FIX: always persist history when saveHistory=true
   if (saveHistory) {
-    chatHistory.push({role:'user', content:originalText});
-    chatHistory.push({role:'assistant', content:`Generated ${cards.length} flashcards about ${topic}`});
-    if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
-    updateMemoryBadge();
+    pushHistory('user', originalText);
+    pushHistory('assistant', `Generated ${cards.length} flashcards about ${topic}`);
   }
 
   let html = `<strong>🃏 ${cards.length} Flashcards — ${_esc(topic)}</strong><br>
@@ -610,22 +644,26 @@ async function handleQuiz(topic, originalText, saveHistory=true) {
   const res = await fetch(`${API_URL}/quiz`, {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({topic, difficulty, count:5})
+    body: JSON.stringify({ topic, difficulty, count: 5 })
   });
+
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   hideTyping();
 
   const questions = data.questions || [];
-  if (!questions.length) { addMsg('ai', `Sorry, couldn't generate a quiz for "${topic}".`); return; }
-
-  if (saveHistory) {
-    chatHistory.push({role:'user', content:originalText});
-    chatHistory.push({role:'assistant', content:`Started a ${difficulty} quiz about ${topic}`});
-    if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
-    updateMemoryBadge();
+  if (!questions.length) {
+    addMsg('ai', `Sorry, couldn't generate a quiz for "${topic}".`);
+    return;
   }
 
-  activeQuiz = {questions, idx:0, score:0, topic, answered:false};
+  // FIX: always persist history when saveHistory=true
+  if (saveHistory) {
+    pushHistory('user', originalText);
+    pushHistory('assistant', `Started a ${difficulty} quiz about ${topic}`);
+  }
+
+  activeQuiz = { questions, idx: 0, score: 0, topic, answered: false };
   addMsg('ai', `📝 <strong>Quiz — ${_esc(topic)}</strong> · ${difficulty} · ${questions.length} questions<br>
     <small style="color:var(--text3);font-size:11px;">Select an answer for each question</small>`, true);
   renderQuizQ();
@@ -633,7 +671,7 @@ async function handleQuiz(topic, originalText, saveHistory=true) {
 
 function renderQuizQ() {
   if (!activeQuiz) return;
-  const {questions, idx} = activeQuiz;
+  const { questions, idx } = activeQuiz;
   const q = questions[idx];
   const total = questions.length;
   const letters = ['A','B','C','D'];
@@ -662,7 +700,7 @@ function answerQ(idx) {
   activeQuiz.answered = true;
 
   const q = activeQuiz.questions[activeQuiz.idx];
-  document.querySelectorAll('.quiz-opt').forEach((el,i) => {
+  document.querySelectorAll('.quiz-opt').forEach((el, i) => {
     el.classList.add('disabled');
     if (i === q.answer) el.classList.add('correct');
     else if (i === idx && idx !== q.answer) el.classList.add('wrong');
@@ -692,7 +730,7 @@ function nextQ() {
 }
 
 function showQuizResult() {
-  const {score, questions, topic} = activeQuiz;
+  const { score, questions, topic } = activeQuiz;
   const total = questions.length;
   const pct = Math.round((score/total)*100);
   const labels = ['Keep practicing! 💪','Good effort! 📚','Well done! ⭐','Excellent! 🎉','Perfect! 🏆'];
@@ -709,12 +747,42 @@ function showQuizResult() {
       </div>
     </div>`, true);
 
+  // FIX: persist quiz result to history
+  pushHistory('assistant', `Quiz on ${topic} completed. Score: ${score}/${total} (${pct}%)`);
+
   addMsg('ai', `Great job on the **${topic}** quiz! Want to try again or explore another topic? 😊`);
   activeQuiz = null;
 }
 
-// Render math in welcome message
-document.querySelectorAll('.msg-bubble').forEach(el => renderMath(el));
+// ── INIT: Restore session on page load ───────────────────────────────
+function initSession() {
+  const wrap = document.getElementById('chat-messages');
+
+  if (chatHistory.length === 0) {
+    // Fresh session — show welcome message
+    addMsg('ai',
+      `Hey! I\'m **Sedy**, your AI study companion made by Ansh Verma 👋\n\n` +
+      `I remember our conversation — even after you refresh the page! 💾\n\n` +
+      `🃏 *"Flashcards about X"* — flip cards\n` +
+      `📝 *"Quiz me on X"* — interactive quiz\n` +
+      `🌟 *"Flashcards and a quiz on X"* — both at once!\n` +
+      `💻 *Code* — syntax highlighted with copy button\n` +
+      `🧮 *Math* — rendered formulas like \\(E = mc^2\\)\n` +
+      `📖 *Rich text* — headings, lists, tables & highlights`
+    );
+  } else {
+    // Returning session — show a brief restored notice then replay summary
+    const userCount = chatHistory.filter(h => h.role === 'user').length;
+    addMsg('ai',
+      `👋 Welcome back! I remember our previous conversation (${userCount} message${userCount!==1?'s':''}).\n\n` +
+      `You can keep asking questions and I\'ll have full context. Type anything to continue!`
+    );
+    updateMemoryBadge();
+  }
+}
+
+// Boot
+initSession();
 </script>
 </body>
 </html>

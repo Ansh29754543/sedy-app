@@ -795,7 +795,7 @@
         </div>
       </div>
       <div class="chat-input-area">
-        <div class="api-url-bar">
+        <div class="api-url-bar" style="display:none;">
           <input id="api-url" type="text" placeholder="Paste your API URL (e.g. https://xxxx.ngrok.io)" />
           <button class="connect-btn" onclick="connectAPI()">Connect</button>
         </div>
@@ -1438,6 +1438,14 @@ function updateCharts() {
     lineChart.update();
   }
 }
+
+// Auto connect to Render backend on load
+window.onload = () => {
+    apiUrl = 'https://sedy-ai-6j7c.onrender.com';
+    apiConnected = true;
+    document.getElementById('api-dot').classList.add('connected');
+    document.getElementById('api-status').textContent = 'Connected';
+};
 </script>
 </body>
 </html>

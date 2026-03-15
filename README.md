@@ -1,1 +1,1 @@
-# sedy-app
+# sedy.ai

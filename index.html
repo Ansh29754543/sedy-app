@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sedy — AI Student Assistant</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- Highlight.js for code -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<!-- KaTeX for math -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <style>
   :root {
     --bg: #080b12;
@@ -22,6 +29,7 @@
     --text3: #4a5a7a;
     --danger: #ff4f6a;
     --success: #00e5a0;
+    --warning: #ffb547;
     --glow: 0 0 40px rgba(79,142,255,0.15);
   }
 
@@ -37,14 +45,12 @@
 
   body::before {
     content: '';
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background-image:
       linear-gradient(rgba(79,142,255,0.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(79,142,255,0.03) 1px, transparent 1px);
     background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
+    pointer-events: none; z-index: 0;
   }
 
   .orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; }
@@ -101,9 +107,8 @@
     display: flex; align-items: center; gap: 10px;
     padding: 10px 12px; border-radius: 9px; cursor: pointer;
     color: var(--danger); font-size: 13px; font-weight: 500;
-    transition: all 0.2s; margin-bottom: 3px;
-    border: 1px solid transparent; background: none;
-    width: 100%; text-align: left; font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s; border: 1px solid transparent;
+    background: none; width: 100%; text-align: left; font-family: 'DM Sans', sans-serif;
   }
 
   .clear-btn:hover { background: rgba(255,79,106,0.08); border-color: rgba(255,79,106,0.2); }
@@ -118,10 +123,7 @@
     font-family: 'DM Mono', monospace;
   }
 
-  .status-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--success); box-shadow: 0 0 6px var(--success);
-  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); }
 
   /* ── Main ── */
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -137,16 +139,12 @@
 
   .memory-badge {
     display: flex; align-items: center; gap: 6px;
-    padding: 6px 12px;
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 20px; font-size: 11px; color: var(--text2);
-    font-family: 'DM Mono', monospace;
+    padding: 6px 12px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 20px;
+    font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace;
   }
 
-  .memory-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent2); box-shadow: 0 0 6px var(--accent2);
-  }
+  .memory-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
 
   /* ── Chat ── */
   .chat-messages {
@@ -176,12 +174,12 @@
   .msg.ai .msg-avatar { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
   .msg.user .msg-avatar { background: var(--card2); border: 1px solid var(--border2); }
 
-  .msg-content { max-width: 76%; display: flex; flex-direction: column; }
+  .msg-content { max-width: 80%; display: flex; flex-direction: column; }
   .msg.user .msg-content { align-items: flex-end; }
 
   .msg-bubble {
     padding: 12px 15px; border-radius: 14px;
-    font-size: 14px; line-height: 1.65;
+    font-size: 14px; line-height: 1.75;
   }
 
   .msg.ai .msg-bubble {
@@ -193,6 +191,170 @@
     background: linear-gradient(135deg, var(--accent), var(--accent2));
     color: white; border-top-right-radius: 4px;
   }
+
+  /* ── Rich Text Formatting ── */
+  .msg-bubble h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin: 12px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 6px;
+  }
+
+  .msg-bubble h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px; font-weight: 700; color: var(--accent);
+    margin: 10px 0 6px;
+  }
+
+  .msg-bubble h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 600; color: var(--accent2);
+    margin: 8px 0 4px;
+  }
+
+  .msg-bubble strong { color: var(--text); font-weight: 700; }
+  .msg-bubble em { color: var(--accent3); font-style: italic; }
+
+  .msg-bubble ul, .msg-bubble ol {
+    padding-left: 20px; margin: 8px 0;
+  }
+
+  .msg-bubble ul li, .msg-bubble ol li {
+    margin: 4px 0; line-height: 1.6;
+  }
+
+  .msg-bubble ul li::marker { color: var(--accent); }
+  .msg-bubble ol li::marker { color: var(--accent2); font-weight: 600; }
+
+  .msg-bubble p { margin: 6px 0; }
+
+  /* Inline code */
+  .msg-bubble code:not(.hljs) {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--accent3);
+  }
+
+  /* Highlight/callout boxes */
+  .msg-bubble .highlight-box {
+    background: linear-gradient(135deg, rgba(79,142,255,0.08), rgba(124,92,252,0.05));
+    border: 1px solid rgba(79,142,255,0.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    font-size: 13px;
+  }
+
+  .msg-bubble .warning-box {
+    background: rgba(255,181,71,0.08);
+    border: 1px solid rgba(255,181,71,0.2);
+    border-left: 3px solid var(--warning);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    font-size: 13px;
+    color: var(--warning);
+  }
+
+  .msg-bubble .success-box {
+    background: rgba(0,229,160,0.06);
+    border: 1px solid rgba(0,229,160,0.2);
+    border-left: 3px solid var(--success);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    font-size: 13px;
+    color: var(--success);
+  }
+
+  /* Table */
+  .msg-bubble table {
+    width: 100%; border-collapse: collapse;
+    margin: 10px 0; font-size: 13px;
+  }
+
+  .msg-bubble th {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    padding: 8px 12px;
+    text-align: left; font-weight: 600;
+    color: var(--accent); font-family: 'DM Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  .msg-bubble td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    background: var(--card);
+    line-height: 1.5;
+  }
+
+  .msg-bubble tr:hover td { background: var(--card2); }
+
+  /* ── Code Block ── */
+  .code-block-wrap {
+    margin: 10px 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border2);
+  }
+
+  .code-block-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px;
+    background: #1a1f2e;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .code-lang {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--accent2); text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .copy-btn {
+    background: none; border: 1px solid var(--border2);
+    border-radius: 5px; padding: 3px 10px;
+    color: var(--text2); font-size: 11px; cursor: pointer;
+    font-family: 'DM Mono', monospace; transition: all 0.2s;
+  }
+
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .code-block-wrap pre {
+    margin: 0 !important; border-radius: 0 !important;
+    background: #141922 !important;
+  }
+
+  .code-block-wrap pre code {
+    font-family: 'DM Mono', monospace !important;
+    font-size: 13px !important;
+    line-height: 1.6 !important;
+    padding: 14px !important;
+    background: none !important;
+    border: none !important;
+    color: inherit !important;
+  }
+
+  /* ── Math Block ── */
+  .math-block {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 10px 0;
+    text-align: center;
+    overflow-x: auto;
+  }
+
+  .math-block .katex { font-size: 1.2em; color: var(--text); }
+
+  .math-inline .katex { font-size: 1em; color: var(--accent3); }
 
   /* ── Flashcards ── */
   .fc-grid {
@@ -247,20 +409,10 @@
 
   /* ── Quiz ── */
   .quiz-wrap { margin-top: 4px; }
-
   .quiz-prog { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 14px; overflow: hidden; }
   .quiz-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s; }
-
-  .quiz-qnum {
-    font-family: 'DM Mono', monospace; font-size: 10px;
-    color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 7px;
-  }
-
-  .quiz-q {
-    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600;
-    line-height: 1.4; margin-bottom: 14px; color: var(--text);
-  }
-
+  .quiz-qnum { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 7px; }
+  .quiz-q { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600; line-height: 1.4; margin-bottom: 14px; color: var(--text); }
   .quiz-opts { display: flex; flex-direction: column; gap: 7px; }
 
   .quiz-opt {
@@ -276,8 +428,7 @@
   .quiz-opt.disabled { cursor: default; }
 
   .opt-l {
-    width: 22px; height: 22px; border-radius: 5px;
-    background: var(--border);
+    width: 22px; height: 22px; border-radius: 5px; background: var(--border);
     display: flex; align-items: center; justify-content: center;
     font-family: 'DM Mono', monospace; font-size: 10px; flex-shrink: 0;
   }
@@ -305,23 +456,14 @@
 
   /* ── Quiz Result ── */
   .quiz-result { text-align: center; padding: 20px 12px; }
-
   .qr-pct {
     font-family: 'Syne', sans-serif; font-size: 60px; font-weight: 800;
     background: linear-gradient(135deg, var(--accent), var(--accent3));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    line-height: 1;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1;
   }
-
   .qr-lbl { font-size: 14px; color: var(--text2); margin: 6px 0 16px; }
-
   .qr-stats { display: flex; gap: 10px; justify-content: center; }
-
-  .qr-stat {
-    padding: 11px 18px; background: var(--bg3);
-    border: 1px solid var(--border); border-radius: 9px; text-align: center;
-  }
-
+  .qr-stat { padding: 11px 18px; background: var(--bg3); border: 1px solid var(--border); border-radius: 9px; text-align: center; }
   .qr-n { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
   .qr-n.g { color: var(--success); }
   .qr-n.r { color: var(--danger); }
@@ -329,10 +471,7 @@
 
   /* ── Typing ── */
   .typing-indicator { display: flex; gap: 5px; padding: 4px 0; }
-  .typing-dot {
-    width: 7px; height: 7px; background: var(--accent);
-    border-radius: 50%; animation: bounce 1.2s infinite;
-  }
+  .typing-dot { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; animation: bounce 1.2s infinite; }
   .typing-dot:nth-child(2) { animation-delay: 0.2s; }
   .typing-dot:nth-child(3) { animation-delay: 0.4s; }
   @keyframes bounce {
@@ -395,38 +534,25 @@
 
     <div class="sidebar-section">
       <div class="sidebar-label">Quick Actions</div>
-      <button class="quick-btn" onclick="quickSend('Generate flashcards about Photosynthesis')">
-        <span class="qb-icon">🃏</span> Flashcards
-      </button>
-      <button class="quick-btn" onclick="quickSend('Quiz me on Newton\'s Laws')">
-        <span class="qb-icon">📝</span> Start a Quiz
-      </button>
-      <button class="quick-btn" onclick="quickSend('Explain quantum physics simply')">
-        <span class="qb-icon">💡</span> Explain Topic
-      </button>
-      <button class="quick-btn" onclick="quickSend('Summarize the French Revolution')">
-        <span class="qb-icon">📖</span> Summarize
-      </button>
-      <button class="quick-btn" onclick="quickSend('Solve: 2x + 5 = 15')">
-        <span class="qb-icon">🧮</span> Solve Problem
-      </button>
-      <button class="quick-btn" onclick="quickSend('Write a Python function to reverse a string')">
-        <span class="qb-icon">💻</span> Coding Help
-      </button>
+      <button class="quick-btn" onclick="quickSend('Generate flashcards about Photosynthesis')"><span class="qb-icon">🃏</span> Flashcards</button>
+      <button class="quick-btn" onclick="quickSend('Quiz me on Newton\'s Laws')"><span class="qb-icon">📝</span> Start a Quiz</button>
+      <button class="quick-btn" onclick="quickSend('Explain quantum physics simply')"><span class="qb-icon">💡</span> Explain Topic</button>
+      <button class="quick-btn" onclick="quickSend('Summarize the French Revolution')"><span class="qb-icon">📖</span> Summarize</button>
+      <button class="quick-btn" onclick="quickSend('Solve step by step: integrate x^2 + 3x dx')"><span class="qb-icon">🧮</span> Math Problem</button>
+      <button class="quick-btn" onclick="quickSend('Write a Python function to sort a list using bubble sort')"><span class="qb-icon">💻</span> Coding Help</button>
     </div>
 
     <div class="sidebar-section">
       <div class="sidebar-label">Chat</div>
-      <button class="clear-btn" onclick="clearChat()">
-        <span class="qb-icon">🗑️</span> Clear Chat
-      </button>
+      <button class="clear-btn" onclick="clearChat()"><span class="qb-icon">🗑️</span> Clear Chat</button>
     </div>
 
     <div class="sidebar-section">
       <div class="sidebar-label">How it works</div>
       <div style="font-size:12px;color:var(--text3);padding:0 8px;line-height:1.7;">
         Say <span style="color:var(--accent)">"flashcards about X"</span> or
-        <span style="color:var(--accent)">"quiz me on X"</span> — Sedy auto-detects and generates them in chat!
+        <span style="color:var(--accent)">"quiz me on X"</span>.<br><br>
+        Code, math formulas & rich text are all rendered automatically ✨
       </div>
     </div>
 
@@ -444,7 +570,7 @@
     <div class="header">
       <div>
         <div class="header-title">Chat with Sedy</div>
-        <div class="header-sub">Ask anything • Flashcards • Quizzes • Problem Solving</div>
+        <div class="header-sub">Ask anything • Code • Math • Flashcards • Quizzes</div>
       </div>
       <div class="memory-badge">
         <div class="memory-dot"></div>
@@ -458,12 +584,12 @@
         <div class="msg-content">
           <div class="msg-bubble">
             Hey! I'm <strong>Sedy</strong>, your AI study companion made by Ansh Verma 👋<br><br>
-            I <strong>remember our full conversation</strong>, so you can say things like "make flashcards on that topic" and I'll know what you mean!<br><br>
-            🃏 <em>"Flashcards about the Solar System"</em><br>
-            📝 <em>"Quiz me on World War 2"</em><br>
-            💡 <em>"Explain photosynthesis simply"</em><br>
-            🧮 <em>"Solve: 3x - 7 = 14"</em><br>
-            💻 <em>"How do Python loops work?"</em>
+            I remember our conversation and can render:<br><br>
+            🃏 <em>Flashcards</em> — "flashcards about X"<br>
+            📝 <em>Quizzes</em> — "quiz me on X"<br>
+            💻 <em>Code</em> — syntax highlighted code blocks<br>
+            🧮 <em>Math</em> — rendered formulas like <span class="math-inline">\(E = mc^2\)</span><br>
+            📖 <em>Rich text</em> — headings, lists, tables & highlights
           </div>
         </div>
       </div>
@@ -472,12 +598,12 @@
     <div class="input-area">
       <div class="input-wrap">
         <textarea id="chat-input" rows="1"
-          placeholder="Ask Sedy anything... (I remember our conversation!)"
+          placeholder="Ask Sedy anything... code, math, flashcards, quizzes!"
           onkeydown="handleKey(event)"
           oninput="autoResize(this)"></textarea>
         <button class="send-btn" onclick="sendMessage()">➤</button>
       </div>
-      <div class="input-hint">Sedy remembers context ✦ Auto-detects flashcards & quizzes ✨</div>
+      <div class="input-hint">Remembers context ✦ Renders code & math ✦ Auto-detects flashcards & quizzes ✨</div>
     </div>
   </main>
 </div>
@@ -485,7 +611,7 @@
 <script>
 const API_URL = 'https://sedy-ai-6j7c.onrender.com';
 let activeQuiz = null;
-let chatHistory = []; // ✅ conversation memory
+let chatHistory = [];
 
 // ── Helpers ──────────────────────────────────────────────────────────
 function autoResize(el) {
@@ -504,7 +630,7 @@ function quickSend(text) {
 
 function scrollBottom() {
   const el = document.getElementById('chat-messages');
-  setTimeout(() => el.scrollTop = el.scrollHeight, 50);
+  setTimeout(() => el.scrollTop = el.scrollHeight, 100);
 }
 
 function updateMemoryBadge() {
@@ -518,34 +644,154 @@ function clearChat() {
     <div class="msg ai">
       <div class="msg-avatar">🤖</div>
       <div class="msg-content">
-        <div class="msg-bubble">
-          Chat cleared! I'm ready to help you study again 😊<br><br>
-          🃏 <em>"Flashcards about X"</em><br>
-          📝 <em>"Quiz me on X"</em><br>
-          💡 <em>"Explain X simply"</em>
-        </div>
+        <div class="msg-bubble">Chat cleared! Ready to help you study 😊</div>
       </div>
     </div>`;
   updateMemoryBadge();
 }
 
-function esc(t) {
-  return String(t)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\n/g,'<br>')
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+// ── Rich Text Renderer ────────────────────────────────────────────────
+function renderMarkdown(text) {
+  let html = text;
+
+  // Escape HTML first (except we'll re-add code blocks)
+  const codeBlocks = [];
+  html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (match, lang, code) => {
+    const idx = codeBlocks.length;
+    codeBlocks.push({ lang: lang || 'plaintext', code: code.trim() });
+    return `%%CODE_BLOCK_${idx}%%`;
+  });
+
+  // Escape remaining HTML
+  html = html
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Headings
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+  // Bold, italic
+  html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  // Inline code
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // Highlight boxes [!NOTE], [!WARNING], [!SUCCESS]
+  html = html.replace(/\[!NOTE\]\s*(.+)/g, '<div class="highlight-box">💡 $1</div>');
+  html = html.replace(/\[!WARNING\]\s*(.+)/g, '<div class="warning-box">⚠️ $1</div>');
+  html = html.replace(/\[!SUCCESS\]\s*(.+)/g, '<div class="success-box">✅ $1</div>');
+
+  // Horizontal rule
+  html = html.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">');
+
+  // Tables
+  html = html.replace(/(\|.+\|\n)((\|[-:]+)+\|)\n((\|.+\|\n?)+)/g, (match) => {
+    const lines = match.trim().split('\n');
+    const headers = lines[0].split('|').filter(c => c.trim());
+    const rows = lines.slice(2).map(r => r.split('|').filter(c => c.trim()));
+    let table = '<table><thead><tr>';
+    headers.forEach(h => table += `<th>${h.trim()}</th>`);
+    table += '</tr></thead><tbody>';
+    rows.forEach(row => {
+      table += '<tr>';
+      row.forEach(cell => table += `<td>${cell.trim()}</td>`);
+      table += '</tr>';
+    });
+    return table + '</tbody></table>';
+  });
+
+  // Unordered lists
+  html = html.replace(/((?:^[-*] .+\n?)+)/gm, (match) => {
+    const items = match.trim().split('\n').map(i => `<li>${i.replace(/^[-*] /, '')}</li>`).join('');
+    return `<ul>${items}</ul>`;
+  });
+
+  // Ordered lists
+  html = html.replace(/((?:^\d+\. .+\n?)+)/gm, (match) => {
+    const items = match.trim().split('\n').map(i => `<li>${i.replace(/^\d+\. /, '')}</li>`).join('');
+    return `<ol>${items}</ol>`;
+  });
+
+  // Newlines to <br> (but not inside block elements)
+  html = html.replace(/\n\n/g, '<br><br>');
+  html = html.replace(/\n/g, '<br>');
+
+  // Restore code blocks
+  codeBlocks.forEach(({lang, code}, idx) => {
+    const safeCode = code.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+    const highlighted = hljs.highlight(safeCode, {language: lang, ignoreIllegals: true}).value;
+    const codeHtml = `
+      <div class="code-block-wrap">
+        <div class="code-block-header">
+          <span class="code-lang">${lang}</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="hljs">${highlighted}</code></pre>
+      </div>`;
+    html = html.replace(`%%CODE_BLOCK_${idx}%%`, codeHtml);
+  });
+
+  return html;
 }
 
-function addMsg(role, html, isHtml=false) {
+function copyCode(btn) {
+  const code = btn.closest('.code-block-wrap').querySelector('code').innerText;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+
+function renderMath(el) {
+  try {
+    renderMathInElement(el, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false},
+        {left: '\\(', right: '\\)', display: false},
+        {left: '\\[', right: '\\]', display: true},
+      ],
+      throwOnError: false,
+      output: 'html'
+    });
+  } catch(e) {}
+}
+
+// ── Add message ──────────────────────────────────────────────────────
+function addMsg(role, content, isHtml=false) {
   const wrap = document.getElementById('chat-messages');
   const div = document.createElement('div');
   div.className = `msg ${role}`;
+
+  let bubbleContent;
+  if (role === 'ai' && !isHtml) {
+    bubbleContent = renderMarkdown(content);
+  } else if (isHtml) {
+    bubbleContent = content;
+  } else {
+    bubbleContent = content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+
   div.innerHTML = `
     <div class="msg-avatar">${role==='ai'?'🤖':'👤'}</div>
     <div class="msg-content">
-      <div class="msg-bubble">${isHtml ? html : esc(html)}</div>
+      <div class="msg-bubble">${bubbleContent}</div>
     </div>`;
+
   wrap.appendChild(div);
+
+  // Render math in the new message
+  if (role === 'ai') {
+    renderMath(div.querySelector('.msg-bubble'));
+    // Highlight any code blocks
+    div.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+  }
+
   scrollBottom();
   return div;
 }
@@ -558,9 +804,7 @@ function showTyping() {
     <div class="msg-avatar">🤖</div>
     <div class="msg-content"><div class="msg-bubble">
       <div class="typing-indicator">
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
+        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
       </div>
     </div></div>`;
   wrap.appendChild(div);
@@ -572,28 +816,46 @@ function hideTyping() {
   if (t) t.remove();
 }
 
-// ── Intent detection ──────────────────────────────────────────────────
+// ── Intent Detection ─────────────────────────────────────────────────
 function detectIntent(text) {
   const t = text.toLowerCase();
-  if (/flashcard|flash card|make cards|create cards|generate cards|study cards/.test(t)) return 'flashcard';
-  if (/\bquiz\b|test me|question me|mcq|multiple choice|quiz me|start quiz/.test(t)) return 'quiz';
+  const fcWords = ['flashcard', 'flashcards', 'flash card', 'flash cards',
+                   'make cards', 'create cards', 'generate cards',
+                   'cards on', 'cards about', 'cards for', 'study cards'];
+  if (fcWords.some(w => t.includes(w))) return 'flashcard';
+
+  const qzWords = ['quiz', 'test me', 'question me', 'mcq',
+                   'multiple choice', 'quiz me', 'start quiz', 'give me a quiz'];
+  if (qzWords.some(w => t.includes(w))) return 'quiz';
+
   return 'chat';
 }
 
 function extractTopic(text) {
   const patterns = [
-    /(?:flashcards?|cards?|quiz(?:zes)?|quiz me)\s+(?:about|on|for)\s+(.+)/i,
-    /(?:generate|make|create)\s+(?:\d+\s+)?(?:flashcards?|quiz)\s+(?:about|on)?\s*(.+)/i,
-    /(?:quiz me on|test me on)\s+(.+)/i,
+    /(?:flashcards?|cards?)\s+(?:about|on|for|regarding)\s+(.+)/i,
+    /(?:generate|make|create)\s+(?:\d+\s+)?(?:flashcards?|cards?)\s+(?:about|on|for)?\s*(.+)/i,
+    /(?:quiz me on|test me on|quiz on|quiz about)\s+(.+)/i,
+    /(?:flashcards?|cards?)\s+(.+)/i,
   ];
   for (const p of patterns) {
     const m = text.match(p);
     if (m && m[1]) return m[1].trim().replace(/[?.!]$/, '');
   }
-  return text.replace(/flashcards?|quiz(zes)?|make|create|generate|about|on|me|test|cards?/gi,'').trim() || text;
+  return text.replace(/flashcards?|flash\s*cards?|quiz(zes)?|make|create|generate|about|on|me|test|cards?/gi,'').trim() || text;
 }
 
-// ── Send message ──────────────────────────────────────────────────────
+// ── Vague reference resolver ─────────────────────────────────────────
+function resolveVagueTopic(topic) {
+  const vagueWords = ['it', 'that', 'this', 'them', 'same', 'the topic', 'same topic', 'this topic'];
+  if (vagueWords.includes(topic.toLowerCase().trim()) && chatHistory.length > 0) {
+    const lastUser = [...chatHistory].reverse().find(h => h.role === 'user');
+    if (lastUser) return extractTopic(lastUser.content) || topic;
+  }
+  return topic;
+}
+
+// ── Send Message ─────────────────────────────────────────────────────
 async function sendMessage() {
   const input = document.getElementById('chat-input');
   const text = input.value.trim();
@@ -604,7 +866,7 @@ async function sendMessage() {
   showTyping();
 
   const intent = detectIntent(text);
-  const topic = extractTopic(text);
+  const topic = resolveVagueTopic(extractTopic(text));
 
   try {
     if (intent === 'flashcard') await handleFlashcards(topic, text);
@@ -616,43 +878,29 @@ async function sendMessage() {
   }
 }
 
-// ── Chat with memory ──────────────────────────────────────────────────
+// ── Chat with Memory ─────────────────────────────────────────────────
 async function handleChat(text) {
   const res = await fetch(`${API_URL}/chat`, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({
-      message: text,
-      history: chatHistory  // ✅ send full history
-    })
+    body: JSON.stringify({ message: text, history: chatHistory })
   });
   const data = await res.json();
   hideTyping();
 
   const reply = data.reply || 'Sorry, I could not get a response.';
 
-  // ✅ Save both messages to history
   chatHistory.push({role: 'user', content: text});
   chatHistory.push({role: 'assistant', content: reply});
-
-  // Keep only last 20 messages to save tokens
   if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
 
   updateMemoryBadge();
   addMsg('ai', reply);
 }
 
-// ── Flashcards ────────────────────────────────────────────────────────
+// ── Flashcards ───────────────────────────────────────────────────────
 async function handleFlashcards(topic, originalText) {
-  // Use context from history if topic is vague like "it" or "that"
-  const vagueWords = ['it', 'that', 'this', 'them', 'the topic', 'same topic'];
-  const isVague = vagueWords.some(w => topic.toLowerCase().trim() === w);
-
-  if (isVague && chatHistory.length > 0) {
-    // Extract last topic from history
-    const lastUserMsg = [...chatHistory].reverse().find(h => h.role === 'user');
-    if (lastUserMsg) topic = extractTopic(lastUserMsg.content) || topic;
-  }
+  topic = resolveVagueTopic(topic);
 
   const res = await fetch(`${API_URL}/flashcards`, {
     method: 'POST',
@@ -665,17 +913,18 @@ async function handleFlashcards(topic, originalText) {
   const cards = data.cards || [];
   if (!cards.length) { addMsg('ai', `Sorry, couldn't generate flashcards for "${topic}".`); return; }
 
-  // Save to history
   chatHistory.push({role: 'user', content: originalText});
   chatHistory.push({role: 'assistant', content: `Generated ${cards.length} flashcards about ${topic}`});
   if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
   updateMemoryBadge();
 
+  const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
   let html = `<strong>🃏 ${cards.length} Flashcards — ${esc(topic)}</strong><br>
     <small style="color:var(--text3);font-size:11px;">Click each card to reveal the answer</small>
     <div class="fc-grid">`;
 
-  cards.forEach((card) => {
+  cards.forEach(card => {
     html += `
       <div class="fc-card" onclick="this.classList.toggle('flipped')">
         <div class="fc-inner">
@@ -697,16 +946,9 @@ async function handleFlashcards(topic, originalText) {
   addMsg('ai', html, true);
 }
 
-// ── Quiz ──────────────────────────────────────────────────────────────
+// ── Quiz ─────────────────────────────────────────────────────────────
 async function handleQuiz(topic, originalText) {
-  // Handle vague references
-  const vagueWords = ['it', 'that', 'this', 'same topic'];
-  const isVague = vagueWords.some(w => topic.toLowerCase().trim() === w);
-
-  if (isVague && chatHistory.length > 0) {
-    const lastUserMsg = [...chatHistory].reverse().find(h => h.role === 'user');
-    if (lastUserMsg) topic = extractTopic(lastUserMsg.content) || topic;
-  }
+  topic = resolveVagueTopic(topic);
 
   let difficulty = 'medium';
   if (/easy|simple|basic/i.test(originalText)) difficulty = 'easy';
@@ -723,13 +965,13 @@ async function handleQuiz(topic, originalText) {
   const questions = data.questions || [];
   if (!questions.length) { addMsg('ai', `Sorry, couldn't generate a quiz for "${topic}".`); return; }
 
-  // Save to history
   chatHistory.push({role: 'user', content: originalText});
-  chatHistory.push({role: 'assistant', content: `Started a ${difficulty} quiz about ${topic} with ${questions.length} questions`});
+  chatHistory.push({role: 'assistant', content: `Started a ${difficulty} quiz about ${topic}`});
   if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
   updateMemoryBadge();
 
   activeQuiz = {questions, idx:0, score:0, topic, answered:false};
+  const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   addMsg('ai', `📝 <strong>Quiz — ${esc(topic)}</strong> · ${difficulty} · ${questions.length} questions<br>
     <small style="color:var(--text3);font-size:11px;">Select an answer for each question</small>`, true);
   renderQuizQ();
@@ -741,6 +983,7 @@ function renderQuizQ() {
   const q = questions[idx];
   const total = questions.length;
   const letters = ['A','B','C','D'];
+  const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
   let opts = '';
   q.options.forEach((opt, i) => {
@@ -749,17 +992,15 @@ function renderQuizQ() {
     </div>`;
   });
 
-  const html = `
+  addMsg('ai', `
     <div class="quiz-wrap" id="quiz-wrap">
       <div class="quiz-prog"><div class="quiz-fill" style="width:${(idx/total)*100}%"></div></div>
       <div class="quiz-qnum">Question ${idx+1} of ${total}</div>
       <div class="quiz-q">${esc(q.question)}</div>
-      <div class="quiz-opts" id="quiz-opts">${opts}</div>
+      <div class="quiz-opts">${opts}</div>
       <div class="quiz-exp" id="quiz-exp"></div>
       <button class="quiz-next" id="quiz-next" onclick="nextQ()">Next →</button>
-    </div>`;
-
-  addMsg('ai', html, true);
+    </div>`, true);
   activeQuiz.answered = false;
 }
 
@@ -790,17 +1031,11 @@ function answerQ(idx) {
 
 function nextQ() {
   if (!activeQuiz) return;
-  activeQuiz.idx++;
-  activeQuiz.answered = false;
-
+  activeQuiz.idx++; activeQuiz.answered = false;
   const old = document.getElementById('quiz-wrap');
   if (old) old.closest('.msg').remove();
-
-  if (activeQuiz.idx < activeQuiz.questions.length) {
-    renderQuizQ();
-  } else {
-    showQuizResult();
-  }
+  if (activeQuiz.idx < activeQuiz.questions.length) renderQuizQ();
+  else showQuizResult();
 }
 
 function showQuizResult() {
@@ -809,8 +1044,9 @@ function showQuizResult() {
   const pct = Math.round((score/total)*100);
   const labels = ['Keep practicing! 💪','Good effort! 📚','Well done! ⭐','Excellent! 🎉','Perfect! 🏆'];
   const label = pct<40?labels[0]:pct<60?labels[1]:pct<80?labels[2]:pct<100?labels[3]:labels[4];
+  const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  const html = `
+  addMsg('ai', `
     <div class="quiz-result">
       <div class="qr-pct">${pct}%</div>
       <div class="qr-lbl">${label}</div>
@@ -819,12 +1055,14 @@ function showQuizResult() {
         <div class="qr-stat"><div class="qr-n r">${total-score}</div><div class="qr-sl">Wrong</div></div>
         <div class="qr-stat"><div class="qr-n" style="color:var(--accent)">${total}</div><div class="qr-sl">Total</div></div>
       </div>
-    </div>`;
+    </div>`, true);
 
-  addMsg('ai', html, true);
-  addMsg('ai', `Great job on the <strong>${esc(topic)}</strong> quiz! Want to try again or explore another topic? 😊`, true);
+  addMsg('ai', `Great job on the **${topic}** quiz! Want to try again or explore another topic? 😊`);
   activeQuiz = null;
 }
+
+// Render math in initial welcome message
+document.querySelectorAll('.msg-bubble').forEach(el => renderMath(el));
 </script>
 </body>
 </html>

@@ -490,21 +490,85 @@ function extractTopic(text) {
   return text.replace(/flashcards?|flash\s*cards?|quiz(zes)?|make|create|generate|about|on|me|test|cards?|and|a\b/gi,'').trim() || text;
 }
 
-// ── FIX: Resolve vague topics using chatHistory ──────────────────────
-function resolveVagueTopic(topic) {
-  const vague = ['it','that','this','them','same','the topic','same topic','this topic','the same'];
-  if (vague.includes(topic.toLowerCase().trim()) && chatHistory.length > 0) {
-    // Look back through history for the last user message with a real topic
-    const history = [...chatHistory].reverse();
-    for (const h of history) {
-      if (h.role === 'user') {
-        const extracted = extractTopic(h.content);
-        if (extracted && !vague.includes(extracted.toLowerCase().trim())) {
-          return extracted;
-        }
+// ── Words/phrases that signal "use the last topic from context" ───────
+const CONTEXT_REF_PATTERNS = [
+  /^(it|this|that|them|same|the same)$/i,
+  /^(the topic|same topic|this topic|that topic)$/i,
+  /^(above|the above|this one|that one)$/i,
+  /\b(at this basis|based on (this|that|above|it)|on (this|that)|from (this|that|above))\b/i,
+  /\b(as (discussed|mentioned|above|explained)|what (we|i) (just )?(discussed|talked|said|covered))\b/i,
+  /\b(previous(ly)?|last (topic|subject|thing)|what you (just |just)?explained)\b/i,
+];
+
+function isVagueTopic(topic) {
+  const t = topic.trim();
+  return CONTEXT_REF_PATTERNS.some(p => p.test(t));
+}
+
+// ── Pull the last meaningful subject from chat history ────────────────
+function getLastTopicFromHistory() {
+  if (!chatHistory.length) return null;
+
+  // Check assistant messages for what topic was last generated/discussed
+  const reversed = [...chatHistory].reverse();
+
+  // First: look for explicit "Generated X flashcards/quiz about TOPIC" entries
+  for (const h of reversed) {
+    if (h.role === 'assistant') {
+      const m = h.content.match(/(?:flashcards?|quiz)\s+(?:about|on)\s+(.+)/i);
+      if (m && m[1]) return m[1].trim();
+    }
+  }
+
+  // Second: look for the last user message that had a real topic (not vague)
+  for (const h of reversed) {
+    if (h.role === 'user') {
+      const extracted = extractTopic(h.content);
+      if (extracted && !isVagueTopic(extracted) && extracted.length > 1) {
+        return extracted;
       }
     }
   }
+
+  // Third: look for subject nouns in last assistant reply (e.g. "Introduction to Python")
+  for (const h of reversed) {
+    if (h.role === 'assistant') {
+      // Try to find a heading like "## Introduction to Python" or "# Python"
+      const headingMatch = h.content.match(/(?:^|\n)#{1,3}\s+(?:introduction to\s+)?([A-Za-z][^\n]{2,40})/i);
+      if (headingMatch) return headingMatch[1].trim();
+    }
+  }
+
+  return null;
+}
+
+// ── FIX: Fully context-aware topic resolver ───────────────────────────
+function resolveVagueTopic(topic) {
+  if (isVagueTopic(topic)) {
+    const lastTopic = getLastTopicFromHistory();
+    if (lastTopic) {
+      console.log(`[Sedy] Resolved vague topic "${topic}" → "${lastTopic}"`);
+      return lastTopic;
+    }
+  }
+  return topic;
+}
+
+// ── Also resolve the full user message for "at this basis generate flashcards"
+// style requests where topic extraction itself returns a vague phrase ──
+function resolveTopicFromMessage(message) {
+  // First try normal extraction
+  let topic = extractTopic(message);
+
+  // If extracted topic is vague OR very short/meaningless, try context
+  if (isVagueTopic(topic) || topic.length <= 2) {
+    const lastTopic = getLastTopicFromHistory();
+    if (lastTopic) {
+      console.log(`[Sedy] Resolved from message context "${topic}" → "${lastTopic}"`);
+      return lastTopic;
+    }
+  }
+
   return topic;
 }
 
@@ -527,8 +591,8 @@ async function sendMessage() {
   addMsg('user', text);
 
   const intent = detectIntent(text);
-  const rawTopic = extractTopic(text);
-  const topic = resolveVagueTopic(rawTopic);
+  // FIX: use context-aware resolver that handles "at this basis", "on this", etc.
+  const topic = resolveTopicFromMessage(text);
 
   try {
     if (intent === 'both') {
@@ -583,31 +647,33 @@ async function handleChat(text) {
 
 // ── Flashcards ───────────────────────────────────────────────────────
 async function handleFlashcards(topic, originalText, saveHistory=true) {
-  topic = resolveVagueTopic(topic);
+  topic = isVagueTopic(topic) ? (getLastTopicFromHistory() || topic) : topic;
 
   const res = await fetch(`${API_URL}/flashcards`, {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ topic, count: 6 })
+    // FIX: send history so backend can resolve vague topics like "at this basis"
+    body: JSON.stringify({ topic, count: 6, history: chatHistory.slice(-20) })
   });
 
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   hideTyping();
 
+  // FIX: backend may return a better-resolved topic (e.g. "Python" instead of "at this basis")
+  const resolvedTopic = data.topic || topic;
   const cards = data.cards || [];
   if (!cards.length) {
-    addMsg('ai', `Sorry, couldn't generate flashcards for "${topic}".`);
+    addMsg('ai', `Sorry, couldn't generate flashcards for "${resolvedTopic}".`);
     return;
   }
 
-  // FIX: always persist history when saveHistory=true
   if (saveHistory) {
     pushHistory('user', originalText);
-    pushHistory('assistant', `Generated ${cards.length} flashcards about ${topic}`);
+    pushHistory('assistant', `Generated ${cards.length} flashcards about ${resolvedTopic}`);
   }
 
-  let html = `<strong>🃏 ${cards.length} Flashcards — ${_esc(topic)}</strong><br>
+  let html = `<strong>🃏 ${cards.length} Flashcards — ${_esc(resolvedTopic)}</strong><br>
     <small style="color:var(--text3);font-size:11px;">Click each card to reveal the answer</small>
     <div class="fc-grid">`;
 
@@ -635,7 +701,7 @@ async function handleFlashcards(topic, originalText, saveHistory=true) {
 
 // ── Quiz ─────────────────────────────────────────────────────────────
 async function handleQuiz(topic, originalText, saveHistory=true) {
-  topic = resolveVagueTopic(topic);
+  topic = isVagueTopic(topic) ? (getLastTopicFromHistory() || topic) : topic;
 
   let difficulty = 'medium';
   if (/easy|simple|basic/i.test(originalText)) difficulty = 'easy';
@@ -644,27 +710,29 @@ async function handleQuiz(topic, originalText, saveHistory=true) {
   const res = await fetch(`${API_URL}/quiz`, {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ topic, difficulty, count: 5 })
+    // FIX: send history so backend can resolve vague topics like "at this basis"
+    body: JSON.stringify({ topic, difficulty, count: 5, history: chatHistory.slice(-20) })
   });
 
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   hideTyping();
 
+  // FIX: backend may return a better-resolved topic
+  const resolvedTopic = data.topic || topic;
   const questions = data.questions || [];
   if (!questions.length) {
-    addMsg('ai', `Sorry, couldn't generate a quiz for "${topic}".`);
+    addMsg('ai', `Sorry, couldn't generate a quiz for "${resolvedTopic}".`);
     return;
   }
 
-  // FIX: always persist history when saveHistory=true
   if (saveHistory) {
     pushHistory('user', originalText);
-    pushHistory('assistant', `Started a ${difficulty} quiz about ${topic}`);
+    pushHistory('assistant', `Started a ${difficulty} quiz about ${resolvedTopic}`);
   }
 
-  activeQuiz = { questions, idx: 0, score: 0, topic, answered: false };
-  addMsg('ai', `📝 <strong>Quiz — ${_esc(topic)}</strong> · ${difficulty} · ${questions.length} questions<br>
+  activeQuiz = { questions, idx: 0, score: 0, topic: resolvedTopic, answered: false };
+  addMsg('ai', `📝 <strong>Quiz — ${_esc(resolvedTopic)}</strong> · ${difficulty} · ${questions.length} questions<br>
     <small style="color:var(--text3);font-size:11px;">Select an answer for each question</small>`, true);
   renderQuizQ();
 }

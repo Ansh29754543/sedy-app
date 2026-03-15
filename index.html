@@ -53,7 +53,7 @@
 
   .app { display: flex; height: 100vh; position: relative; z-index: 1; }
 
-  /* Sidebar */
+  /* ── Sidebar ── */
   .sidebar {
     width: 220px; min-width: 220px;
     background: var(--bg2);
@@ -97,6 +97,17 @@
   .quick-btn:hover { background: var(--card); color: var(--text); border-color: var(--border); }
   .quick-btn .qb-icon { font-size: 16px; }
 
+  .clear-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 9px; cursor: pointer;
+    color: var(--danger); font-size: 13px; font-weight: 500;
+    transition: all 0.2s; margin-bottom: 3px;
+    border: 1px solid transparent; background: none;
+    width: 100%; text-align: left; font-family: 'DM Sans', sans-serif;
+  }
+
+  .clear-btn:hover { background: rgba(255,79,106,0.08); border-color: rgba(255,79,106,0.2); }
+
   .sidebar-footer { padding: 16px 20px 0; border-top: 1px solid var(--border); margin-top: auto; }
   .made-by { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
   .made-by span { color: var(--accent2); }
@@ -112,18 +123,32 @@
     background: var(--success); box-shadow: 0 0 6px var(--success);
   }
 
-  /* Main */
+  /* ── Main ── */
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
   .header {
     padding: 16px 28px; border-bottom: 1px solid var(--border);
     background: var(--bg2); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
   }
 
   .header-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
   .header-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
 
-  /* Chat */
+  .memory-badge {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; font-size: 11px; color: var(--text2);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .memory-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent2); box-shadow: 0 0 6px var(--accent2);
+  }
+
+  /* ── Chat ── */
   .chat-messages {
     flex: 1; overflow-y: auto;
     padding: 24px 28px;
@@ -169,10 +194,10 @@
     color: white; border-top-right-radius: 4px;
   }
 
-  /* Flashcards in chat */
+  /* ── Flashcards ── */
   .fc-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 10px; margin-top: 12px;
   }
 
@@ -220,7 +245,7 @@
 
   .fc-hint { font-size: 9px; color: var(--text3); text-align: right; }
 
-  /* Quiz in chat */
+  /* ── Quiz ── */
   .quiz-wrap { margin-top: 4px; }
 
   .quiz-prog { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 14px; overflow: hidden; }
@@ -278,7 +303,7 @@
 
   .quiz-next:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(79,142,255,0.3); }
 
-  /* Result */
+  /* ── Quiz Result ── */
   .quiz-result { text-align: center; padding: 20px 12px; }
 
   .qr-pct {
@@ -302,7 +327,7 @@
   .qr-n.r { color: var(--danger); }
   .qr-sl { font-size: 10px; color: var(--text3); margin-top: 2px; }
 
-  /* Typing */
+  /* ── Typing ── */
   .typing-indicator { display: flex; gap: 5px; padding: 4px 0; }
   .typing-dot {
     width: 7px; height: 7px; background: var(--accent);
@@ -315,7 +340,7 @@
     30% { transform: translateY(-6px); opacity: 1; }
   }
 
-  /* Input */
+  /* ── Input ── */
   .input-area { padding: 14px 28px 18px; border-top: 1px solid var(--border); background: var(--bg2); flex-shrink: 0; }
 
   .input-wrap {
@@ -391,9 +416,17 @@
     </div>
 
     <div class="sidebar-section">
+      <div class="sidebar-label">Chat</div>
+      <button class="clear-btn" onclick="clearChat()">
+        <span class="qb-icon">🗑️</span> Clear Chat
+      </button>
+    </div>
+
+    <div class="sidebar-section">
       <div class="sidebar-label">How it works</div>
       <div style="font-size:12px;color:var(--text3);padding:0 8px;line-height:1.7;">
-        Say <span style="color:var(--accent)">"flashcards about X"</span> or <span style="color:var(--accent)">"quiz me on X"</span> — Sedy auto-detects and generates them!
+        Say <span style="color:var(--accent)">"flashcards about X"</span> or
+        <span style="color:var(--accent)">"quiz me on X"</span> — Sedy auto-detects and generates them in chat!
       </div>
     </div>
 
@@ -409,8 +442,14 @@
   <!-- Main -->
   <main class="main">
     <div class="header">
-      <div class="header-title">Chat with Sedy</div>
-      <div class="header-sub">Ask anything • Flashcards • Quizzes • Problem Solving</div>
+      <div>
+        <div class="header-title">Chat with Sedy</div>
+        <div class="header-sub">Ask anything • Flashcards • Quizzes • Problem Solving</div>
+      </div>
+      <div class="memory-badge">
+        <div class="memory-dot"></div>
+        <span id="memory-count">Memory: 0 messages</span>
+      </div>
     </div>
 
     <div class="chat-messages" id="chat-messages">
@@ -419,7 +458,7 @@
         <div class="msg-content">
           <div class="msg-bubble">
             Hey! I'm <strong>Sedy</strong>, your AI study companion made by Ansh Verma 👋<br><br>
-            Just chat naturally — I'll automatically detect what you need:<br><br>
+            I <strong>remember our full conversation</strong>, so you can say things like "make flashcards on that topic" and I'll know what you mean!<br><br>
             🃏 <em>"Flashcards about the Solar System"</em><br>
             📝 <em>"Quiz me on World War 2"</em><br>
             💡 <em>"Explain photosynthesis simply"</em><br>
@@ -433,12 +472,12 @@
     <div class="input-area">
       <div class="input-wrap">
         <textarea id="chat-input" rows="1"
-          placeholder="Ask Sedy anything... or say 'flashcards about X' / 'quiz me on X'"
+          placeholder="Ask Sedy anything... (I remember our conversation!)"
           onkeydown="handleKey(event)"
           oninput="autoResize(this)"></textarea>
         <button class="send-btn" onclick="sendMessage()">➤</button>
       </div>
-      <div class="input-hint">Sedy auto-detects flashcards & quizzes from your message ✨</div>
+      <div class="input-hint">Sedy remembers context ✦ Auto-detects flashcards & quizzes ✨</div>
     </div>
   </main>
 </div>
@@ -446,7 +485,9 @@
 <script>
 const API_URL = 'https://sedy-ai-6j7c.onrender.com';
 let activeQuiz = null;
+let chatHistory = []; // ✅ conversation memory
 
+// ── Helpers ──────────────────────────────────────────────────────────
 function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 120) + 'px';
@@ -464,6 +505,28 @@ function quickSend(text) {
 function scrollBottom() {
   const el = document.getElementById('chat-messages');
   setTimeout(() => el.scrollTop = el.scrollHeight, 50);
+}
+
+function updateMemoryBadge() {
+  document.getElementById('memory-count').textContent = `Memory: ${chatHistory.length} messages`;
+}
+
+function clearChat() {
+  chatHistory = [];
+  const wrap = document.getElementById('chat-messages');
+  wrap.innerHTML = `
+    <div class="msg ai">
+      <div class="msg-avatar">🤖</div>
+      <div class="msg-content">
+        <div class="msg-bubble">
+          Chat cleared! I'm ready to help you study again 😊<br><br>
+          🃏 <em>"Flashcards about X"</em><br>
+          📝 <em>"Quiz me on X"</em><br>
+          💡 <em>"Explain X simply"</em>
+        </div>
+      </div>
+    </div>`;
+  updateMemoryBadge();
 }
 
 function esc(t) {
@@ -509,10 +572,11 @@ function hideTyping() {
   if (t) t.remove();
 }
 
+// ── Intent detection ──────────────────────────────────────────────────
 function detectIntent(text) {
   const t = text.toLowerCase();
   if (/flashcard|flash card|make cards|create cards|generate cards|study cards/.test(t)) return 'flashcard';
-  if (/quiz|test me|question me|mcq|multiple choice|quiz me|start quiz/.test(t)) return 'quiz';
+  if (/\bquiz\b|test me|question me|mcq|multiple choice|quiz me|start quiz/.test(t)) return 'quiz';
   return 'chat';
 }
 
@@ -529,6 +593,7 @@ function extractTopic(text) {
   return text.replace(/flashcards?|quiz(zes)?|make|create|generate|about|on|me|test|cards?/gi,'').trim() || text;
 }
 
+// ── Send message ──────────────────────────────────────────────────────
 async function sendMessage() {
   const input = document.getElementById('chat-input');
   const text = input.value.trim();
@@ -542,7 +607,7 @@ async function sendMessage() {
   const topic = extractTopic(text);
 
   try {
-    if (intent === 'flashcard') await handleFlashcards(topic);
+    if (intent === 'flashcard') await handleFlashcards(topic, text);
     else if (intent === 'quiz') await handleQuiz(topic, text);
     else await handleChat(text);
   } catch(err) {
@@ -551,18 +616,44 @@ async function sendMessage() {
   }
 }
 
+// ── Chat with memory ──────────────────────────────────────────────────
 async function handleChat(text) {
   const res = await fetch(`${API_URL}/chat`, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({message: text})
+    body: JSON.stringify({
+      message: text,
+      history: chatHistory  // ✅ send full history
+    })
   });
   const data = await res.json();
   hideTyping();
-  addMsg('ai', data.reply || 'Sorry, I could not get a response.');
+
+  const reply = data.reply || 'Sorry, I could not get a response.';
+
+  // ✅ Save both messages to history
+  chatHistory.push({role: 'user', content: text});
+  chatHistory.push({role: 'assistant', content: reply});
+
+  // Keep only last 20 messages to save tokens
+  if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+
+  updateMemoryBadge();
+  addMsg('ai', reply);
 }
 
-async function handleFlashcards(topic) {
+// ── Flashcards ────────────────────────────────────────────────────────
+async function handleFlashcards(topic, originalText) {
+  // Use context from history if topic is vague like "it" or "that"
+  const vagueWords = ['it', 'that', 'this', 'them', 'the topic', 'same topic'];
+  const isVague = vagueWords.some(w => topic.toLowerCase().trim() === w);
+
+  if (isVague && chatHistory.length > 0) {
+    // Extract last topic from history
+    const lastUserMsg = [...chatHistory].reverse().find(h => h.role === 'user');
+    if (lastUserMsg) topic = extractTopic(lastUserMsg.content) || topic;
+  }
+
   const res = await fetch(`${API_URL}/flashcards`, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -574,11 +665,17 @@ async function handleFlashcards(topic) {
   const cards = data.cards || [];
   if (!cards.length) { addMsg('ai', `Sorry, couldn't generate flashcards for "${topic}".`); return; }
 
+  // Save to history
+  chatHistory.push({role: 'user', content: originalText});
+  chatHistory.push({role: 'assistant', content: `Generated ${cards.length} flashcards about ${topic}`});
+  if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+  updateMemoryBadge();
+
   let html = `<strong>🃏 ${cards.length} Flashcards — ${esc(topic)}</strong><br>
     <small style="color:var(--text3);font-size:11px;">Click each card to reveal the answer</small>
     <div class="fc-grid">`;
 
-  cards.forEach((card, i) => {
+  cards.forEach((card) => {
     html += `
       <div class="fc-card" onclick="this.classList.toggle('flipped')">
         <div class="fc-inner">
@@ -600,7 +697,17 @@ async function handleFlashcards(topic) {
   addMsg('ai', html, true);
 }
 
+// ── Quiz ──────────────────────────────────────────────────────────────
 async function handleQuiz(topic, originalText) {
+  // Handle vague references
+  const vagueWords = ['it', 'that', 'this', 'same topic'];
+  const isVague = vagueWords.some(w => topic.toLowerCase().trim() === w);
+
+  if (isVague && chatHistory.length > 0) {
+    const lastUserMsg = [...chatHistory].reverse().find(h => h.role === 'user');
+    if (lastUserMsg) topic = extractTopic(lastUserMsg.content) || topic;
+  }
+
   let difficulty = 'medium';
   if (/easy|simple|basic/i.test(originalText)) difficulty = 'easy';
   if (/hard|difficult|advanced/i.test(originalText)) difficulty = 'hard';
@@ -615,6 +722,12 @@ async function handleQuiz(topic, originalText) {
 
   const questions = data.questions || [];
   if (!questions.length) { addMsg('ai', `Sorry, couldn't generate a quiz for "${topic}".`); return; }
+
+  // Save to history
+  chatHistory.push({role: 'user', content: originalText});
+  chatHistory.push({role: 'assistant', content: `Started a ${difficulty} quiz about ${topic} with ${questions.length} questions`});
+  if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+  updateMemoryBadge();
 
   activeQuiz = {questions, idx:0, score:0, topic, answered:false};
   addMsg('ai', `📝 <strong>Quiz — ${esc(topic)}</strong> · ${difficulty} · ${questions.length} questions<br>

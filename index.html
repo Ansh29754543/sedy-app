@@ -35,8 +35,6 @@ body::before{content:'';position:fixed;inset:0;
 .orb1{width:400px;height:400px;background:rgba(79,142,255,.06);top:-100px;right:-100px;}
 .orb2{width:300px;height:300px;background:rgba(124,92,252,.06);bottom:100px;left:-100px;}
 .app{display:flex;flex-direction:column;height:100%;position:relative;z-index:1;}
-
-/* HEADER */
 .header{padding:0 20px;padding-top:var(--safe-t);min-height:56px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .header-brand{display:flex;align-items:center;gap:12px;}
 .logo-text{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
@@ -46,8 +44,6 @@ body::before{content:'';position:fixed;inset:0;
 .memory-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);box-shadow:0 0 6px var(--accent2);}
 .clear-header-btn{display:flex;align-items:center;gap:6px;padding:5px 11px;background:none;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;cursor:pointer;transition:all .2s;white-space:nowrap;}
 .clear-header-btn:hover{border-color:rgba(255,79,106,.4);color:var(--danger);background:rgba(255,79,106,.06);}
-
-/* MESSAGES */
 .chat-messages{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 20px 12px;display:flex;flex-direction:column;gap:16px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .chat-messages::-webkit-scrollbar{width:3px;}
 .chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
@@ -62,8 +58,6 @@ body::before{content:'';position:fixed;inset:0;
 .msg-bubble{padding:11px 14px;border-radius:14px;font-size:14px;line-height:1.75;word-break:break-word;overflow-wrap:anywhere;}
 .msg.ai .msg-bubble{background:var(--card);border:1px solid var(--border);border-top-left-radius:3px;color:var(--text);}
 .msg.user .msg-bubble{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border-top-right-radius:3px;}
-
-/* RICH TEXT */
 .msg-bubble h1{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0 6px;border-bottom:1px solid var(--border);padding-bottom:5px;}
 .msg-bubble h2{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent);margin:8px 0 4px;}
 .msg-bubble h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--accent2);margin:6px 0 3px;}
@@ -82,8 +76,6 @@ body::before{content:'';position:fixed;inset:0;
 .msg-bubble th{background:var(--bg3);border:1px solid var(--border2);padding:6px 10px;text-align:left;font-weight:600;color:var(--accent);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.5px;}
 .msg-bubble td{border:1px solid var(--border);padding:6px 10px;background:var(--card);line-height:1.5;}
 .msg-bubble tr:hover td{background:var(--card2);}
-
-/* CODE */
 .code-block-wrap{margin:8px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border2);}
 .code-block-header{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:#1a1f2e;border-bottom:1px solid var(--border2);}
 .code-lang{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;}
@@ -91,12 +83,8 @@ body::before{content:'';position:fixed;inset:0;
 .copy-btn:hover{border-color:var(--accent);color:var(--accent);}
 .code-block-wrap pre{margin:0!important;border-radius:0!important;background:#141922!important;overflow-x:auto;}
 .code-block-wrap pre code{font-family:'DM Mono',monospace!important;font-size:12px!important;line-height:1.6!important;padding:12px!important;background:none!important;border:none!important;color:inherit!important;white-space:pre;display:block;}
-
-/* MATH */
 .msg-bubble .katex-display{overflow-x:auto;overflow-y:hidden;padding:6px 0;}
 .msg-bubble .katex{font-size:1em;}
-
-/* FLASHCARDS */
 .fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:10px;}
 .fc-card{height:140px;perspective:800px;cursor:pointer;}
 .fc-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);}
@@ -109,8 +97,6 @@ body::before{content:'';position:fixed;inset:0;
 .fc-back .fc-tag{color:var(--accent3);}
 .fc-text{font-size:12px;color:var(--text);line-height:1.5;font-weight:500;flex:1;display:flex;align-items:center;margin:6px 0;}
 .fc-hint{font-size:9px;color:var(--text3);text-align:right;}
-
-/* QUIZ */
 .quiz-wrap{margin-top:2px;}
 .quiz-prog{height:3px;background:var(--border);border-radius:2px;margin-bottom:12px;overflow:hidden;}
 .quiz-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;}
@@ -129,8 +115,6 @@ body::before{content:'';position:fixed;inset:0;
 .quiz-exp{margin-top:8px;padding:8px 10px;background:rgba(79,142,255,.06);border:1px solid rgba(79,142,255,.15);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6;display:none;}
 .quiz-next{margin-top:10px;padding:11px 20px;width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:none;}
 .quiz-next:active{transform:scale(.97);}
-
-/* RESULT */
 .quiz-result{text-align:center;padding:16px 8px;}
 .qr-pct{font-family:'Syne',sans-serif;font-size:56px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
 .qr-lbl{font-size:13px;color:var(--text2);margin:5px 0 14px;}
@@ -140,15 +124,41 @@ body::before{content:'';position:fixed;inset:0;
 .qr-n.g{color:var(--success);}
 .qr-n.r{color:var(--danger);}
 .qr-sl{font-size:10px;color:var(--text3);margin-top:2px;}
-
-/* TYPING */
 .typing-indicator{display:flex;gap:5px;padding:3px 0;}
 .typing-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:bounce 1.2s infinite;}
 .typing-dot:nth-child(2){animation-delay:.2s;}
 .typing-dot:nth-child(3){animation-delay:.4s;}
 @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-6px);opacity:1;}}
 
-/* PDF UPLOAD */
+/* ── GRAPH STYLES ──────────────────────────────────────────────────────────── */
+.graph-wrap{margin-top:4px;background:var(--bg3);border:1px solid var(--border2);border-radius:14px;overflow:visible;padding:16px 12px 14px;}
+.graph-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.graph-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);line-height:1.3;}
+.graph-unit-label{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:3px;}
+.graph-legend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.graph-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;}
+.graph-legend-line{width:18px;height:3px;border-radius:2px;flex-shrink:0;}
+.graph-canvas-wrap{position:relative;width:100%;}
+.graph-canvas-wrap canvas{display:block;width:100%;cursor:crosshair;border-radius:6px;}
+.graph-tooltip{
+  position:absolute;pointer-events:none;
+  background:rgba(8,11,18,0.96);
+  border:1px solid var(--border2);
+  border-radius:10px;padding:10px 13px;
+  font-family:'DM Mono',monospace;font-size:11px;
+  white-space:nowrap;opacity:0;
+  transition:opacity .1s;
+  box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 0 1px rgba(79,142,255,.08);
+  z-index:20;min-width:130px;
+}
+.graph-tooltip.visible{opacity:1;}
+.graph-tooltip-x{color:var(--text3);font-size:10px;margin-bottom:7px;letter-spacing:.5px;border-bottom:1px solid var(--border);padding-bottom:6px;}
+.graph-tooltip-row{display:flex;align-items:center;gap:7px;margin-top:5px;}
+.graph-tooltip-swatch{width:12px;height:3px;border-radius:2px;flex-shrink:0;}
+.graph-tooltip-label{color:var(--text2);}
+.graph-tooltip-val{color:var(--text);font-weight:500;margin-left:auto;padding-left:14px;}
+
+/* PDF / INPUT */
 .upload-btn{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;flex-shrink:0;}
 .upload-btn:hover,.upload-btn.active{border-color:var(--accent2);background:rgba(124,92,252,.15);}
 .upload-btn:active{transform:scale(.93);}
@@ -162,8 +172,6 @@ body::before{content:'';position:fixed;inset:0;
 .pdf-chip-remove{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;line-height:1;padding:0 2px;transition:color .15s;flex-shrink:0;}
 .pdf-chip-remove:hover{color:var(--danger);}
 .pdf-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;margin-bottom:7px;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.2);border-radius:20px;font-size:10px;color:var(--accent2);font-family:'DM Mono',monospace;}
-
-/* INPUT */
 .input-area{padding:12px 20px;padding-bottom:calc(12px + var(--safe-b));border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
 .input-wrap{display:flex;align-items:flex-end;gap:8px;background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:8px 10px;transition:border-color .2s;}
 .input-wrap:focus-within{border-color:var(--accent);box-shadow:var(--glow);}
@@ -174,21 +182,20 @@ body::before{content:'';position:fixed;inset:0;
 .send-btn:active{transform:scale(.93);}
 .input-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:6px;font-family:'DM Mono',monospace;letter-spacing:.2px;}
 
-/* RESPONSIVE */
 @media(max-width:640px){
   .header{padding:0 14px;padding-top:var(--safe-t);}
   .header-sub{display:none;}
   .memory-badge{padding:4px 8px;font-size:10px;}
   .clear-header-btn{padding:4px 9px;font-size:10px;}
   .chat-messages{padding:14px 12px 10px;}
-  .msg-content{max-width:88%;}
+  .msg-content{max-width:90%;}
   .fc-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
   .fc-card{height:130px;}
   .input-area{padding:8px 12px;padding-bottom:calc(8px + var(--safe-b));}
   .input-hint{display:none;}
 }
 @media(max-width:380px){
-  .msg-content{max-width:92%;}
+  .msg-content{max-width:95%;}
   .fc-grid{grid-template-columns:1fr 1fr;}
   .fc-card{height:120px;}
   .fc-text{font-size:11px;}
@@ -202,7 +209,7 @@ body::before{content:'';position:fixed;inset:0;
   <div class="header">
     <div class="header-brand">
       <div class="logo-text">Sedy</div>
-      <div class="header-sub">Ask anything &bull; PDF &bull; Code &bull; Math &bull; Flashcards &bull; Quizzes</div>
+      <div class="header-sub">Ask anything &bull; PDF &bull; Code &bull; Math &bull; Flashcards &bull; Quizzes &bull; Graphs</div>
     </div>
     <div class="header-right">
       <div class="memory-badge"><div class="memory-dot"></div><span id="memory-count">0 messages</span></div>
@@ -224,10 +231,10 @@ body::before{content:'';position:fixed;inset:0;
     <input type="file" id="pdf-input" accept=".pdf" onchange="handlePdfSelect(event)">
     <div class="input-wrap" id="input-wrap">
       <button class="upload-btn" id="upload-btn" onclick="document.getElementById('pdf-input').click()" title="Upload PDF">📎</button>
-      <textarea id="chat-input" rows="1" placeholder="Ask anything, flashcards, quiz... or upload a PDF" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <textarea id="chat-input" rows="1" placeholder="Ask anything, graphs, flashcards, quiz... or upload a PDF" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
       <button class="send-btn" onclick="sendMessage()">➤</button>
     </div>
-    <div class="input-hint">📎 upload PDF &bull; memory saved &bull; renders code &amp; math &bull; flashcards &amp; quizzes</div>
+    <div class="input-hint">📎 upload PDF &bull; 📈 graphs with hover tooltips &bull; memory saved &bull; renders code &amp; math</div>
   </div>
 </div>
 
@@ -235,165 +242,387 @@ body::before{content:'';position:fixed;inset:0;
 const API_URL = 'https://sedy-ai-6j7c.onrender.com';
 const STORAGE_KEY = 'sedy_chat_history';
 let activeQuiz = null;
-let currentPdf = null;
+let currentPdf  = null;
 
-// MEMORY
+// ── MEMORY ────────────────────────────────────────────────────────────────────
 let chatHistory = [];
 try {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) { chatHistory = JSON.parse(saved); if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40); }
 } catch(e) { chatHistory = []; }
 
-function persistHistory() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory.slice(-40))); } catch(e) {}
-}
-function updateMemoryBadge() {
-  document.getElementById('memory-count').textContent = chatHistory.length + ' messages';
-}
-function clearChat() {
-  chatHistory = []; localStorage.removeItem(STORAGE_KEY);
-  document.getElementById('chat-messages').innerHTML = '';
-  removePdf(); activeQuiz = null;
-  addMsg('ai', 'Chat cleared! Ready to help you study again.');
+function persistHistory(){ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(chatHistory.slice(-40)));}catch(e){} }
+function updateMemoryBadge(){ document.getElementById('memory-count').textContent = chatHistory.length+' messages'; }
+function clearChat(){
+  chatHistory=[]; localStorage.removeItem(STORAGE_KEY);
+  document.getElementById('chat-messages').innerHTML='';
+  removePdf(); activeQuiz=null;
+  addMsg('ai','Chat cleared! Ready to help you study again.');
   updateMemoryBadge();
 }
-function pushHistory(role, content) {
-  chatHistory.push({role, content});
-  if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40);
+function pushHistory(role,content){
+  chatHistory.push({role,content});
+  if(chatHistory.length>40) chatHistory=chatHistory.slice(-40);
   persistHistory(); updateMemoryBadge();
 }
 
-// PDF UPLOAD
-function handlePdfSelect(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  if (file.type !== 'application/pdf') { addMsg('ai', 'Please upload a valid .pdf file.'); return; }
-  if (file.size > 25 * 1024 * 1024) { addMsg('ai', 'PDF too large (max 25 MB). Try a smaller file.'); return; }
-  const reader = new FileReader();
-  reader.onload = () => {
-    const base64 = reader.result.split(',')[1];
-    const sizeKb = Math.round(file.size / 1024);
-    currentPdf = { name: file.name, base64, sizeKb };
-    document.getElementById('pdf-chip-name').textContent = file.name;
-    document.getElementById('pdf-chip-size').textContent = sizeKb + ' KB';
+// ── PDF ───────────────────────────────────────────────────────────────────────
+function handlePdfSelect(event){
+  const file=event.target.files[0]; if(!file) return;
+  if(file.type!=='application/pdf'){addMsg('ai','Please upload a valid .pdf file.');return;}
+  if(file.size>25*1024*1024){addMsg('ai','PDF too large (max 25 MB). Try a smaller file.');return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const base64=reader.result.split(',')[1];
+    const sizeKb=Math.round(file.size/1024);
+    currentPdf={name:file.name,base64,sizeKb};
+    document.getElementById('pdf-chip-name').textContent=file.name;
+    document.getElementById('pdf-chip-size').textContent=sizeKb+' KB';
     document.getElementById('pdf-chip').classList.add('visible');
     document.getElementById('upload-btn').classList.add('active');
     document.getElementById('input-wrap').classList.add('pdf-mode');
-    document.getElementById('chat-input').placeholder = 'Ask anything about "' + file.name + '"...';
+    document.getElementById('chat-input').placeholder='Ask anything about "'+file.name+'"...';
     document.getElementById('chat-input').focus();
-    addMsg('ai', '<div class="pdf-badge">PDF ' + _esc(file.name) + ' — ' + sizeKb + ' KB</div>PDF uploaded! I can answer questions, summarize, generate flashcards or a quiz from it. What would you like?', true);
+    addMsg('ai','<div class="pdf-badge">PDF '+_esc(file.name)+' — '+sizeKb+' KB</div>PDF uploaded! I can answer questions, summarize, generate flashcards or a quiz from it. What would you like?',true);
   };
-  reader.onerror = () => addMsg('ai', 'Could not read the PDF. Please try again.');
-  reader.readAsDataURL(file);
-  event.target.value = '';
+  reader.onerror=()=>addMsg('ai','Could not read the PDF. Please try again.');
+  reader.readAsDataURL(file); event.target.value='';
 }
-
-function removePdf() {
-  currentPdf = null;
+function removePdf(){
+  currentPdf=null;
   document.getElementById('pdf-chip').classList.remove('visible');
-  document.getElementById('pdf-input').value = '';
+  document.getElementById('pdf-input').value='';
   document.getElementById('upload-btn').classList.remove('active');
   document.getElementById('input-wrap').classList.remove('pdf-mode');
-  document.getElementById('chat-input').placeholder = 'Ask anything, flashcards, quiz... or upload a PDF';
+  document.getElementById('chat-input').placeholder='Ask anything, graphs, flashcards, quiz... or upload a PDF';
+}
+async function handlePdfChat(text,pdf){
+  const res=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,pdf_base64:pdf.base64,pdf_name:pdf.name,history:chatHistory.slice(-20)})});
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.detail||'HTTP '+res.status);}
+  const data=await res.json(); hideTyping();
+  const reply=data.reply||'Could not process the PDF.';
+  addMsg('ai','<div class="pdf-badge">PDF '+_esc(pdf.name)+'</div>'+renderMarkdown(reply),true);
+  pushHistory('user','[PDF: '+pdf.name+'] '+text);
+  pushHistory('assistant',reply);
 }
 
-async function handlePdfChat(text, pdf) {
-  const res = await fetch(API_URL + '/pdf-chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: text, pdf_base64: pdf.base64, pdf_name: pdf.name, history: chatHistory.slice(-20) })
-  });
-  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || 'HTTP ' + res.status); }
-  const data = await res.json();
-  hideTyping();
-  const reply = data.reply || 'Could not process the PDF.';
-  addMsg('ai', '<div class="pdf-badge">PDF ' + _esc(pdf.name) + '</div>' + renderMarkdown(reply), true);
-  pushHistory('user', '[PDF: ' + pdf.name + '] ' + text);
-  pushHistory('assistant', reply);
-}
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
+function scrollBottom(){const el=document.getElementById('chat-messages');setTimeout(()=>el.scrollTop=el.scrollHeight,80);}
+const _esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-// HELPERS
-function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
-function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
-function scrollBottom() { const el = document.getElementById('chat-messages'); setTimeout(() => el.scrollTop = el.scrollHeight, 80); }
-const _esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-// MARKDOWN RENDERER
-function renderMarkdown(text) {
-  let html = text;
-  const codeBlocks = [], mathBlocks = [];
-  html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang, code) => { const i = codeBlocks.length; codeBlocks.push({lang:lang||'plaintext',code:code.trim()}); return '%%CODE_'+i+'%%'; });
-  html = html.replace(/\$\$([\s\S]+?)\$\$/g, (_,inner) => { const i=mathBlocks.length; mathBlocks.push({display:true,inner}); return '%%MATH_'+i+'%%'; });
-  html = html.replace(/\$([^$\n]+?)\$/g, (_,inner) => { const i=mathBlocks.length; mathBlocks.push({display:false,inner}); return '%%MATH_'+i+'%%'; });
-  html = html.replace(/\\\((.+?)\\\)/g, (_,inner) => { const i=mathBlocks.length; mathBlocks.push({display:false,inner}); return '%%MATH_'+i+'%%'; });
-  html = html.replace(/\\\[([\s\S]+?)\\\]/g, (_,inner) => { const i=mathBlocks.length; mathBlocks.push({display:true,inner}); return '%%MATH_'+i+'%%'; });
-  html = html.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  html = html.replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^# (.+)$/gm,'<h1>$1</h1>');
-  html = html.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>');
-  html = html.replace(/`([^`]+)`/g,'<code>$1</code>');
-  html = html.replace(/\[!NOTE\]\s*(.+)/g,'<div class="highlight-box">$1</div>').replace(/\[!WARNING\]\s*(.+)/g,'<div class="warning-box">$1</div>').replace(/\[!SUCCESS\]\s*(.+)/g,'<div class="success-box">$1</div>');
-  html = html.replace(/^---$/gm,'<hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">');
-  html = html.replace(/(\|.+\|\n)((\|[-| :]+)+\|)\n((?:\|.+\|\n?)+)/g, match => {
-    const lines = match.trim().split('\n');
-    const headers = lines[0].split('|').filter(c=>c.trim());
-    const rows = lines.slice(2).map(r=>r.split('|').filter(c=>c.trim()));
-    let t='<table><thead><tr>'; headers.forEach(h=>t+='<th>'+h.trim()+'</th>'); t+='</tr></thead><tbody>';
-    rows.forEach(row=>{t+='<tr>';row.forEach(cell=>t+='<td>'+cell.trim()+'</td>');t+='</tr>';}); return t+'</tbody></table>';
+// ── MARKDOWN ──────────────────────────────────────────────────────────────────
+function renderMarkdown(text){
+  let html=text; const codeBlocks=[],mathBlocks=[];
+  html=html.replace(/```(\w+)?\n?([\s\S]*?)```/g,(_,lang,code)=>{const i=codeBlocks.length;codeBlocks.push({lang:lang||'plaintext',code:code.trim()});return '%%CODE_'+i+'%%';});
+  html=html.replace(/\$\$([\s\S]+?)\$\$/g,(_,inner)=>{const i=mathBlocks.length;mathBlocks.push({display:true,inner});return '%%MATH_'+i+'%%';});
+  html=html.replace(/\$([^$\n]+?)\$/g,(_,inner)=>{const i=mathBlocks.length;mathBlocks.push({display:false,inner});return '%%MATH_'+i+'%%';});
+  html=html.replace(/\\\((.+?)\\\)/g,(_,inner)=>{const i=mathBlocks.length;mathBlocks.push({display:false,inner});return '%%MATH_'+i+'%%';});
+  html=html.replace(/\\\[([\s\S]+?)\\\]/g,(_,inner)=>{const i=mathBlocks.length;mathBlocks.push({display:true,inner});return '%%MATH_'+i+'%%';});
+  html=html.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  html=html.replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  html=html.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>');
+  html=html.replace(/`([^`]+)`/g,'<code>$1</code>');
+  html=html.replace(/\[!NOTE\]\s*(.+)/g,'<div class="highlight-box">$1</div>').replace(/\[!WARNING\]\s*(.+)/g,'<div class="warning-box">$1</div>').replace(/\[!SUCCESS\]\s*(.+)/g,'<div class="success-box">$1</div>');
+  html=html.replace(/^---$/gm,'<hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">');
+  html=html.replace(/(\|.+\|\n)((\|[-| :]+)+\|)\n((?:\|.+\|\n?)+)/g,match=>{
+    const lines=match.trim().split('\n');const headers=lines[0].split('|').filter(c=>c.trim());const rows=lines.slice(2).map(r=>r.split('|').filter(c=>c.trim()));
+    let t='<table><thead><tr>';headers.forEach(h=>t+='<th>'+h.trim()+'</th>');t+='</tr></thead><tbody>';
+    rows.forEach(row=>{t+='<tr>';row.forEach(cell=>t+='<td>'+cell.trim()+'</td>');t+='</tr>';});return t+'</tbody></table>';
   });
-  html = html.replace(/((?:^[-*] .+\n?)+)/gm, m => '<ul>'+m.trim().split('\n').map(i=>'<li>'+i.replace(/^[-*] /,'')+'</li>').join('')+'</ul>');
-  html = html.replace(/((?:^\d+\. .+\n?)+)/gm, m => '<ol>'+m.trim().split('\n').map(i=>'<li>'+i.replace(/^\d+\. /,'')+'</li>').join('')+'</ol>');
-  html = html.replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
-  codeBlocks.forEach(({lang,code},i) => {
-    const safe = code.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
-    let hi; try{hi=hljs.highlight(safe,{language:lang,ignoreIllegals:true}).value;}catch(e){hi=hljs.highlightAuto(safe).value;}
-    html = html.replace('%%CODE_'+i+'%%','<div class="code-block-wrap"><div class="code-block-header"><span class="code-lang">'+lang+'</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code class="hljs">'+hi+'</code></pre></div>');
+  html=html.replace(/((?:^[-*] .+\n?)+)/gm,m=>'<ul>'+m.trim().split('\n').map(i=>'<li>'+i.replace(/^[-*] /,'')+'</li>').join('')+'</ul>');
+  html=html.replace(/((?:^\d+\. .+\n?)+)/gm,m=>'<ol>'+m.trim().split('\n').map(i=>'<li>'+i.replace(/^\d+\. /,'')+'</li>').join('')+'</ol>');
+  html=html.replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+  codeBlocks.forEach(({lang,code},i)=>{
+    const safe=code.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+    let hi;try{hi=hljs.highlight(safe,{language:lang,ignoreIllegals:true}).value;}catch(e){hi=hljs.highlightAuto(safe).value;}
+    html=html.replace('%%CODE_'+i+'%%','<div class="code-block-wrap"><div class="code-block-header"><span class="code-lang">'+lang+'</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code class="hljs">'+hi+'</code></pre></div>');
   });
-  mathBlocks.forEach(({display,inner},i) => { html = html.replace('%%MATH_'+i+'%%', display?'$$'+inner+'$$':'$'+inner+'$'); });
+  mathBlocks.forEach(({display,inner},i)=>{html=html.replace('%%MATH_'+i+'%%',display?'$$'+inner+'$$':'$'+inner+'$');});
   return html;
 }
+function copyCode(btn){navigator.clipboard.writeText(btn.closest('.code-block-wrap').querySelector('code').innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+function renderMath(el){try{renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}catch(e){}}
 
-function copyCode(btn) {
-  navigator.clipboard.writeText(btn.closest('.code-block-wrap').querySelector('code').innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});
-}
-
-function renderMath(el) {
-  try { renderMathInElement(el, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false}); } catch(e) {}
-}
-
-// ADD MESSAGE
-function addMsg(role, content, isHtml=false) {
-  const wrap = document.getElementById('chat-messages');
-  const div = document.createElement('div');
-  div.className = 'msg ' + role;
-  let bubbleContent = isHtml ? content : (role==='ai' ? renderMarkdown(content) : _esc(content).replace(/\n/g,'<br>'));
-  div.innerHTML = '<div class="msg-avatar">'+(role==='ai'?'🤖':'👤')+'</div><div class="msg-content"><div class="msg-bubble">'+bubbleContent+'</div></div>';
+// ── ADD MESSAGE ───────────────────────────────────────────────────────────────
+function addMsg(role,content,isHtml=false){
+  const wrap=document.getElementById('chat-messages');
+  const div=document.createElement('div');div.className='msg '+role;
+  let bubbleContent=isHtml?content:(role==='ai'?renderMarkdown(content):_esc(content).replace(/\n/g,'<br>'));
+  div.innerHTML='<div class="msg-avatar">'+(role==='ai'?'🤖':'👤')+'</div><div class="msg-content"><div class="msg-bubble">'+bubbleContent+'</div></div>';
   wrap.appendChild(div);
-  if (role === 'ai') {
-    const bubble = div.querySelector('.msg-bubble');
-    if (bubble) { renderMath(bubble); bubble.querySelectorAll('pre code').forEach(el=>hljs.highlightElement(el)); }
-  }
-  scrollBottom();
-  return div;
+  if(role==='ai'){const bubble=div.querySelector('.msg-bubble');if(bubble){renderMath(bubble);bubble.querySelectorAll('pre code').forEach(el=>hljs.highlightElement(el));}}
+  scrollBottom(); return div;
 }
-
-function showTyping() {
-  if (document.getElementById('typing')) return;
-  const wrap = document.getElementById('chat-messages');
-  const div = document.createElement('div'); div.className='msg ai'; div.id='typing';
+function showTyping(){
+  if(document.getElementById('typing'))return;
+  const wrap=document.getElementById('chat-messages');
+  const div=document.createElement('div');div.className='msg ai';div.id='typing';
   div.innerHTML='<div class="msg-avatar">🤖</div><div class="msg-content"><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>';
-  wrap.appendChild(div); scrollBottom();
+  wrap.appendChild(div);scrollBottom();
 }
-function hideTyping() { const t=document.getElementById('typing'); if(t)t.remove(); }
+function hideTyping(){const t=document.getElementById('typing');if(t)t.remove();}
 
-// INTENT
+// ══════════════════════════════════════════════════════════════════════════════
+// ── GRAPH ENGINE ─────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+const PALETTE=['#4f8eff','#00e5c0','#ff4f6a','#ffb547','#7c5cfc','#00e5a0'];
+
+function renderGraph(g){
+  // g = { title, unit, x_label, caption, series:[{label,data:[{x,y}]}] }
+  if(!g.series||!g.series.length) return;
+  g.series.forEach((s,i)=>s._c=PALETTE[i%PALETTE.length]);
+
+  const uid='g'+Date.now()+Math.random().toString(36).slice(2,5);
+  const legend=g.series.map(s=>`
+    <div class="graph-legend-item">
+      <div class="graph-legend-line" style="background:${s._c}"></div>
+      ${_esc(s.label)}
+    </div>`).join('');
+
+  const html=`<div class="graph-wrap">
+    <div class="graph-header">
+      <div>
+        <div class="graph-title">${_esc(g.title)}</div>
+        ${g.unit?`<div class="graph-unit-label">${_esc(g.unit)}</div>`:''}
+      </div>
+      <div class="graph-legend">${legend}</div>
+    </div>
+    <div class="graph-canvas-wrap" id="cw_${uid}">
+      <canvas id="cv_${uid}"></canvas>
+      <div class="graph-tooltip" id="tt_${uid}"></div>
+    </div>
+  </div>`;
+
+  addMsg('ai',html,true);
+  requestAnimationFrame(()=>{
+    const wrap=document.getElementById('cw_'+uid);
+    const canvas=document.getElementById('cv_'+uid);
+    const tip=document.getElementById('tt_'+uid);
+    if(wrap&&canvas) mountGraph(canvas,tip,wrap,g);
+  });
+}
+
+function mountGraph(canvas,tip,wrap,g){
+  const PAD={t:18,r:20,b:44,l:60};
+  const H=250;
+  const DPR=window.devicePixelRatio||1;
+
+  // Collect & sort all unique X values
+  const allX=[...new Set(g.series.flatMap(s=>s.data.map(d=>d.x)))].sort((a,b)=>Number(a)-Number(b));
+  const allY=g.series.flatMap(s=>s.data.map(d=>+d.y));
+  const minY=Math.min(...allY), maxY=Math.max(...allY);
+  const pad=(maxY-minY)*0.13||1;
+  const yLo=minY-pad, yHi=maxY+pad;
+
+  function px2x(xi,W){ return allX.length<2?PAD.l+(W-PAD.l-PAD.r)/2:PAD.l+(xi/(allX.length-1))*(W-PAD.l-PAD.r); }
+  function py2y(v){ return PAD.t+(1-(v-yLo)/(yHi-yLo))*(H-PAD.t-PAD.b); }
+
+  // Nice Y ticks
+  function niceTicks(lo,hi,n=5){
+    const range=hi-lo,rough=range/n;
+    const mag=Math.pow(10,Math.floor(Math.log10(rough)));
+    const norm=rough/mag;
+    const step=(norm<1.5?1:norm<3?2:norm<7?5:10)*mag;
+    const ticks=[];
+    for(let v=Math.ceil(lo/step)*step;v<=hi+step*0.01;v+=step) ticks.push(Math.round(v*1e9)/1e9);
+    return ticks;
+  }
+  function fmt(v){
+    if(Math.abs(v)>=1e9) return (v/1e9).toFixed(1)+'B';
+    if(Math.abs(v)>=1e6) return (v/1e6).toFixed(1)+'M';
+    if(Math.abs(v)>=1e3) return (v/1e3).toFixed(1)+'k';
+    return v%1===0?v.toString():v.toFixed(1);
+  }
+
+  let prog=0, raf=null;
+
+  function draw(p){
+    const W=canvas.width/DPR;
+    const ctx=canvas.getContext('2d');
+    ctx.save(); ctx.scale(DPR,DPR); ctx.clearRect(0,0,W,H);
+
+    const plotW=W-PAD.l-PAD.r, plotH=H-PAD.t-PAD.b;
+
+    // Y grid lines + labels
+    const yTicks=niceTicks(yLo,yHi);
+    yTicks.forEach(t=>{
+      const py=py2y(t); if(py<PAD.t-2||py>H-PAD.b+2) return;
+      ctx.strokeStyle='rgba(30,45,69,0.7)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(PAD.l,py); ctx.lineTo(W-PAD.r,py); ctx.stroke();
+      ctx.fillStyle='rgba(74,90,122,0.9)'; ctx.font=`10px 'DM Mono',monospace`;
+      ctx.textAlign='right'; ctx.textBaseline='middle';
+      ctx.fillText(fmt(t),PAD.l-7,py);
+    });
+
+    // X tick labels
+    const maxTicks=Math.max(2,Math.floor(plotW/52));
+    const xStep=Math.ceil(allX.length/maxTicks);
+    allX.forEach((x,i)=>{
+      if(i%xStep!==0&&i!==allX.length-1) return;
+      const px=px2x(i,W);
+      ctx.strokeStyle='rgba(30,45,69,0.35)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(px,PAD.t); ctx.lineTo(px,H-PAD.b); ctx.stroke();
+      ctx.fillStyle='rgba(74,90,122,0.9)'; ctx.font=`10px 'DM Mono',monospace`;
+      ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText(String(x),px,H-PAD.b+8);
+    });
+
+    // Unit label rotated on Y
+    if(g.unit){
+      ctx.save(); ctx.translate(13,PAD.t+plotH/2); ctx.rotate(-Math.PI/2);
+      ctx.fillStyle='rgba(74,90,122,0.7)'; ctx.font=`9px 'DM Mono',monospace`;
+      ctx.textAlign='center'; ctx.fillText(g.unit,0,0); ctx.restore();
+    }
+
+    // Axis border
+    ctx.strokeStyle='rgba(36,51,80,1)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(PAD.l,PAD.t); ctx.lineTo(PAD.l,H-PAD.b); ctx.lineTo(W-PAD.r,H-PAD.b); ctx.stroke();
+
+    // Draw each series (clipped to animation progress)
+    g.series.forEach(s=>{
+      const pts=allX.map((x,i)=>{
+        const pt=s.data.find(d=>String(d.x)===String(x));
+        return pt?{xi:i,y:+pt.y}:null;
+      }).filter(Boolean);
+      if(!pts.length) return;
+
+      const total=pts.length;
+      const drawN=Math.max(1,Math.floor(total*p));
+      const vis=pts.slice(0,drawN);
+
+      // Gradient fill
+      const grd=ctx.createLinearGradient(0,PAD.t,0,H-PAD.b);
+      grd.addColorStop(0,s._c+'2a'); grd.addColorStop(1,s._c+'00');
+      ctx.beginPath();
+      vis.forEach((pt,i)=>{
+        const x=px2x(pt.xi,W),y=py2y(pt.y);
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.lineTo(px2x(vis[vis.length-1].xi,W),H-PAD.b);
+      ctx.lineTo(px2x(vis[0].xi,W),H-PAD.b);
+      ctx.closePath(); ctx.fillStyle=grd; ctx.fill();
+
+      // Line
+      ctx.beginPath(); ctx.strokeStyle=s._c; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.lineCap='round';
+      vis.forEach((pt,i)=>{const x=px2x(pt.xi,W),y=py2y(pt.y);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+      ctx.stroke();
+
+      // Dots
+      const dotPts=p>=1?vis:[vis[vis.length-1]];
+      dotPts.forEach(pt=>{
+        const x=px2x(pt.xi,W),y=py2y(pt.y);
+        ctx.beginPath(); ctx.arc(x,y,p>=1?3.5:4.5,0,Math.PI*2);
+        ctx.fillStyle=s._c; ctx.fill();
+        ctx.strokeStyle='#080b12'; ctx.lineWidth=1.5; ctx.stroke();
+      });
+    });
+
+    ctx.restore();
+  }
+
+  function animate(){prog+=0.032;if(prog>=1){prog=1;draw(1);return;}draw(prog);raf=requestAnimationFrame(animate);}
+
+  function resize(){
+    const W=wrap.clientWidth||300;
+    canvas.width=W*DPR; canvas.height=H*DPR;
+    canvas.style.height=H+'px';
+    if(prog>=1) draw(1); else if(!raf) animate();
+  }
+
+  // ── PERPLEXITY-STYLE CROSSHAIR TOOLTIP ──────────────────────────────────
+  function xIndexAt(mx){
+    const W=wrap.clientWidth;
+    let best=0,bestD=Infinity;
+    allX.forEach((_,i)=>{const d=Math.abs(mx-px2x(i,W));if(d<bestD){bestD=d;best=i;}});
+    return best;
+  }
+
+  function onMove(mx,my){
+    const W=wrap.clientWidth;
+    if(mx<PAD.l-8||mx>W-PAD.r+8){hideTip();return;}
+    const xi=xIndexAt(mx);
+    const xVal=allX[xi];
+    const cx=px2x(xi,W);
+
+    // Redraw base + crosshair overlay
+    draw(1);
+    const ctx=canvas.getContext('2d');
+    ctx.save(); ctx.scale(DPR,DPR);
+    ctx.strokeStyle='rgba(232,237,245,0.18)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(cx,PAD.t); ctx.lineTo(cx,H-PAD.b); ctx.stroke();
+    ctx.setLineDash([]);
+
+    g.series.forEach(s=>{
+      const pt=s.data.find(d=>String(d.x)===String(xVal));
+      if(!pt) return;
+      const cy=py2y(+pt.y);
+      // Glow halo
+      ctx.beginPath(); ctx.arc(cx,cy,9,0,Math.PI*2);
+      const halo=ctx.createRadialGradient(cx,cy,2,cx,cy,9);
+      halo.addColorStop(0,s._c+'55'); halo.addColorStop(1,s._c+'00');
+      ctx.fillStyle=halo; ctx.fill();
+      // Dot
+      ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2);
+      ctx.fillStyle=s._c; ctx.fill();
+      ctx.strokeStyle='#080b12'; ctx.lineWidth=2; ctx.stroke();
+    });
+    ctx.restore();
+
+    // Build tooltip
+    const rows=g.series.map(s=>{
+      const pt=s.data.find(d=>String(d.x)===String(xVal));
+      const val=pt?fmt(+pt.y)+(g.unit?' '+g.unit:''):'—';
+      return `<div class="graph-tooltip-row">
+        <div class="graph-tooltip-swatch" style="background:${s._c}"></div>
+        <span class="graph-tooltip-label">${_esc(s.label)}</span>
+        <span class="graph-tooltip-val">${_esc(val)}</span>
+      </div>`;
+    }).join('');
+    tip.innerHTML=`<div class="graph-tooltip-x">${_esc(String(xVal))}</div>${rows}`;
+    tip.classList.add('visible');
+
+    // Smart position — flip left if near right edge
+    const tipW=tip.offsetWidth||180;
+    const wW=wrap.clientWidth;
+    let left=cx+16; if(left+tipW>wW-8) left=cx-tipW-16;
+    tip.style.left=Math.max(2,left)+'px';
+    tip.style.top=Math.max(PAD.t,my-24)+'px';
+  }
+
+  function hideTip(){tip.classList.remove('visible'); if(prog>=1) draw(1);}
+
+  canvas.addEventListener('mousemove',e=>{
+    const r=canvas.getBoundingClientRect();
+    onMove(e.clientX-r.left,e.clientY-r.top);
+  });
+  canvas.addEventListener('mouseleave',()=>hideTip());
+  canvas.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    const r=canvas.getBoundingClientRect();
+    onMove(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);
+  },{passive:false});
+  canvas.addEventListener('touchend',()=>hideTip());
+
+  const ro=new ResizeObserver(()=>{if(prog>=1){resize();}});
+  ro.observe(wrap);
+  resize();
+  animate();
+}
+
+// ── INTENT ────────────────────────────────────────────────────────────────────
 const FC_WORDS=['flashcard','flashcards','flash card','flash cards','make cards','create cards','generate cards','cards on','cards about','cards for','study cards'];
 const QZ_WORDS=['quiz','test me','question me','mcq','multiple choice','quiz me','start quiz','give me a quiz','a quiz'];
-function detectIntent(text) {
+const GR_WORDS=['graph','chart','plot','visualize','visualise','trend','over time','over years','over decades','price history','growth chart','bar chart','line graph','show me a graph','draw a graph','make a graph','show data','show prices','historical data','compare prices','vs prices'];
+
+function detectIntent(text){
   const t=text.toLowerCase();
-  const fc=FC_WORDS.some(w=>t.includes(w)), qz=QZ_WORDS.some(w=>t.includes(w));
+  if(GR_WORDS.some(w=>t.includes(w))) return 'graph';
+  const fc=FC_WORDS.some(w=>t.includes(w)),qz=QZ_WORDS.some(w=>t.includes(w));
   return fc&&qz?'both':fc?'flashcard':qz?'quiz':'chat';
 }
-function extractTopic(text) {
+function extractTopic(text){
   const patterns=[
     /(?:flashcards?|cards?)\s+(?:about|on|for|regarding)\s+(.+)/i,
     /(?:generate|make|create)\s+(?:\d+\s+)?(?:flashcards?|cards?)\s+(?:about|on|for)?\s*(.+)/i,
@@ -406,47 +635,35 @@ function extractTopic(text) {
 }
 const CTX_PATS=[/^(it|this|that|them|same|the same)$/i,/^(the topic|same topic|this topic|that topic)$/i,/\b(at this basis|based on (this|that|above|it)|on (this|that))\b/i,/\b(as (discussed|mentioned|above|explained)|what (we|i) (just )?(discussed|talked|said|covered))\b/i,/\b(previous(ly)?|last (topic|subject|thing))\b/i];
 function isVague(t){return CTX_PATS.some(p=>p.test(t.trim()));}
-function getLastTopic() {
+function getLastTopic(){
   const rev=[...chatHistory].reverse();
   for(const h of rev){if(h.role==='assistant'){const m=h.content.match(/(?:flashcards?|quiz)\s+(?:about|on)\s+(.+)/i);if(m)return m[1].trim();}}
   for(const h of rev){if(h.role==='user'){const e=extractTopic(h.content);if(e&&!isVague(e)&&e.length>1)return e;}}
   for(const h of rev){if(h.role==='assistant'){const m=h.content.match(/(?:^|\n)#{1,3}\s+(?:introduction to\s+)?([A-Za-z][^\n]{2,40})/i);if(m)return m[1].trim();}}
   return null;
 }
-function resolveTopic(msg) {
+function resolveTopic(msg){
   let t=extractTopic(msg);
   if(!t||isVague(t)||t.length<=2){const l=getLastTopic();if(l)return l;}
   return t;
 }
 
-// SEND
-async function sendMessage() {
+// ── SEND ──────────────────────────────────────────────────────────────────────
+async function sendMessage(){
   const input=document.getElementById('chat-input');
-  const text=input.value.trim();
-  if(!text)return;
+  const text=input.value.trim(); if(!text)return;
   input.value=''; input.style.height='auto';
   addMsg('user',text);
-
   const intent=detectIntent(text);
 
   if(currentPdf){
     if(intent==='flashcard'||intent==='both'||intent==='quiz'){
       let topic=resolveTopic(text);
-      if(isVague(topic)||topic.length<=2){
-        topic=currentPdf.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ').trim();
-      }
+      if(isVague(topic)||topic.length<=2) topic=currentPdf.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ').trim();
       try{
-        if(intent==='both'){
-          showTyping(); pushHistory('user',text);
-          await handleFlashcards(topic,text,false);
-          showTyping();
-          await handleQuiz(topic,text,false);
-          pushHistory('assistant','Generated flashcards and a quiz about '+topic);
-        } else if(intent==='flashcard'){
-          showTyping(); await handleFlashcards(topic,text,true);
-        } else {
-          showTyping(); await handleQuiz(topic,text,true);
-        }
+        if(intent==='both'){showTyping();pushHistory('user',text);await handleFlashcards(topic,text,false);showTyping();await handleQuiz(topic,text,false);pushHistory('assistant','Generated flashcards and a quiz about '+topic);}
+        else if(intent==='flashcard'){showTyping();await handleFlashcards(topic,text,true);}
+        else{showTyping();await handleQuiz(topic,text,true);}
       }catch(err){hideTyping();addMsg('ai','Could not generate: '+err.message);console.error(err);}
       return;
     }
@@ -458,29 +675,42 @@ async function sendMessage() {
 
   const topic=resolveTopic(text);
   try{
-    if(intent==='both'){showTyping();pushHistory('user',text);await handleFlashcards(topic,text,false);showTyping();await handleQuiz(topic,text,false);pushHistory('assistant','Generated flashcards and a quiz about '+topic);}
+    if(intent==='graph'){showTyping();await handleGraph(text);}
+    else if(intent==='both'){showTyping();pushHistory('user',text);await handleFlashcards(topic,text,false);showTyping();await handleQuiz(topic,text,false);pushHistory('assistant','Generated flashcards and a quiz about '+topic);}
     else if(intent==='flashcard'){showTyping();await handleFlashcards(topic,text,true);}
     else if(intent==='quiz'){showTyping();await handleQuiz(topic,text,true);}
     else{showTyping();await handleChat(text);}
   }catch(err){hideTyping();addMsg('ai','Could not reach Sedy. Please check your connection.');console.error(err);}
 }
 
-// CHAT
-async function handleChat(text) {
-  const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
-  if(!res.ok)throw new Error('HTTP '+res.status);
+// ── GRAPH HANDLER ─────────────────────────────────────────────────────────────
+async function handleGraph(text){
+  const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
+  if(!res.ok) throw new Error('HTTP '+res.status);
   const data=await res.json(); hideTyping();
-  const reply=data.reply||'Sorry, no response.';
-  pushHistory('user',text); pushHistory('assistant',reply); addMsg('ai',reply);
+  if(!data.series||!data.series.length){addMsg('ai','Could not generate graph data for that request.');return;}
+  pushHistory('user',text);
+  pushHistory('assistant','Generated a graph: '+data.title);
+  if(data.caption) addMsg('ai',data.caption);
+  renderGraph(data);
 }
 
-// FLASHCARDS
-async function handleFlashcards(topic,originalText,saveHistory=true) {
+// ── CHAT ──────────────────────────────────────────────────────────────────────
+async function handleChat(text){
+  const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const data=await res.json(); hideTyping();
+  const reply=data.reply||'Sorry, no response.';
+  pushHistory('user',text);pushHistory('assistant',reply);addMsg('ai',reply);
+}
+
+// ── FLASHCARDS ────────────────────────────────────────────────────────────────
+async function handleFlashcards(topic,originalText,saveHistory=true){
   topic=isVague(topic)?(getLastTopic()||topic):topic;
   const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,count:6,history:chatHistory.slice(-20)})});
-  if(!res.ok)throw new Error('HTTP '+res.status);
+  if(!res.ok) throw new Error('HTTP '+res.status);
   const data=await res.json(); hideTyping();
-  const rt=data.topic||topic; const cards=data.cards||[];
+  const rt=data.topic||topic;const cards=data.cards||[];
   if(!cards.length){addMsg('ai','Could not generate flashcards for "'+rt+'".');return;}
   if(saveHistory){pushHistory('user',originalText);pushHistory('assistant','Generated '+cards.length+' flashcards about '+rt);}
   let html='<strong>🃏 '+cards.length+' Flashcards — '+_esc(rt)+'</strong><br><small style="color:var(--text3);font-size:11px;">Tap each card to reveal the answer</small><div class="fc-grid">';
@@ -488,44 +718,42 @@ async function handleFlashcards(topic,originalText,saveHistory=true) {
   addMsg('ai',html+'</div>',true);
 }
 
-// QUIZ
-async function handleQuiz(topic,originalText,saveHistory=true) {
+// ── QUIZ ──────────────────────────────────────────────────────────────────────
+async function handleQuiz(topic,originalText,saveHistory=true){
   topic=isVague(topic)?(getLastTopic()||topic):topic;
-  let diff='medium'; if(/easy|simple|basic/i.test(originalText))diff='easy'; if(/hard|difficult|advanced/i.test(originalText))diff='hard';
+  let diff='medium';if(/easy|simple|basic/i.test(originalText))diff='easy';if(/hard|difficult|advanced/i.test(originalText))diff='hard';
   const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,difficulty:diff,count:5,history:chatHistory.slice(-20)})});
-  if(!res.ok)throw new Error('HTTP '+res.status);
+  if(!res.ok) throw new Error('HTTP '+res.status);
   const data=await res.json(); hideTyping();
-  const rt=data.topic||topic; const qs=data.questions||[];
+  const rt=data.topic||topic;const qs=data.questions||[];
   if(!qs.length){addMsg('ai','Could not generate a quiz for "'+rt+'".');return;}
   if(saveHistory){pushHistory('user',originalText);pushHistory('assistant','Started a '+diff+' quiz about '+rt);}
   activeQuiz={questions:qs,idx:0,score:0,topic:rt,answered:false};
   addMsg('ai','<strong>📝 Quiz — '+_esc(rt)+'</strong> · '+diff+' · '+qs.length+' questions<br><small style="color:var(--text3);font-size:11px;">Select an answer for each question</small>',true);
   renderQuizQ();
 }
-
-function renderQuizQ() {
+function renderQuizQ(){
   if(!activeQuiz)return;
-  const {questions:qs,idx}=activeQuiz; const q=qs[idx]; const tot=qs.length; const L=['A','B','C','D'];
-  let opts=''; q.options.forEach((o,i)=>opts+='<div class="quiz-opt" id="qo-'+i+'" onclick="answerQ('+i+')"><div class="opt-l">'+L[i]+'</div>'+_esc(o)+'</div>');
+  const{questions:qs,idx}=activeQuiz;const q=qs[idx];const tot=qs.length;const L=['A','B','C','D'];
+  let opts='';q.options.forEach((o,i)=>opts+='<div class="quiz-opt" id="qo-'+i+'" onclick="answerQ('+i+')"><div class="opt-l">'+L[i]+'</div>'+_esc(o)+'</div>');
   addMsg('ai','<div class="quiz-wrap" id="quiz-wrap"><div class="quiz-prog"><div class="quiz-fill" style="width:'+(idx/tot*100)+'%"></div></div><div class="quiz-qnum">Question '+(idx+1)+' of '+tot+'</div><div class="quiz-q">'+_esc(q.question)+'</div><div class="quiz-opts">'+opts+'</div><div class="quiz-exp" id="quiz-exp"></div><button class="quiz-next" id="quiz-next" onclick="nextQ()">Next</button></div>',true);
   activeQuiz.answered=false;
 }
-
-function answerQ(idx) {
-  if(!activeQuiz||activeQuiz.answered)return; activeQuiz.answered=true;
+function answerQ(idx){
+  if(!activeQuiz||activeQuiz.answered)return;activeQuiz.answered=true;
   const q=activeQuiz.questions[activeQuiz.idx];
   document.querySelectorAll('.quiz-opt').forEach((el,i)=>{el.classList.add('disabled');if(i===q.answer)el.classList.add('correct');else if(i===idx&&idx!==q.answer)el.classList.add('wrong');});
   if(idx===q.answer)activeQuiz.score++;
   if(q.explanation){const exp=document.getElementById('quiz-exp');if(exp){exp.textContent='💡 '+q.explanation;exp.style.display='block';}}
   const btn=document.getElementById('quiz-next');if(btn){btn.style.display='block';btn.textContent=activeQuiz.idx+1<activeQuiz.questions.length?'Next →':'See Results 🎉';}
 }
-function nextQ() {
-  if(!activeQuiz)return; activeQuiz.idx++; activeQuiz.answered=false;
-  const old=document.getElementById('quiz-wrap'); if(old)old.closest('.msg').remove();
-  if(activeQuiz.idx<activeQuiz.questions.length)renderQuizQ(); else showQuizResult();
+function nextQ(){
+  if(!activeQuiz)return;activeQuiz.idx++;activeQuiz.answered=false;
+  const old=document.getElementById('quiz-wrap');if(old)old.closest('.msg').remove();
+  if(activeQuiz.idx<activeQuiz.questions.length)renderQuizQ();else showQuizResult();
 }
-function showQuizResult() {
-  const {score,questions,topic}=activeQuiz; const tot=questions.length; const pct=Math.round(score/tot*100);
+function showQuizResult(){
+  const{score,questions,topic}=activeQuiz;const tot=questions.length;const pct=Math.round(score/tot*100);
   const labels=['Keep practicing!','Good effort!','Well done!','Excellent!','Perfect!'];
   const label=pct<40?labels[0]:pct<60?labels[1]:pct<80?labels[2]:pct<100?labels[3]:labels[4];
   addMsg('ai','<div class="quiz-result"><div class="qr-pct">'+pct+'%</div><div class="qr-lbl">'+label+'</div><div class="qr-stats"><div class="qr-stat"><div class="qr-n g">'+score+'</div><div class="qr-sl">Correct</div></div><div class="qr-stat"><div class="qr-n r">'+(tot-score)+'</div><div class="qr-sl">Wrong</div></div><div class="qr-stat"><div class="qr-n" style="color:var(--accent)">'+tot+'</div><div class="qr-sl">Total</div></div></div></div>',true);
@@ -534,10 +762,10 @@ function showQuizResult() {
   activeQuiz=null;
 }
 
-// INIT
-function initSession() {
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function initSession(){
   if(chatHistory.length===0){
-    addMsg('ai','Hey! I\'m **Sedy**, your AI study companion made by Ansh Verma\n\nMemory saved across page refreshes!\n\n**📎 Upload a PDF** — ask questions, get summaries, generate flashcards from any document\n**Flashcards** — "flashcards about X"\n**Quiz** — "quiz me on X"\n**Math** — formulas rendered with KaTeX \\(E=mc^2\\)\n**Code** — syntax highlighted');
+    addMsg('ai','Hey! I\'m **Sedy**, your AI study companion made by Ansh Verma\n\nMemory saved across page refreshes!\n\n**📎 Upload a PDF** — ask questions, get summaries, generate flashcards\n**📈 Graphs** — "show onion prices 2000-2020" or "plot GDP of India vs China"\n**🃏 Flashcards** — "flashcards about X"\n**📝 Quiz** — "quiz me on X"\n**🔢 Math** — KaTeX rendering \\(E=mc^2\\)\n**💻 Code** — syntax highlighted');
   } else {
     const uc=chatHistory.filter(h=>h.role==='user').length;
     addMsg('ai','Welcome back! I remember our previous conversation ('+uc+' message'+(uc!==1?'s':'')+').\n\nUpload a PDF with the 📎 button, or just type to continue!');
@@ -546,7 +774,6 @@ function initSession() {
 }
 initSession();
 
-// Keyboard viewport fix for mobile
 if(window.visualViewport){
   let last=window.visualViewport.height;
   window.visualViewport.addEventListener('resize',()=>{

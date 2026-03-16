@@ -867,21 +867,55 @@ function mountPie(canvas,tip,wrap,g){
 const FC_WORDS=['flashcard','flashcards','flash card','flash cards','make cards','create cards','generate cards','cards on','cards about','cards for','study cards'];
 const QZ_WORDS=['quiz','test me','question me','mcq','multiple choice','quiz me','start quiz','give me a quiz','a quiz'];
 // ── AI-POWERED INTENT DETECTION ──────────────────────────────────────────────
-// No keyword lists. The AI reads the message + history and decides the intent.
-// Returns: "graph" | "flashcard" | "quiz" | "both" | "chat"
+// The AI decides intent. A fast local pre-check handles obvious cases instantly
+// so we never waste a round trip on "hi", "thanks", "what is X" etc.
+
+// CERTAIN CHAT — skip API call entirely, return 'chat' immediately
+const OBVIOUS_CHAT = [
+  /^(hi|hey|hello|hii|helo|hiya|yo|sup|howdy|greetings)[\s!?.]*$/i,
+  /^(thanks|thank you|thx|ty|ok|okay|k|sure|got it|cool|nice|great|awesome|perfect)[\s!.]*$/i,
+  /^(bye|goodbye|see you|cya|good night|gn)[\s!.]*$/i,
+  /^what\s+is\s+(a|an|the)\s+/i,
+  /^(explain|define|describe|tell me about|what does|what are)\s+/i,
+  /^(how\s+does|how\s+do)\s+/i,
+  /^(why\s+is|why\s+are|why\s+does|why\s+do)\s+/i,
+  /^(can\s+you\s+(explain|help|tell|write|solve|give))/i,
+  /^(solve|calculate|find|compute|derive|integrate|differentiate)\s+/i,
+  /^(write\s+(a|an|the|me)\s+)/i,
+  /^(help\s+me\s+)/i,
+  /^\w{1,12}[?!.]*$/,                        // single short word like "photosynthesis?"
+];
+
+// CERTAIN NON-CHAT — skip API call, return correct intent immediately
+const OBVIOUS_FLASHCARD = /(flashcard|flashcards|flash card|flash cards|study cards|make cards|create cards)/i;
+const OBVIOUS_QUIZ      = /(quiz me|test me|give me a quiz|start a quiz|mcq|multiple choice)/i;
+const OBVIOUS_BOTH      = /(flashcard|flashcards).{0,40}(quiz|test)|(quiz|test).{0,40}(flashcard|flashcards)/i;
+const OBVIOUS_GRAPH     = /(show|make|create|generate|draw|plot|give me|want|need|display).{0,30}(bar chart|pie chart|line graph|bar graph|line chart|donut chart)|(bar chart|pie chart|line graph|bar graph|line chart|donut chart).{0,20}(of|for|on|about)/i;
 
 async function detectIntent(text) {
+  const t = text.trim();
+
+  // 1. Definite non-ambiguous intents — no API call needed
+  if (OBVIOUS_BOTH.test(t))      return 'both';
+  if (OBVIOUS_FLASHCARD.test(t)) return 'flashcard';
+  if (OBVIOUS_QUIZ.test(t))      return 'quiz';
+  if (OBVIOUS_GRAPH.test(t))     return 'graph';
+
+  // 2. Obvious chat — no API call needed
+  if (OBVIOUS_CHAT.some(p => p.test(t))) return 'chat';
+
+  // 3. Everything else — ask the AI
   try {
     const res = await fetch(API_URL + '/intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: chatHistory.slice(-10) })
+      body: JSON.stringify({ message: t, history: chatHistory.slice(-10) })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     return data.intent || 'chat';
   } catch(e) {
-    console.warn('Intent detection failed, falling back to chat:', e);
+    console.warn('Intent API failed, falling back to chat:', e);
     return 'chat';
   }
 }

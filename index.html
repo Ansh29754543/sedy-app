@@ -614,11 +614,39 @@ function mountGraph(canvas,tip,wrap,g){
 // ── INTENT ────────────────────────────────────────────────────────────────────
 const FC_WORDS=['flashcard','flashcards','flash card','flash cards','make cards','create cards','generate cards','cards on','cards about','cards for','study cards'];
 const QZ_WORDS=['quiz','test me','question me','mcq','multiple choice','quiz me','start quiz','give me a quiz','a quiz'];
-const GR_WORDS=['graph','chart','plot','visualize','visualise','trend','over time','over years','over decades','price history','growth chart','bar chart','line graph','show me a graph','draw a graph','make a graph','show data','show prices','historical data','compare prices','vs prices'];
+const GR_WORDS=[
+  'graph','chart','plot','visualize','visualise',
+  'trend','over time','over years','over decades','over months',
+  'price history','growth chart','bar chart','line graph',
+  'show me a graph','draw a graph','make a graph','create a graph',
+  'show data','show prices','historical data','compare prices',
+  'vs prices','per year','per month','annually','yearly data',
+  'prices from','prices between','prices in',
+  'show me prices','show the prices','show price',
+  'rate over','rates over','growth rate','inflation rate',
+  'gdp of','population of','temperature in','rainfall in',
+];
+
+// Regex patterns that strongly imply a graph even without explicit graph keywords
+const GR_PATTERNS=[
+  /prices?\s+(from|between|in)\s+\d{4}/i,
+  /\d{4}\s+(to|-)\s+\d{4}/i,
+  /show\s+(\w+\s+)?(and\s+\w+\s+)?prices/i,
+  /(\w+\s+)(and\s+\w+\s+)?prices?\s*(from|over|since|between|$)/i,
+  /compare\s+.+\s+and\s+.+\s+(price|rate|data)/i,
+  /how\s+(has|have)\s+.+\s+(changed|grown|risen|fallen|dropped)/i,
+  /(growth|trend|rise|fall|increase|decrease)\s+(of|in)\s+\w+/i,
+  /plot\s+.+\s+(from|since|over)/i,
+  /graph\s+.+\s+(from|since|over)/i,
+  /\w+\s+prices?\s+over\s+(the\s+)?(last|past|\d+)/i,
+];
 
 function detectIntent(text){
   const t=text.toLowerCase();
+  // Check keyword list
   if(GR_WORDS.some(w=>t.includes(w))) return 'graph';
+  // Check regex patterns
+  if(GR_PATTERNS.some(p=>p.test(text))) return 'graph';
   const fc=FC_WORDS.some(w=>t.includes(w)),qz=QZ_WORDS.some(w=>t.includes(w));
   return fc&&qz?'both':fc?'flashcard':qz?'quiz':'chat';
 }

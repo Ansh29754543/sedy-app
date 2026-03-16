@@ -22,7 +22,6 @@
   --text:#e8edf5;--text2:#8899bb;--text3:#4a5a7a;
   --danger:#ff4f6a;--success:#00e5a0;--warning:#ffb547;
   --glow:0 0 40px rgba(79,142,255,0.15);
-  --sidebar-w:260px;
   --safe-b:env(safe-area-inset-bottom,0px);
   --safe-t:env(safe-area-inset-top,0px);
 }
@@ -35,53 +34,35 @@ body::before{content:'';position:fixed;inset:0;
 .orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;}
 .orb1{width:400px;height:400px;background:rgba(79,142,255,.06);top:-100px;right:-100px;}
 .orb2{width:300px;height:300px;background:rgba(124,92,252,.06);bottom:100px;left:-100px;}
-.app{display:flex;height:100%;position:relative;z-index:1;}
-/* SIDEBAR */
-.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:50;}
-.logo{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:20px;}
-.logo-text{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.logo-sub{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
-.sidebar-section{padding:0 12px;margin-bottom:20px;}
-.sidebar-label{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;padding:0 8px;margin-bottom:8px;}
-.quick-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all .2s;margin-bottom:3px;border:1px solid transparent;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;}
-.quick-btn:hover{background:var(--card);color:var(--text);border-color:var(--border);}
-.quick-btn .qb-icon{font-size:16px;}
-.clear-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;cursor:pointer;color:var(--danger);font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;}
-.clear-btn:hover{background:rgba(255,79,106,.08);border-color:rgba(255,79,106,.2);}
-.sidebar-footer{padding:16px 20px 0;border-top:1px solid var(--border);margin-top:auto;}
-.made-by{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
-.made-by span{color:var(--accent2);}
-.status-pill{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 6px var(--success);}
-/* DRAWER */
-.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:49;backdrop-filter:blur(4px);opacity:0;transition:opacity .3s;pointer-events:none;}
-.drawer-overlay.open{opacity:1;pointer-events:all;}
-/* MAIN */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.app{display:flex;flex-direction:column;height:100%;position:relative;z-index:1;}
+
 /* HEADER */
-.header{padding:0 16px;padding-top:var(--safe-t);min-height:56px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;}
-.header-left{display:flex;align-items:center;gap:10px;}
-.menu-btn{display:none;width:36px;height:36px;border-radius:9px;background:var(--card);border:1px solid var(--border2);cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex-shrink:0;}
-.menu-btn span{width:16px;height:2px;background:var(--text2);border-radius:1px;}
-.header-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
-.header-sub{font-size:11px;color:var(--text3);margin-top:1px;}
-.memory-badge{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;white-space:nowrap;flex-shrink:0;}
+.header{padding:0 20px;padding-top:var(--safe-t);min-height:56px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.header-brand{display:flex;align-items:center;gap:12px;}
+.logo-text{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.header-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.3px;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.memory-badge{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;white-space:nowrap;}
 .memory-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);box-shadow:0 0 6px var(--accent2);}
+.clear-header-btn{display:flex;align-items:center;gap:6px;padding:5px 11px;background:none;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.clear-header-btn:hover{border-color:rgba(255,79,106,.4);color:var(--danger);background:rgba(255,79,106,.06);}
+
 /* MESSAGES */
-.chat-messages{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 16px 8px;display:flex;flex-direction:column;gap:16px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+.chat-messages{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 20px 12px;display:flex;flex-direction:column;gap:16px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .chat-messages::-webkit-scrollbar{width:3px;}
 .chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-.msg{display:flex;gap:8px;animation:msgIn .25s ease;}
+.msg{display:flex;gap:10px;animation:msgIn .25s ease;}
 @keyframes msgIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 .msg.user{flex-direction:row-reverse;}
 .msg-avatar{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;align-self:flex-start;}
 .msg.ai .msg-avatar{background:linear-gradient(135deg,var(--accent),var(--accent2));}
 .msg.user .msg-avatar{background:var(--card2);border:1px solid var(--border2);}
-.msg-content{max-width:82%;display:flex;flex-direction:column;}
+.msg-content{max-width:78%;display:flex;flex-direction:column;}
 .msg.user .msg-content{align-items:flex-end;}
-.msg-bubble{padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.75;word-break:break-word;overflow-wrap:anywhere;}
+.msg-bubble{padding:11px 14px;border-radius:14px;font-size:14px;line-height:1.75;word-break:break-word;overflow-wrap:anywhere;}
 .msg.ai .msg-bubble{background:var(--card);border:1px solid var(--border);border-top-left-radius:3px;color:var(--text);}
 .msg.user .msg-bubble{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border-top-right-radius:3px;}
+
 /* RICH TEXT */
 .msg-bubble h1{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0 6px;border-bottom:1px solid var(--border);padding-bottom:5px;}
 .msg-bubble h2{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent);margin:8px 0 4px;}
@@ -101,6 +82,7 @@ body::before{content:'';position:fixed;inset:0;
 .msg-bubble th{background:var(--bg3);border:1px solid var(--border2);padding:6px 10px;text-align:left;font-weight:600;color:var(--accent);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.5px;}
 .msg-bubble td{border:1px solid var(--border);padding:6px 10px;background:var(--card);line-height:1.5;}
 .msg-bubble tr:hover td{background:var(--card2);}
+
 /* CODE */
 .code-block-wrap{margin:8px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border2);}
 .code-block-header{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:#1a1f2e;border-bottom:1px solid var(--border2);}
@@ -109,9 +91,11 @@ body::before{content:'';position:fixed;inset:0;
 .copy-btn:hover{border-color:var(--accent);color:var(--accent);}
 .code-block-wrap pre{margin:0!important;border-radius:0!important;background:#141922!important;overflow-x:auto;}
 .code-block-wrap pre code{font-family:'DM Mono',monospace!important;font-size:12px!important;line-height:1.6!important;padding:12px!important;background:none!important;border:none!important;color:inherit!important;white-space:pre;display:block;}
+
 /* MATH */
 .msg-bubble .katex-display{overflow-x:auto;overflow-y:hidden;padding:6px 0;}
 .msg-bubble .katex{font-size:1em;}
+
 /* FLASHCARDS */
 .fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:10px;}
 .fc-card{height:140px;perspective:800px;cursor:pointer;}
@@ -125,6 +109,7 @@ body::before{content:'';position:fixed;inset:0;
 .fc-back .fc-tag{color:var(--accent3);}
 .fc-text{font-size:12px;color:var(--text);line-height:1.5;font-weight:500;flex:1;display:flex;align-items:center;margin:6px 0;}
 .fc-hint{font-size:9px;color:var(--text3);text-align:right;}
+
 /* QUIZ */
 .quiz-wrap{margin-top:2px;}
 .quiz-prog{height:3px;background:var(--border);border-radius:2px;margin-bottom:12px;overflow:hidden;}
@@ -144,6 +129,7 @@ body::before{content:'';position:fixed;inset:0;
 .quiz-exp{margin-top:8px;padding:8px 10px;background:rgba(79,142,255,.06);border:1px solid rgba(79,142,255,.15);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6;display:none;}
 .quiz-next{margin-top:10px;padding:11px 20px;width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:none;}
 .quiz-next:active{transform:scale(.97);}
+
 /* RESULT */
 .quiz-result{text-align:center;padding:16px 8px;}
 .qr-pct{font-family:'Syne',sans-serif;font-size:56px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
@@ -154,12 +140,14 @@ body::before{content:'';position:fixed;inset:0;
 .qr-n.g{color:var(--success);}
 .qr-n.r{color:var(--danger);}
 .qr-sl{font-size:10px;color:var(--text3);margin-top:2px;}
+
 /* TYPING */
 .typing-indicator{display:flex;gap:5px;padding:3px 0;}
 .typing-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:bounce 1.2s infinite;}
 .typing-dot:nth-child(2){animation-delay:.2s;}
 .typing-dot:nth-child(3){animation-delay:.4s;}
 @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-6px);opacity:1;}}
+
 /* PDF UPLOAD */
 .upload-btn{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;flex-shrink:0;}
 .upload-btn:hover,.upload-btn.active{border-color:var(--accent2);background:rgba(124,92,252,.15);}
@@ -174,8 +162,9 @@ body::before{content:'';position:fixed;inset:0;
 .pdf-chip-remove{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;line-height:1;padding:0 2px;transition:color .15s;flex-shrink:0;}
 .pdf-chip-remove:hover{color:var(--danger);}
 .pdf-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;margin-bottom:7px;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.2);border-radius:20px;font-size:10px;color:var(--accent2);font-family:'DM Mono',monospace;}
+
 /* INPUT */
-.input-area{padding:10px 14px;padding-bottom:calc(10px + var(--safe-b));border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.input-area{padding:12px 20px;padding-bottom:calc(12px + var(--safe-b));border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
 .input-wrap{display:flex;align-items:flex-end;gap:8px;background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:8px 10px;transition:border-color .2s;}
 .input-wrap:focus-within{border-color:var(--accent);box-shadow:var(--glow);}
 .input-wrap.pdf-mode{border-color:rgba(124,92,252,.4);}
@@ -183,32 +172,20 @@ body::before{content:'';position:fixed;inset:0;
 #chat-input::placeholder{color:var(--text3);}
 .send-btn{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s;flex-shrink:0;}
 .send-btn:active{transform:scale(.93);}
-.input-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:5px;font-family:'DM Mono',monospace;}
-/* BOTTOM NAV */
-.bottom-nav{display:none;flex-shrink:0;background:var(--bg2);border-top:1px solid var(--border);padding:6px 8px;padding-bottom:calc(6px + var(--safe-b));overflow-x:auto;gap:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-.bottom-nav::-webkit-scrollbar{display:none;}
-.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 12px;border-radius:10px;border:1px solid var(--border2);background:var(--card);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;}
-.bnav-btn:active{transform:scale(.94);background:var(--card2);}
-.bnav-icon{font-size:18px;line-height:1;}
-.bnav-label{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.5px;}
+.input-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:6px;font-family:'DM Mono',monospace;letter-spacing:.2px;}
+
 /* RESPONSIVE */
-@media(max-width:900px){:root{--sidebar-w:240px;}}
 @media(max-width:640px){
-  :root{--sidebar-w:280px;}
-  .sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%);box-shadow:4px 0 40px rgba(0,0,0,.5);padding-top:calc(16px + var(--safe-t));overflow-y:auto;}
-  .sidebar.open{transform:translateX(0);}
-  .drawer-overlay{display:block;}
-  .menu-btn{display:flex;}
-  .header{padding:0 12px;padding-top:var(--safe-t);}
+  .header{padding:0 14px;padding-top:var(--safe-t);}
   .header-sub{display:none;}
   .memory-badge{padding:4px 8px;font-size:10px;}
-  .chat-messages{padding:12px 10px 8px;}
+  .clear-header-btn{padding:4px 9px;font-size:10px;}
+  .chat-messages{padding:14px 12px 10px;}
   .msg-content{max-width:88%;}
   .fc-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
   .fc-card{height:130px;}
-  .bottom-nav{display:flex;}
+  .input-area{padding:8px 12px;padding-bottom:calc(8px + var(--safe-b));}
   .input-hint{display:none;}
-  .input-area{padding:8px 10px;padding-bottom:calc(6px + var(--safe-b));}
 }
 @media(max-width:380px){
   .msg-content{max-width:92%;}
@@ -221,80 +198,39 @@ body::before{content:'';position:fixed;inset:0;
 <body>
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
-<div class="drawer-overlay" id="drawer-overlay" onclick="closeSidebar()"></div>
 <div class="app">
-  <aside class="sidebar" id="sidebar">
-    <div class="logo">
+  <div class="header">
+    <div class="header-brand">
       <div class="logo-text">Sedy</div>
-      <div class="logo-sub">AI Student Assistant</div>
+      <div class="header-sub">Ask anything &bull; PDF &bull; Code &bull; Math &bull; Flashcards &bull; Quizzes</div>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Quick Actions</div>
-      <button class="quick-btn" onclick="quickSend('Generate flashcards about Photosynthesis');closeSidebar()"><span class="qb-icon">&#x1F3CF;</span> Flashcards</button>
-      <button class="quick-btn" onclick="quickSend('Quiz me on Newtons Laws');closeSidebar()"><span class="qb-icon">&#x1F4DD;</span> Start a Quiz</button>
-      <button class="quick-btn" onclick="quickSend('Flashcards and a quiz on the Solar System');closeSidebar()"><span class="qb-icon">&#x1F31F;</span> Cards + Quiz</button>
-      <button class="quick-btn" onclick="quickSend('Explain quantum physics simply');closeSidebar()"><span class="qb-icon">&#x1F4A1;</span> Explain Topic</button>
-      <button class="quick-btn" onclick="quickSend('Summarize the French Revolution');closeSidebar()"><span class="qb-icon">&#x1F4D6;</span> Summarize</button>
-      <button class="quick-btn" onclick="quickSend('Solve step by step: integrate x^2 + 3x dx');closeSidebar()"><span class="qb-icon">&#x1F9EE;</span> Math Problem</button>
-      <button class="quick-btn" onclick="quickSend('Write a Python bubble sort function');closeSidebar()"><span class="qb-icon">&#x1F4BB;</span> Coding Help</button>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Chat</div>
-      <button class="clear-btn" onclick="clearChat();closeSidebar()"><span class="qb-icon">&#x1F5D1;&#xFE0F;</span> Clear Chat</button>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Tips</div>
-      <div style="font-size:12px;color:var(--text3);padding:0 8px;line-height:1.7;">
-        Upload a <span style="color:var(--accent2)">PDF</span> with the paperclip button and ask questions, get summaries, or generate flashcards from it!<br><br>
-        Say <span style="color:var(--accent)">"flashcards about X"</span> or <span style="color:var(--accent)">"quiz me on X"</span><br><br>
-        <span style="color:var(--success)">Memory saved</span> across page refreshes
-      </div>
-    </div>
-    <div class="sidebar-footer">
-      <div class="made-by">Made by <span>Ansh Verma</span></div>
-      <div class="status-pill"><div class="status-dot"></div><span>Sedy is online</span></div>
-    </div>
-  </aside>
-  <main class="main">
-    <div class="header">
-      <div class="header-left">
-        <button class="menu-btn" onclick="openSidebar()" aria-label="Menu"><span></span><span></span><span></span></button>
-        <div>
-          <div class="header-title">Sedy</div>
-          <div class="header-sub">Ask anything &bull; PDF &bull; Code &bull; Math &bull; Flashcards &bull; Quizzes</div>
-        </div>
-      </div>
+    <div class="header-right">
       <div class="memory-badge"><div class="memory-dot"></div><span id="memory-count">0 messages</span></div>
+      <button class="clear-header-btn" onclick="clearChat()">🗑 Clear</button>
     </div>
-    <div class="chat-messages" id="chat-messages"></div>
-    <div class="input-area">
-      <div class="pdf-chip" id="pdf-chip">
-        <span class="pdf-chip-icon">&#x1F4C4;</span>
-        <div class="pdf-chip-info">
-          <div class="pdf-chip-name" id="pdf-chip-name"></div>
-          <div class="pdf-chip-size" id="pdf-chip-size"></div>
-        </div>
-        <button class="pdf-chip-remove" onclick="removePdf()" title="Remove PDF">&#x2715;</button>
+  </div>
+
+  <div class="chat-messages" id="chat-messages"></div>
+
+  <div class="input-area">
+    <div class="pdf-chip" id="pdf-chip">
+      <span class="pdf-chip-icon">📄</span>
+      <div class="pdf-chip-info">
+        <div class="pdf-chip-name" id="pdf-chip-name"></div>
+        <div class="pdf-chip-size" id="pdf-chip-size"></div>
       </div>
-      <input type="file" id="pdf-input" accept=".pdf" onchange="handlePdfSelect(event)">
-      <div class="input-wrap" id="input-wrap">
-        <button class="upload-btn" id="upload-btn" onclick="document.getElementById('pdf-input').click()" title="Upload PDF">&#x1F4CE;</button>
-        <textarea id="chat-input" rows="1" placeholder="Ask anything, flashcards, quiz... or upload a PDF" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-        <button class="send-btn" onclick="sendMessage()">&#x27A4;</button>
-      </div>
-      <div class="input-hint">&#x1F4CE; upload PDF &bull; memory saved &bull; renders code &amp; math &bull; flashcards &amp; quizzes</div>
+      <button class="pdf-chip-remove" onclick="removePdf()" title="Remove PDF">✕</button>
     </div>
-    <div class="bottom-nav">
-      <button class="bnav-btn" onclick="document.getElementById('pdf-input').click()"><span class="bnav-icon">&#x1F4CE;</span><span class="bnav-label">PDF</span></button>
-      <button class="bnav-btn" onclick="quickSend('Generate flashcards about ')"><span class="bnav-icon">&#x1F3CF;</span><span class="bnav-label">Cards</span></button>
-      <button class="bnav-btn" onclick="quickSend('Quiz me on ')"><span class="bnav-icon">&#x1F4DD;</span><span class="bnav-label">Quiz</span></button>
-      <button class="bnav-btn" onclick="quickSend('Explain ')"><span class="bnav-icon">&#x1F4A1;</span><span class="bnav-label">Explain</span></button>
-      <button class="bnav-btn" onclick="quickSend('Solve step by step: ')"><span class="bnav-icon">&#x1F9EE;</span><span class="bnav-label">Math</span></button>
-      <button class="bnav-btn" onclick="quickSend('Write a Python function for ')"><span class="bnav-icon">&#x1F4BB;</span><span class="bnav-label">Code</span></button>
-      <button class="bnav-btn" onclick="clearChat()"><span class="bnav-icon">&#x1F5D1;</span><span class="bnav-label">Clear</span></button>
+    <input type="file" id="pdf-input" accept=".pdf" onchange="handlePdfSelect(event)">
+    <div class="input-wrap" id="input-wrap">
+      <button class="upload-btn" id="upload-btn" onclick="document.getElementById('pdf-input').click()" title="Upload PDF">📎</button>
+      <textarea id="chat-input" rows="1" placeholder="Ask anything, flashcards, quiz... or upload a PDF" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" onclick="sendMessage()">➤</button>
     </div>
-  </main>
+    <div class="input-hint">📎 upload PDF &bull; memory saved &bull; renders code &amp; math &bull; flashcards &amp; quizzes</div>
+  </div>
 </div>
+
 <script>
 const API_URL = 'https://sedy-ai-6j7c.onrender.com';
 const STORAGE_KEY = 'sedy_chat_history';
@@ -345,7 +281,7 @@ function handlePdfSelect(event) {
     document.getElementById('input-wrap').classList.add('pdf-mode');
     document.getElementById('chat-input').placeholder = 'Ask anything about "' + file.name + '"...';
     document.getElementById('chat-input').focus();
-    addMsg('ai', '<div class="pdf-badge">PDF ' + _esc(file.name) + ' - ' + sizeKb + ' KB</div>PDF uploaded! I can now answer questions about it, summarize it, generate flashcards or a quiz from it. What would you like to know?', true);
+    addMsg('ai', '<div class="pdf-badge">PDF ' + _esc(file.name) + ' — ' + sizeKb + ' KB</div>PDF uploaded! I can answer questions, summarize, generate flashcards or a quiz from it. What would you like?', true);
   };
   reader.onerror = () => addMsg('ai', 'Could not read the PDF. Please try again.');
   reader.readAsDataURL(file);
@@ -379,7 +315,6 @@ async function handlePdfChat(text, pdf) {
 // HELPERS
 function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
 function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
-function quickSend(text) { document.getElementById('chat-input').value = text; sendMessage(); }
 function scrollBottom() { const el = document.getElementById('chat-messages'); setTimeout(() => el.scrollTop = el.scrollHeight, 80); }
 const _esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
@@ -466,9 +401,7 @@ function extractTopic(text) {
     /(?:flashcards?|cards?)\s+(.+)/i,
   ];
   for(const p of patterns){const m=text.match(p);if(m&&m[1])return m[1].trim().replace(/[?.!]$/,'').replace(/\s+and\s+(a\s+)?quiz.*$/i,'').trim();}
-  // Strip all action words — if nothing is left, return empty string so caller can fallback
   const stripped=text.replace(/flashcards?|flash\s*cards?|quiz(zes)?|make|create|generate|about|on|me|test|cards?|and|a\b/gi,'').trim();
-  // If stripped result is very short or same as original noise words, signal vagueness
   return stripped.length>1?stripped:'';
 }
 const CTX_PATS=[/^(it|this|that|them|same|the same)$/i,/^(the topic|same topic|this topic|that topic)$/i,/\b(at this basis|based on (this|that|above|it)|on (this|that))\b/i,/\b(as (discussed|mentioned|above|explained)|what (we|i) (just )?(discussed|talked|said|covered))\b/i,/\b(previous(ly)?|last (topic|subject|thing))\b/i];
@@ -482,8 +415,6 @@ function getLastTopic() {
 }
 function resolveTopic(msg) {
   let t=extractTopic(msg);
-  // Empty string (bare "flashcards"), vague phrases, or too-short strings all
-  // trigger context lookup — so "flashcards" after a PDF upload finds the PDF topic
   if(!t||isVague(t)||t.length<=2){const l=getLastTopic();if(l)return l;}
   return t;
 }
@@ -498,42 +429,33 @@ async function sendMessage() {
 
   const intent=detectIntent(text);
 
-  // PDF MODE — but still honour flashcard/quiz intents from PDF context
   if(currentPdf){
-    // If user asks for flashcards/quiz, extract topic from PDF name or message
-    // then route to proper UI handlers with PDF topic context
     if(intent==='flashcard'||intent==='both'||intent==='quiz'){
-      // Resolve topic: if vague/short, use the PDF filename (strip extension)
       let topic=resolveTopic(text);
       if(isVague(topic)||topic.length<=2){
         topic=currentPdf.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ').trim();
       }
       try{
         if(intent==='both'){
-          showTyping();
-          pushHistory('user',text);
+          showTyping(); pushHistory('user',text);
           await handleFlashcards(topic,text,false);
           showTyping();
           await handleQuiz(topic,text,false);
           pushHistory('assistant','Generated flashcards and a quiz about '+topic);
         } else if(intent==='flashcard'){
-          showTyping();
-          await handleFlashcards(topic,text,true);
+          showTyping(); await handleFlashcards(topic,text,true);
         } else {
-          showTyping();
-          await handleQuiz(topic,text,true);
+          showTyping(); await handleQuiz(topic,text,true);
         }
       }catch(err){hideTyping();addMsg('ai','Could not generate: '+err.message);console.error(err);}
       return;
     }
-    // All other messages (explain, summarize, questions) → pdf-chat
     showTyping();
     try{await handlePdfChat(text,currentPdf);}
     catch(err){hideTyping();addMsg('ai','PDF processing failed: '+err.message);console.error(err);}
     return;
   }
 
-  // NORMAL MODE (no PDF attached)
   const topic=resolveTopic(text);
   try{
     if(intent==='both'){showTyping();pushHistory('user',text);await handleFlashcards(topic,text,false);showTyping();await handleQuiz(topic,text,false);pushHistory('assistant','Generated flashcards and a quiz about '+topic);}
@@ -612,23 +534,27 @@ function showQuizResult() {
   activeQuiz=null;
 }
 
-// MOBILE SIDEBAR
-function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('drawer-overlay').classList.add('open');document.body.style.overflow='hidden';}
-function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('drawer-overlay').classList.remove('open');document.body.style.overflow='';}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSidebar();});
-if(window.visualViewport){let last=window.visualViewport.height;window.visualViewport.addEventListener('resize',()=>{const vh=window.visualViewport.height;if(last-vh>100){setTimeout(()=>{const m=document.getElementById('chat-messages');m.scrollTop=m.scrollHeight;},100);}last=vh;});}
-
 // INIT
 function initSession() {
   if(chatHistory.length===0){
     addMsg('ai','Hey! I\'m **Sedy**, your AI study companion made by Ansh Verma\n\nMemory saved across page refreshes!\n\n**📎 Upload a PDF** — ask questions, get summaries, generate flashcards from any document\n**Flashcards** — "flashcards about X"\n**Quiz** — "quiz me on X"\n**Math** — formulas rendered with KaTeX \\(E=mc^2\\)\n**Code** — syntax highlighted');
   } else {
     const uc=chatHistory.filter(h=>h.role==='user').length;
-    addMsg('ai','Welcome back! I remember our previous conversation ('+uc+' message'+(uc!==1?'s':'')+').\n\nUpload a PDF with the paperclip button, or just type to continue!');
+    addMsg('ai','Welcome back! I remember our previous conversation ('+uc+' message'+(uc!==1?'s':'')+').\n\nUpload a PDF with the 📎 button, or just type to continue!');
     updateMemoryBadge();
   }
 }
 initSession();
+
+// Keyboard viewport fix for mobile
+if(window.visualViewport){
+  let last=window.visualViewport.height;
+  window.visualViewport.addEventListener('resize',()=>{
+    const vh=window.visualViewport.height;
+    if(last-vh>100){setTimeout(()=>{const m=document.getElementById('chat-messages');m.scrollTop=m.scrollHeight;},100);}
+    last=vh;
+  });
+}
 </script>
 </body>
 </html>

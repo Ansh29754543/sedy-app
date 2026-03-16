@@ -12,7 +12,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.const API_URL = 'https://sedy-ai-9iuc.onrender.com';9/contrib/auto-render.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <style>
 :root {
   --bg:#080b12;--bg2:#0d1120;--bg3:#121828;
@@ -129,8 +129,6 @@ body::before{content:'';position:fixed;inset:0;
 .typing-dot:nth-child(2){animation-delay:.2s;}
 .typing-dot:nth-child(3){animation-delay:.4s;}
 @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-6px);opacity:1;}}
-
-/* ── GRAPH STYLES ──────────────────────────────────────────────────────────── */
 .graph-wrap{margin-top:4px;background:var(--bg3);border:1px solid var(--border2);border-radius:14px;overflow:visible;padding:16px 12px 14px;}
 .graph-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
 .graph-header-left{display:flex;flex-direction:column;gap:3px;}
@@ -141,32 +139,20 @@ body::before{content:'';position:fixed;inset:0;
 .graph-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;}
 .graph-legend-line{width:18px;height:3px;border-radius:2px;flex-shrink:0;}
 .graph-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-/* data source badge */
 .graph-source-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:20px;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.5px;}
 .graph-source-badge.live{background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.25);color:var(--success);}
 .graph-source-badge.estimated{background:rgba(74,90,122,.12);border:1px solid var(--border);color:var(--text3);}
-/* toolbar */
 .graph-toolbar{display:flex;align-items:center;gap:5px;margin-bottom:8px;}
 .graph-tool-btn{background:none;border:1px solid var(--border);border-radius:7px;padding:4px 9px;font-size:10px;color:var(--text2);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s;}
 .graph-tool-btn:hover{border-color:var(--accent);color:var(--accent);}
 .graph-tool-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(79,142,255,.1);}
 .graph-zoom-hint{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;margin-left:auto;}
-/* canvas */
 .graph-canvas-wrap{position:relative;width:100%;overflow:hidden;border-radius:8px;}
 .graph-canvas-wrap canvas{display:block;width:100%;border-radius:6px;}
 .graph-canvas-wrap.zoom-mode canvas{cursor:zoom-in;}
 .graph-canvas-wrap.pan-mode canvas{cursor:grab;}
 .graph-canvas-wrap.pan-mode canvas.dragging{cursor:grabbing;}
-/* tooltip */
-.graph-tooltip{
-  position:absolute;pointer-events:none;
-  background:rgba(8,11,18,0.97);border:1px solid var(--border2);
-  border-radius:10px;padding:10px 13px;
-  font-family:'DM Mono',monospace;font-size:11px;
-  white-space:nowrap;opacity:0;transition:opacity .1s;
-  box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 0 1px rgba(79,142,255,.08);
-  z-index:20;min-width:130px;
-}
+.graph-tooltip{position:absolute;pointer-events:none;background:rgba(8,11,18,0.97);border:1px solid var(--border2);border-radius:10px;padding:10px 13px;font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;opacity:0;transition:opacity .1s;box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 0 1px rgba(79,142,255,.08);z-index:20;min-width:130px;}
 .graph-tooltip.visible{opacity:1;}
 .graph-tooltip-x{color:var(--text3);font-size:10px;margin-bottom:7px;letter-spacing:.5px;border-bottom:1px solid var(--border);padding-bottom:6px;}
 .graph-tooltip-row{display:flex;align-items:center;gap:7px;margin-top:5px;}
@@ -174,8 +160,6 @@ body::before{content:'';position:fixed;inset:0;
 .graph-tooltip-swatch.circle{width:10px;height:10px;border-radius:50%;}
 .graph-tooltip-label{color:var(--text2);}
 .graph-tooltip-val{color:var(--text);font-weight:500;margin-left:auto;padding-left:14px;}
-
-/* PDF / INPUT */
 .upload-btn{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;flex-shrink:0;}
 .upload-btn:hover,.upload-btn.active{border-color:var(--accent2);background:rgba(124,92,252,.15);}
 .upload-btn:active{transform:scale(.93);}
@@ -198,7 +182,6 @@ body::before{content:'';position:fixed;inset:0;
 .send-btn{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s;flex-shrink:0;}
 .send-btn:active{transform:scale(.93);}
 .input-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:6px;font-family:'DM Mono',monospace;letter-spacing:.2px;}
-
 @media(max-width:640px){
   .header{padding:0 14px;padding-top:var(--safe-t);}
   .header-sub{display:none;}
@@ -256,7 +239,8 @@ body::before{content:'';position:fixed;inset:0;
 </div>
 
 <script>
-const API_URL = 'https://sedy-ai.onrender.com';
+// ── FIX 1: Correct API URL ────────────────────────────────────────────────────
+const API_URL = 'https://sedy-ai-1.onrender.com';
 const STORAGE_KEY = 'sedy_chat_history';
 let activeQuiz = null;
 let currentPdf  = null;
@@ -381,35 +365,25 @@ function showTyping(){
 }
 function hideTyping(){const t=document.getElementById('typing');if(t)t.remove();}
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ── GRAPH ENGINE ─────────────────────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════════════
+// ── GRAPH ENGINE ──────────────────────────────────────────────────────────────
 const PALETTE=['#4f8eff','#00e5c0','#ff4f6a','#ffb547','#7c5cfc','#00e5a0'];
 
 function renderGraph(g){
-  // g = { title, chart_type, unit, x_label, caption, data_source, series:[{label,data:[{x,y}]}] }
   if(!g.series||!g.series.length) return;
   g.series.forEach((s,i)=>s._c=PALETTE[i%PALETTE.length]);
   const ct = (g.chart_type||'line').toLowerCase();
-
   const uid='g'+Date.now()+Math.random().toString(36).slice(2,5);
-
-  // Legend — dots for pie, lines for others
   const legend = ct==='pie'
     ? g.series[0].data.map((pt,i)=>`<div class="graph-legend-item"><div class="graph-legend-dot" style="background:${PALETTE[i%PALETTE.length]}"></div>${_esc(String(pt.x))}</div>`).join('')
     : g.series.map(s=>`<div class="graph-legend-item"><div class="graph-legend-line" style="background:${s._c}"></div>${_esc(s.label)}</div>`).join('');
-
   const srcBadge = g.data_source==='live'
     ? `<span class="graph-source-badge live">● LIVE</span>`
     : `<span class="graph-source-badge estimated">~ estimated</span>`;
-
-  // Toolbar — zoom/pan only for line/bar; all get download
   const zoomPanTools = (ct!=='pie') ? `
-    <button class="graph-tool-btn" id="zoom_${uid}" onclick="setMode('${uid}','zoom',this)" title="Scroll to zoom">🔍 Zoom</button>
-    <button class="graph-tool-btn" id="pan_${uid}"  onclick="setMode('${uid}','pan',this)"  title="Drag to pan">✋ Pan</button>
-    <button class="graph-tool-btn" id="reset_${uid}" onclick="resetView('${uid}')" title="Reset zoom/pan">↺ Reset</button>
+    <button class="graph-tool-btn" id="zoom_${uid}" onclick="setMode('${uid}','zoom',this)">🔍 Zoom</button>
+    <button class="graph-tool-btn" id="pan_${uid}"  onclick="setMode('${uid}','pan',this)">✋ Pan</button>
+    <button class="graph-tool-btn" id="reset_${uid}" onclick="resetView('${uid}')">↺ Reset</button>
   ` : '';
-
   const html=`<div class="graph-wrap">
     <div class="graph-header">
       <div class="graph-header-left">
@@ -424,7 +398,7 @@ function renderGraph(g){
     </div>
     <div class="graph-toolbar" style="margin-top:10px;">
       ${zoomPanTools}
-      <button class="graph-tool-btn" style="margin-left:${ct!=='pie'?'0':'auto'}" onclick="downloadChart('${uid}')" title="Download PNG">⬇ Download</button>
+      <button class="graph-tool-btn" style="margin-left:${ct!=='pie'?'0':'auto'}" onclick="downloadChart('${uid}')">⬇ Download</button>
       ${ct!=='pie'?`<span class="graph-zoom-hint">scroll=zoom &bull; drag=pan</span>`:''}
     </div>
     <div class="graph-canvas-wrap" id="cw_${uid}">
@@ -432,7 +406,6 @@ function renderGraph(g){
       <div class="graph-tooltip" id="tt_${uid}"></div>
     </div>
   </div>`;
-
   addMsg('ai',html,true);
   requestAnimationFrame(()=>{
     const wrap=document.getElementById('cw_'+uid);
@@ -444,17 +417,12 @@ function renderGraph(g){
   });
 }
 
-// ── Mode management (zoom / pan) ──────────────────────────────────────────────
 const _modes={};
 function setMode(uid,mode,btn){
   _modes[uid]=mode;
   const wrap=document.getElementById('cw_'+uid);
   if(wrap){ wrap.className='graph-canvas-wrap '+(mode==='zoom'?'zoom-mode':mode==='pan'?'pan-mode':''); }
-  // Toggle button active state
-  ['zoom','pan'].forEach(m=>{
-    const b=document.getElementById(m+'_'+uid);
-    if(b) b.classList.toggle('active', m===mode);
-  });
+  ['zoom','pan'].forEach(m=>{const b=document.getElementById(m+'_'+uid);if(b) b.classList.toggle('active', m===mode);});
 }
 function resetView(uid){
   if(_views[uid]){ _views[uid].offsetX=0;_views[uid].offsetY=0;_views[uid].scale=1; }
@@ -464,27 +432,21 @@ function resetView(uid){
   ['zoom','pan'].forEach(m=>{ const b=document.getElementById(m+'_'+uid); if(b) b.classList.remove('active'); });
   if(_redraws[uid]) _redraws[uid]();
 }
-
-const _views={};   // { uid: {scale, offsetX, offsetY} }
-const _redraws={}; // { uid: redrawFn }
+const _views={};
+const _redraws={};
 
 function downloadChart(uid){
-  const canvas=document.getElementById('cv_'+uid);
-  if(!canvas) return;
-  // Draw on a white-bg offscreen canvas for clean PNG
+  const canvas=document.getElementById('cv_'+uid); if(!canvas) return;
   const off=document.createElement('canvas');
   off.width=canvas.width; off.height=canvas.height;
   const ctx=off.getContext('2d');
-  ctx.fillStyle='#080b12';
-  ctx.fillRect(0,0,off.width,off.height);
+  ctx.fillStyle='#080b12'; ctx.fillRect(0,0,off.width,off.height);
   ctx.drawImage(canvas,0,0);
   const a=document.createElement('a');
   a.download='sedy-chart-'+Date.now()+'.png';
-  a.href=off.toDataURL('image/png');
-  a.click();
+  a.href=off.toDataURL('image/png'); a.click();
 }
 
-// ── Shared helpers ────────────────────────────────────────────────────────────
 function fmtVal(v){
   if(Math.abs(v)>=1e9) return (v/1e9).toFixed(1)+'B';
   if(Math.abs(v)>=1e6) return (v/1e6).toFixed(1)+'M';
@@ -501,27 +463,20 @@ function niceTicks(lo,hi,n=5){
   return ticks;
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ── LINE / BAR CHART ──────────────────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════════════
 function mountLineBar(canvas,tip,wrap,g,ct){
   const PAD={t:18,r:20,b:44,l:60};
   const H=250;
   const DPR=window.devicePixelRatio||1;
-
   const allX=[...new Set(g.series.flatMap(s=>s.data.map(d=>d.x)))].sort((a,b)=>Number(a)-Number(b));
   const allY=g.series.flatMap(s=>s.data.map(d=>+d.y));
   const minY=Math.min(...allY), maxY=Math.max(...allY);
   const yPad=(maxY-minY)*0.13||1;
   const yLoBase=minY-yPad, yHiBase=maxY+yPad;
-
   const uid=canvas.id.replace('cv_','');
   _views[uid]={scale:1,offsetX:0,offsetY:0};
-
   function getView(){ return _views[uid]||{scale:1,offsetX:0,offsetY:0}; }
   function plotW(W){ return W-PAD.l-PAD.r; }
   function plotH(){ return H-PAD.t-PAD.b; }
-
   function xToPixel(xi,W,v){
     const {scale,offsetX}=v;
     const base = allX.length<2 ? PAD.l+plotW(W)/2 : PAD.l+(xi/(allX.length-1))*plotW(W);
@@ -533,33 +488,18 @@ function mountLineBar(canvas,tip,wrap,g,ct){
     const base=PAD.t+(1-(y-yLo)/(yHi-yLo))*plotH();
     return (base-PAD.t)*scale+PAD.t+offsetY;
   }
-
   let prog=0,raf=null;
-
   function draw(p,v){
-    const W=canvas.width/DPR;
-    v=v||getView();
+    const W=canvas.width/DPR; v=v||getView();
     const ctx=canvas.getContext('2d');
     ctx.save(); ctx.scale(DPR,DPR); ctx.clearRect(0,0,W,H);
-
-    // Clip to plot area
     ctx.save();
-    ctx.beginPath();
-    ctx.rect(PAD.l,PAD.t,plotW(W),plotH());
-    ctx.clip();
-
-    if(ct==='bar'){
-      drawBars(ctx,W,p,v);
-    } else {
-      drawLines(ctx,W,p,v);
-    }
-    ctx.restore(); // clip
-
-    // Axes + labels on top of clip
+    ctx.beginPath(); ctx.rect(PAD.l,PAD.t,plotW(W),plotH()); ctx.clip();
+    if(ct==='bar') drawBars(ctx,W,p,v); else drawLines(ctx,W,p,v);
+    ctx.restore();
     drawAxes(ctx,W,v);
     ctx.restore();
   }
-
   function drawAxes(ctx,W,v){
     const yTicks=niceTicks(yLoBase,yHiBase);
     yTicks.forEach(t=>{
@@ -591,7 +531,6 @@ function mountLineBar(canvas,tip,wrap,g,ct){
     ctx.strokeStyle='rgba(36,51,80,1)'; ctx.lineWidth=1.5;
     ctx.beginPath(); ctx.moveTo(PAD.l,PAD.t); ctx.lineTo(PAD.l,H-PAD.b); ctx.lineTo(W-PAD.r,H-PAD.b); ctx.stroke();
   }
-
   function drawLines(ctx,W,p,v){
     g.series.forEach(s=>{
       const pts=allX.map((x,i)=>{const pt=s.data.find(d=>String(d.x)===String(x));return pt?{xi:i,y:+pt.y}:null;}).filter(Boolean);
@@ -615,22 +554,19 @@ function mountLineBar(canvas,tip,wrap,g,ct){
       });
     });
   }
-
   function drawBars(ctx,W,p,v){
     const n=g.series.length;
     const groupW=allX.length>1?(xToPixel(1,W,v)-xToPixel(0,W,v))*0.7:40;
     const barW=Math.max(4,(groupW/n)-2);
     allX.forEach((x,xi)=>{
       g.series.forEach((s,si)=>{
-        const pt=s.data.find(d=>String(d.x)===String(x));
-        if(!pt) return;
+        const pt=s.data.find(d=>String(d.x)===String(x)); if(!pt) return;
         const val=+pt.y*p;
         const cx=xToPixel(xi,W,v);
         const barX=cx-groupW/2+si*(barW+2);
         const yBottom=yToPixel(Math.max(yLoBase,0),v);
         const yTop=yToPixel(val,v);
-        const h=Math.abs(yBottom-yTop);
-        if(h<1) return;
+        const h=Math.abs(yBottom-yTop); if(h<1) return;
         const grd=ctx.createLinearGradient(0,yTop,0,yBottom);
         grd.addColorStop(0,s._c); grd.addColorStop(1,s._c+'88');
         ctx.fillStyle=grd;
@@ -640,32 +576,23 @@ function mountLineBar(canvas,tip,wrap,g,ct){
       });
     });
   }
-
   function animate(){prog+=0.035;if(prog>=1){prog=1;draw(1);return;}draw(prog);raf=requestAnimationFrame(animate);}
-
   function resize(){
     const W=wrap.clientWidth||300;
     canvas.width=W*DPR; canvas.height=H*DPR; canvas.style.height=H+'px';
     if(prog>=1) draw(1); else if(!raf) animate();
   }
   _redraws[uid]=()=>draw(1);
-
-  // ── Crosshair tooltip ───────────────────────────────────────────────────────
   function xIndexAt(mx){
-    const W=wrap.clientWidth;
-    const v=getView();
+    const W=wrap.clientWidth; const v=getView();
     let best=0,bestD=Infinity;
     allX.forEach((_,i)=>{const d=Math.abs(mx-xToPixel(i,W,v));if(d<bestD){bestD=d;best=i;}});
     return best;
   }
-
   function showTip(mx,my){
-    const W=wrap.clientWidth;
-    const v=getView();
+    const W=wrap.clientWidth; const v=getView();
     if(mx<PAD.l-8||mx>W-PAD.r+8){hideTip();return;}
-    const xi=xIndexAt(mx);
-    const xVal=allX[xi];
-    const cx=xToPixel(xi,W,v);
+    const xi=xIndexAt(mx); const xVal=allX[xi]; const cx=xToPixel(xi,W,v);
     draw(1,v);
     const ctx=canvas.getContext('2d');
     ctx.save(); ctx.scale(DPR,DPR);
@@ -695,22 +622,13 @@ function mountLineBar(canvas,tip,wrap,g,ct){
     tip.style.left=Math.max(2,left)+'px'; tip.style.top=Math.max(PAD.t,my-24)+'px';
   }
   function hideTip(){tip.classList.remove('visible');if(prog>=1)draw(1);}
-
-  // ── Zoom (scroll wheel) ─────────────────────────────────────────────────────
   canvas.addEventListener('wheel',e=>{
     e.preventDefault();
-    const v=getView();
-    const rect=canvas.getBoundingClientRect();
-    const mx=e.clientX-rect.left;
+    const v=getView(); const rect=canvas.getBoundingClientRect(); const mx=e.clientX-rect.left;
     const delta=e.deltaY>0?0.85:1.18;
     const newScale=Math.max(0.5,Math.min(10,v.scale*delta));
-    // Keep the point under mouse fixed
-    v.offsetX=(v.offsetX-mx)*(newScale/v.scale)+mx;
-    v.scale=newScale;
-    draw(1,v);
+    v.offsetX=(v.offsetX-mx)*(newScale/v.scale)+mx; v.scale=newScale; draw(1,v);
   },{passive:false});
-
-  // ── Pan (drag) ──────────────────────────────────────────────────────────────
   let isDragging=false,dragStart={x:0,y:0},dragBase={x:0,y:0};
   canvas.addEventListener('mousedown',e=>{
     if(_modes[uid]!=='pan') return;
@@ -723,83 +641,52 @@ function mountLineBar(canvas,tip,wrap,g,ct){
     if(!isDragging) return;
     const rect=canvas.getBoundingClientRect();
     const mx=e.clientX-rect.left,my=e.clientY-rect.top;
-    const v=getView();
-    v.offsetX=dragBase.x+(mx-dragStart.x);
-    draw(1,v);
+    const v=getView(); v.offsetX=dragBase.x+(mx-dragStart.x); draw(1,v);
   });
   window.addEventListener('mouseup',()=>{isDragging=false;canvas.classList.remove('dragging');});
-
-  // ── Hover crosshair (only when not panning/zooming) ─────────────────────────
   canvas.addEventListener('mousemove',e=>{
     if(isDragging||_modes[uid]==='pan') return;
-    const r=canvas.getBoundingClientRect();
-    showTip(e.clientX-r.left,e.clientY-r.top);
+    const r=canvas.getBoundingClientRect(); showTip(e.clientX-r.left,e.clientY-r.top);
   });
   canvas.addEventListener('mouseleave',()=>{if(!isDragging)hideTip();});
-
-  // Touch
   canvas.addEventListener('touchmove',e=>{
     e.preventDefault();
-    const r=canvas.getBoundingClientRect();
-    showTip(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);
+    const r=canvas.getBoundingClientRect(); showTip(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);
   },{passive:false});
   canvas.addEventListener('touchend',()=>hideTip());
-
   const ro=new ResizeObserver(()=>{if(prog>=1)resize();});
-  ro.observe(wrap);
-  resize(); animate();
+  ro.observe(wrap); resize(); animate();
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ── PIE CHART ─────────────────────────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════════════
 function mountPie(canvas,tip,wrap,g){
-  const H=280;
-  const DPR=window.devicePixelRatio||1;
+  const H=280; const DPR=window.devicePixelRatio||1;
   const slices=g.series[0].data.map((pt,i)=>({label:String(pt.x),value:+pt.y,color:PALETTE[i%PALETTE.length]}));
   const total=slices.reduce((a,s)=>a+s.value,0);
-
   let prog=0,raf=null,hoveredIdx=-1;
-
   function draw(p){
     const W=canvas.width/DPR;
     const ctx=canvas.getContext('2d');
     ctx.save(); ctx.scale(DPR,DPR); ctx.clearRect(0,0,W,H);
-
     const cx=W/2, cy=H/2-10, r=Math.min(W,H)*0.36;
     let angle=-Math.PI/2;
-
     slices.forEach((s,i)=>{
       const sweep=(s.value/total)*Math.PI*2*p;
-      const isHov=i===hoveredIdx;
-      const push=isHov?8:0;
-      const midA=angle+sweep/2;
-      const ox=Math.cos(midA)*push, oy=Math.sin(midA)*push;
-
-      // Slice
-      ctx.beginPath();
-      ctx.moveTo(cx+ox,cy+oy);
+      const isHov=i===hoveredIdx; const push=isHov?8:0;
+      const midA=angle+sweep/2; const ox=Math.cos(midA)*push, oy=Math.sin(midA)*push;
+      ctx.beginPath(); ctx.moveTo(cx+ox,cy+oy);
       ctx.arc(cx+ox,cy+oy,r+(isHov?6:0),angle,angle+sweep);
-      ctx.closePath();
-      ctx.fillStyle=s.color; ctx.fill();
+      ctx.closePath(); ctx.fillStyle=s.color; ctx.fill();
       ctx.strokeStyle='#080b12'; ctx.lineWidth=2; ctx.stroke();
-
-      // Label inside slice if big enough
       if(sweep>0.3&&p>=1){
-        const lx=cx+ox+Math.cos(midA)*(r*0.65);
-        const ly=cy+oy+Math.sin(midA)*(r*0.65);
+        const lx=cx+ox+Math.cos(midA)*(r*0.65); const ly=cy+oy+Math.sin(midA)*(r*0.65);
         const pct=Math.round(s.value/total*100);
         ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.font=`bold 11px 'DM Sans',sans-serif`;
-        ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText(pct+'%',lx,ly);
+        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(pct+'%',lx,ly);
       }
       angle+=sweep;
     });
-
-    // Centre donut hole
     ctx.beginPath(); ctx.arc(cx,cy,r*0.42,0,Math.PI*2);
     ctx.fillStyle='#121828'; ctx.fill();
-    // Centre text
     if(p>=1&&hoveredIdx>=0){
       const s=slices[hoveredIdx];
       ctx.fillStyle=s.color; ctx.font=`bold 13px 'Syne',sans-serif`;
@@ -810,20 +697,15 @@ function mountPie(canvas,tip,wrap,g){
     }
     ctx.restore();
   }
-
   function animate(){prog+=0.04;if(prog>=1){prog=1;draw(1);return;}draw(prog);raf=requestAnimationFrame(animate);}
-
   function resize(){
     const W=wrap.clientWidth||300;
     canvas.width=W*DPR; canvas.height=H*DPR; canvas.style.height=H+'px';
     if(prog>=1) draw(1); else if(!raf) animate();
   }
-
   function getSliceAt(mx,my){
-    const W=canvas.width/DPR;
-    const cx=W/2,cy=H/2-10,r=Math.min(W,H)*0.36;
-    const dx=mx-cx,dy=my-cy;
-    const dist=Math.sqrt(dx*dx+dy*dy);
+    const W=canvas.width/DPR; const cx=W/2,cy=H/2-10,r=Math.min(W,H)*0.36;
+    const dx=mx-cx,dy=my-cy; const dist=Math.sqrt(dx*dx+dy*dy);
     if(dist>r+8||dist<r*0.38) return -1;
     let angle=Math.atan2(dy,dx);
     if(angle<-Math.PI/2) angle+=Math.PI*2;
@@ -836,12 +718,10 @@ function mountPie(canvas,tip,wrap,g){
     }
     return -1;
   }
-
   canvas.style.cursor='default';
   canvas.addEventListener('mousemove',e=>{
     if(prog<1) return;
-    const r2=canvas.getBoundingClientRect();
-    const mx=e.clientX-r2.left, my=e.clientY-r2.top;
+    const r2=canvas.getBoundingClientRect(); const mx=e.clientX-r2.left, my=e.clientY-r2.top;
     const idx=getSliceAt(mx,my);
     if(idx!==hoveredIdx){hoveredIdx=idx;draw(1);}
     if(idx>=0){
@@ -852,25 +732,14 @@ function mountPie(canvas,tip,wrap,g){
       let lx=mx+14; if(lx+tipW>wW-8) lx=mx-tipW-14;
       tip.style.left=Math.max(0,lx)+'px'; tip.style.top=Math.max(0,my-20)+'px';
       canvas.style.cursor='pointer';
-    } else {
-      tip.classList.remove('visible'); canvas.style.cursor='default';
-    }
+    } else { tip.classList.remove('visible'); canvas.style.cursor='default'; }
   });
   canvas.addEventListener('mouseleave',()=>{hoveredIdx=-1;tip.classList.remove('visible');if(prog>=1)draw(1);});
-
   const ro=new ResizeObserver(()=>{if(prog>=1)resize();});
-  ro.observe(wrap);
-  resize(); animate();
+  ro.observe(wrap); resize(); animate();
 }
 
 // ── INTENT ────────────────────────────────────────────────────────────────────
-const FC_WORDS=['flashcard','flashcards','flash card','flash cards','make cards','create cards','generate cards','cards on','cards about','cards for','study cards'];
-const QZ_WORDS=['quiz','test me','question me','mcq','multiple choice','quiz me','start quiz','give me a quiz','a quiz'];
-// ── AI-POWERED INTENT DETECTION ──────────────────────────────────────────────
-// The AI decides intent. A fast local pre-check handles obvious cases instantly
-// so we never waste a round trip on "hi", "thanks", "what is X" etc.
-
-// CERTAIN CHAT — skip API call entirely, return 'chat' immediately
 const OBVIOUS_CHAT = [
   /^(hi|hey|hello|hii|helo|hiya|yo|sup|howdy|greetings)[\s!?.]*$/i,
   /^(thanks|thank you|thx|ty|ok|okay|k|sure|got it|cool|nice|great|awesome|perfect)[\s!.]*$/i,
@@ -883,28 +752,20 @@ const OBVIOUS_CHAT = [
   /^(solve|calculate|find|compute|derive|integrate|differentiate)\s+/i,
   /^(write\s+(a|an|the|me)\s+)/i,
   /^(help\s+me\s+)/i,
-  /^\w{1,12}[?!.]*$/,                        // single short word like "photosynthesis?"
+  /^\w{1,12}[?!.]*$/,
 ];
-
-// CERTAIN NON-CHAT — skip API call, return correct intent immediately
-const OBVIOUS_FLASHCARD = /(flashcard|flashcards|flash card|flash cards|study cards|make cards|create cards)/i;
-const OBVIOUS_QUIZ      = /(quiz me|test me|give me a quiz|start a quiz|mcq|multiple choice)/i;
-const OBVIOUS_BOTH      = /(flashcard|flashcards).{0,40}(quiz|test)|(quiz|test).{0,40}(flashcard|flashcards)/i;
+const OBVIOUS_FLASHCARD = /(flashcard|flashcards|flash card|flash cards|study cards|make cards|create cards)/i;
+const OBVIOUS_QUIZ      = /(quiz me|test me|give me a quiz|start a quiz|mcq|multiple choice)/i;
+const OBVIOUS_BOTH      = /(flashcard|flashcards).{0,40}(quiz|test)|(quiz|test).{0,40}(flashcard|flashcards)/i;
 const OBVIOUS_GRAPH     = /(show|make|create|generate|draw|plot|give me|want|need|display).{0,30}(bar chart|pie chart|line graph|bar graph|line chart|donut chart)|(bar chart|pie chart|line graph|bar graph|line chart|donut chart).{0,20}(of|for|on|about)/i;
 
 async function detectIntent(text) {
   const t = text.trim();
-
-  // 1. Definite non-ambiguous intents — no API call needed
   if (OBVIOUS_BOTH.test(t))      return 'both';
   if (OBVIOUS_FLASHCARD.test(t)) return 'flashcard';
   if (OBVIOUS_QUIZ.test(t))      return 'quiz';
   if (OBVIOUS_GRAPH.test(t))     return 'graph';
-
-  // 2. Obvious chat — no API call needed
   if (OBVIOUS_CHAT.some(p => p.test(t))) return 'chat';
-
-  // 3. Everything else — ask the AI
   try {
     const res = await fetch(API_URL + '/intent', {
       method: 'POST',
@@ -952,11 +813,8 @@ async function sendMessage(){
   const text=input.value.trim(); if(!text)return;
   input.value=''; input.style.height='auto';
   addMsg('user',text);
-
-  // Show typing while AI figures out the intent — feels instant to the user
   showTyping();
   const intent = await detectIntent(text);
-
   if(currentPdf){
     if(intent==='flashcard'||intent==='both'||intent==='quiz'){
       let topic=resolveTopic(text);
@@ -972,26 +830,18 @@ async function sendMessage(){
     catch(err){hideTyping();addMsg('ai','PDF processing failed: '+err.message);console.error(err);}
     return;
   }
-
   const topic=resolveTopic(text);
   try{
-    if(intent==='graph'){
-      await handleGraph(text);
-    }
+    if(intent==='graph') await handleGraph(text);
     else if(intent==='both'){pushHistory('user',text);await handleFlashcards(topic,text,false);showTyping();await handleQuiz(topic,text,false);pushHistory('assistant','Generated flashcards and a quiz about '+topic);}
-    else if(intent==='flashcard'){await handleFlashcards(topic,text,true);}
-    else if(intent==='quiz'){await handleQuiz(topic,text,true);}
-    else{await handleChat(text);}
+    else if(intent==='flashcard') await handleFlashcards(topic,text,true);
+    else if(intent==='quiz') await handleQuiz(topic,text,true);
+    else await handleChat(text);
   }catch(err){hideTyping();addMsg('ai','Could not reach Sedy. Please check your connection.');console.error(err);}
 }
 
-// ── GRAPH HANDLER ─────────────────────────────────────────────────────────────
 async function handleGraph(text){
-  // The backend AI decides chart type — no frontend guessing needed
-  const res=await fetch(API_URL+'/graph',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({message:text,history:chatHistory.slice(-20)})
-  });
+  const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
   if(!res.ok) throw new Error('HTTP '+res.status);
   const data=await res.json(); hideTyping();
   if(!data.series||!data.series.length){addMsg('ai','Could not generate graph data for that request.');return;}
@@ -1000,7 +850,6 @@ async function handleGraph(text){
   renderGraph(data);
 }
 
-// ── CHAT ──────────────────────────────────────────────────────────────────────
 async function handleChat(text){
   const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
   if(!res.ok) throw new Error('HTTP '+res.status);
@@ -1009,7 +858,6 @@ async function handleChat(text){
   pushHistory('user',text);pushHistory('assistant',reply);addMsg('ai',reply);
 }
 
-// ── FLASHCARDS ────────────────────────────────────────────────────────────────
 async function handleFlashcards(topic,originalText,saveHistory=true){
   topic=isVague(topic)?(getLastTopic()||topic):topic;
   const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,count:6,history:chatHistory.slice(-20)})});
@@ -1023,7 +871,6 @@ async function handleFlashcards(topic,originalText,saveHistory=true){
   addMsg('ai',html+'</div>',true);
 }
 
-// ── QUIZ ──────────────────────────────────────────────────────────────────────
 async function handleQuiz(topic,originalText,saveHistory=true){
   topic=isVague(topic)?(getLastTopic()||topic):topic;
   let diff='medium';if(/easy|simple|basic/i.test(originalText))diff='easy';if(/hard|difficult|advanced/i.test(originalText))diff='hard';

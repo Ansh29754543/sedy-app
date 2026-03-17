@@ -413,7 +413,7 @@ function speakMsg(btnId){
 // When user asks for code, shows Q&A form to gather requirements first.
 // ══════════════════════════════════════════════════════════════════════════════
 
-const CODE_REQUEST = /\b(write|create|make|build|code|program|develop|implement|generate)\b.{0,50}\b(code|script|function|program|app|tool|bot|website|api|class|component|snippet|algorithm)\b|\b(code|script|function|app|program)\b.{0,30}\b(for|that|to|which|in)\b/i;
+const CODE_REQUEST = /\b(write|create|make|build|code|program|develop|implement|generate)\b.{0,80}\b(code|script|function|program|app|tool|bot|website|api|class|component|snippet|algorithm|game|calculator|system|project|application)\b|\b(code|script|function|app|program|game|calculator)\b.{0,40}\b(for|that|to|which|in|using|with)\b|\b(using|in)\s+(html|css|javascript|python|java|c\+\+|react|node)/i;
 function isCodeRequest(text){ return CODE_REQUEST.test(text.trim()); }
 
 const CODE_QUESTIONS = [
@@ -728,6 +728,14 @@ async function sendMessage(){
   stopSpeaking();
   document.querySelectorAll('.suggestions-wrap').forEach(el=>el.remove());
   addMsg('user',text);
+
+  // ── Code request interception — must happen before intent detection ──
+  if(!currentPdf && isCodeRequest(text)){
+    showTyping();
+    setTimeout(()=>{ hideTyping(); showCodeContextForm(text); }, 400);
+    return;
+  }
+
   showTyping();
   const intent=await detectIntent(text);
   if(currentPdf){
@@ -745,7 +753,6 @@ async function sendMessage(){
     else if(intent==='both'){pushHistory('user',text);await handleFlashcards(topic,text,false);showTyping();await handleQuiz(topic,text,false);pushHistory('assistant','Generated flashcards and a quiz about '+topic);}
     else if(intent==='flashcard')await handleFlashcards(topic,text,true);
     else if(intent==='quiz')await handleQuiz(topic,text,true);
-    else if(isCodeRequest(text)){ hideTyping(); showCodeContextForm(text); }
     else await handleChat(text);
   }catch(err){hideTyping();addMsg('ai','Could not reach Sedy. Please check your connection.');console.error(err);}
 }

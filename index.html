@@ -419,49 +419,90 @@ function speakMsg(btnId){
 const CODE_REQUEST = /\b(write|create|make|build|code|program|develop|implement|generate)\b.{0,80}\b(code|script|function|program|app|tool|bot|website|api|class|component|snippet|algorithm|game|calculator|system|project|application)\b|\b(code|script|function|app|program|game|calculator)\b.{0,40}\b(for|that|to|which|in|using|with)\b|\b(using|in)\s+(html|css|javascript|python|java|c\+\+|react|node)/i;
 function isCodeRequest(text){ return CODE_REQUEST.test(text.trim()); }
 
-// Calls the Anthropic API directly to generate smart MCQ questions
+// Generate smart MCQ questions — tries backend first, falls back to local logic
 async function generateCodeQuestions(userRequest){
-  const systemPrompt = `You are a smart assistant helping clarify a coding request before writing code.
-The user has asked: "${userRequest}"
-
-Your job: Generate 2-3 SHORT, RELEVANT multiple-choice questions to clarify missing details.
-RULES:
-- NEVER ask about something already mentioned (e.g. if they said "Python", don't ask language)
-- NEVER ask obvious or redundant questions
-- Questions should help produce better code (complexity level, features, UI style, error handling, etc.)
-- Each question has 3-4 short option labels (1-4 words each)
-- Return ONLY valid JSON, no markdown, no explanation
-
-FORMAT:
-[
-  {
-    "question": "Short question text?",
-    "options": ["Option A", "Option B", "Option C"]
-  }
-]`;
-
+  // Try backend first
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(API_URL + '/code-questions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 500,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: 'Generate the clarifying questions now.' }]
-      })
+      body: JSON.stringify({ message: userRequest })
     });
-    if(!res.ok) throw new Error('API error');
-    const data = await res.json();
-    const raw = data.content?.[0]?.text || '[]';
-    // Strip markdown fences if present
-    const clean = raw.replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(clean);
-    return Array.isArray(parsed) ? parsed : [];
+    if(res.ok){
+      const data = await res.json();
+      if(Array.isArray(data.questions) && data.questions.length > 0)
+        return data.questions;
+    }
   } catch(e) {
-    console.warn('generateCodeQuestions failed:', e);
-    return [];
+    console.warn('Backend code-questions failed, using local fallback:', e);
   }
+
+  // ── Local fallback: smart questions based on what user already said ────────
+  const t = userRequest.toLowerCase();
+
+  const hasLang    = /(python|javascript|js|java|c\+\+|cpp|c#|typescript|ruby|go|rust|php|swift|kotlin|html|css|react|vue|node|flutter)/.test(t);
+  const hasUI      = /(gui|tkinter|pygame|cli|terminal|web|browser|mobile|desktop|console|api)/.test(t);
+  const hasStorage = /(database|db|sql|sqlite|file|json|csv|storage|save|persist)/.test(t);
+  const hasFeature = /(login|auth|search|filter|sort|export|import|upload|download|notification|dark.?mode)/.test(t);
+  const isGame     = /(game|tic.?tac|snake|chess|sudoku|quiz|puzzle)/.test(t);
+  const isWeb      = /(html|css|website|webpage|landing|frontend|ui)/.test(t);
+
+  const questions = [];
+
+  // Ask language only if not already mentioned
+  if(!hasLang && !isWeb){
+    questions.push({
+      question: 'Which programming language?',
+      options: ['Python', 'JavaScript', 'Java', 'Other']
+    });
+  }
+
+  // Ask UI type only if not already mentioned
+  if(!hasUI && !isWeb && !isGame){
+    questions.push({
+      question: 'What kind of interface?',
+      options: ['Command line (CLI)', 'GUI window', 'Web browser', 'API only']
+    });
+  }
+
+  // Game-specific
+  if(isGame){
+    questions.push({
+      question: 'Game mode?',
+      options: ['2 players', 'vs Computer (AI)', 'Both modes']
+    });
+    questions.push({
+      question: 'Visual style?',
+      options: ['Simple text/emoji', 'Styled with CSS', 'Animated']
+    });
+  }
+
+  // Web-specific
+  if(isWeb){
+    questions.push({
+      question: 'Design style?',
+      options: ['Minimal & clean', 'Dark theme', 'Colorful & bold', 'Match a framework']
+    });
+  }
+
+  // Storage question if not mentioned
+  if(!hasStorage && !isGame && !isWeb){
+    questions.push({
+      question: 'Should data be saved?',
+      options: ['No — session only', 'Yes — save to file', 'Yes — use a database']
+    });
+  }
+
+  // Extra features if no features mentioned
+  if(!hasFeature && !isGame){
+    questions.push({
+      question: 'Any extra features?',
+      options: ['Keep it simple', 'Add error handling', 'Add input validation', 'Add comments']
+    });
+  }
+
+  // Return max 3 most relevant questions
+  return questions.slice(0, 3);
 }
 
 async function showCodeContextForm(originalRequest){

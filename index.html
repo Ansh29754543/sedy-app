@@ -222,6 +222,28 @@ body::before{content:'';position:fixed;inset:0;
   .fc-card{height:120px;}
   .fc-text{font-size:11px;}
 }
+
+/* ── CODE CONTEXT Q&A FORM ── */
+.ccf-wrap{display:flex;flex-direction:column;gap:12px;}
+.ccf-header{display:flex;align-items:flex-start;gap:10px;}
+.ccf-icon{font-size:20px;flex-shrink:0;margin-top:2px;}
+.ccf-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);}
+.ccf-sub{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace;}
+.ccf-fields{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.ccf-field{display:flex;flex-direction:column;gap:4px;}
+.ccf-qlabel{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif;}
+.ccf-qnum{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;background:rgba(79,142,255,.15);color:var(--accent);font-size:9px;font-family:'DM Mono',monospace;font-weight:700;flex-shrink:0;}
+.ccf-arow{display:flex;align-items:center;gap:6px;}
+.ccf-alabel{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);font-weight:600;flex-shrink:0;}
+.ccf-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+.ccf-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(79,142,255,.1);}
+.ccf-input::placeholder{color:var(--text3);}
+.ccf-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px;}
+.ccf-skip{background:none;border:1px solid var(--border2);border-radius:9px;padding:7px 14px;font-size:12px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.ccf-skip:hover{border-color:var(--text2);color:var(--text2);}
+.ccf-submit{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;padding:7px 16px;font-size:12px;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .2s;}
+.ccf-submit:hover{opacity:.88;}
+.ccf-submit:active{transform:scale(.97);}
 </style>
 </head>
 <body>
@@ -387,49 +409,67 @@ function speakMsg(btnId){
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ── FEATURE 3: FOLLOW-UP SUGGESTIONS (when user message is a bare topic) ─────
+// ── FEATURE 3: CODE CONTEXT Q&A FORM ─────────────────────────────────────────
+// When user asks for code, shows Q&A form to gather requirements first.
 // ══════════════════════════════════════════════════════════════════════════════
 
-// A "bare topic" = short noun phrase with no clear action attached
-// e.g. "mitosis", "world war 2", "photosynthesis", "newton laws"
-const ACTION_WORDS = /\b(what|how|why|explain|define|describe|solve|calculate|find|write|show|plot|graph|quiz|flashcard|help|tell|give|list|compare|summarize|when|who|is|are|does|do|can)\b/i;
+const CODE_REQUEST = /\b(write|create|make|build|code|program|develop|implement|generate)\b.{0,50}\b(code|script|function|program|app|tool|bot|website|api|class|component|snippet|algorithm)\b|\b(code|script|function|app|program)\b.{0,30}\b(for|that|to|which|in)\b/i;
+function isCodeRequest(text){ return CODE_REQUEST.test(text.trim()); }
 
-function userMsgIsBare(text){
-  const t = text.trim();
-  // Must be short (≤6 words), no question mark action words, no special intent
-  const words = t.split(/\s+/);
-  if(words.length > 6) return false;
-  if(t.endsWith('?')) return false;
-  if(ACTION_WORDS.test(t)) return false;
-  if(OBVIOUS_FLASHCARD.test(t)) return false;
-  if(OBVIOUS_QUIZ.test(t)) return false;
-  if(OBVIOUS_GRAPH.test(t)) return false;
-  // Must be at least 2 chars and look like a topic (letters/numbers/spaces)
-  return t.length >= 2 && /^[a-zA-Z0-9\s'-]+$/.test(t);
-}
+const CODE_QUESTIONS = [
+  { id:'lang',    label:'Programming language?',       placeholder:'e.g. Python, JavaScript, Java, C++...' },
+  { id:'purpose', label:'What should it do exactly?',  placeholder:'Describe the main goal in one sentence' },
+  { id:'input',   label:'What input does it receive?', placeholder:'e.g. a list of numbers, a file, user text...' },
+  { id:'output',  label:'What output / result?',       placeholder:'e.g. sorted list, printed table, saved file...' },
+  { id:'extra',   label:'Any special requirements?',   placeholder:'e.g. add comments, use recursion, no libraries...' },
+];
 
-function generateSuggestions(topic){
-  const t = topic || 'this topic';
-  return [
-    `Explain ${t} simply`,
-    `Flashcards about ${t}`,
-    `Quiz me on ${t}`,
-  ];
-}
-
-function addSuggestions(chips){
+function showCodeContextForm(originalRequest){
   const wrap = document.getElementById('chat-messages');
+  const fid = 'ccf'+Date.now();
+  const fieldsHtml = CODE_QUESTIONS.map((q,i)=>
+    `<div class="ccf-field"><div class="ccf-qlabel"><span class="ccf-qnum">Q${i+1}</span>${q.label}</div><div class="ccf-arow"><span class="ccf-alabel">A.</span><input class="ccf-input" id="${fid}-${q.id}" type="text" placeholder="${q.placeholder}" autocomplete="off"></div></div>`
+  ).join('');
   const div = document.createElement('div');
-  div.className = 'suggestions-wrap';
-  chips.forEach(s => {
-    const btn = document.createElement('button');
-    btn.className = 'suggestion-chip';
-    btn.textContent = s;
-    btn.onclick = () => { div.remove(); document.getElementById('chat-input').value = s; sendMessage(); };
-    div.appendChild(btn);
-  });
-  wrap.appendChild(div);
-  scrollBottom();
+  div.className = 'msg ai'; div.id = fid+'-msg';
+  div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-content"><div class="msg-bubble"><div class="ccf-wrap"><div class="ccf-header"><span class="ccf-icon">💬</span><div><div class="ccf-title">A few quick questions</div><div class="ccf-sub">Answer what you can — I will write better code for you</div></div></div><div class="ccf-fields">${fieldsHtml}</div><div class="ccf-actions"><button class="ccf-skip" onclick="skipCodeForm('${fid}',this)">Skip — just write it</button><button class="ccf-submit" onclick="submitCodeForm('${fid}',this)">✓ Generate Code</button></div></div></div></div>`;
+  div._origReq = originalRequest;
+  wrap.appendChild(div); scrollBottom();
+  setTimeout(()=>{ const f=document.getElementById(fid+'-lang'); if(f) f.focus(); }, 300);
+  const last=document.getElementById(fid+'-extra');
+  if(last) last.addEventListener('keydown',e=>{ if(e.key==='Enter') submitCodeForm(fid,last); });
+}
+
+function submitCodeForm(fid, triggerEl){
+  const msgEl = document.getElementById(fid+'-msg');
+  if(!msgEl) return;
+  const orig = msgEl._origReq || '';
+  const answers = CODE_QUESTIONS.map(q=>{ const el=document.getElementById(fid+'-'+q.id); return el&&el.value.trim()?`- ${q.label} ${el.value.trim()}`:null; }).filter(Boolean);
+  msgEl.remove();
+  if(!answers.length){ showTyping(); _sendChat(orig); return; }
+  const enriched = orig + '\n\nRequirements:\n' + answers.join('\n');
+  showTyping();
+  _sendChat(enriched);
+}
+
+function skipCodeForm(fid, triggerEl){
+  const msgEl = document.getElementById(fid+'-msg');
+  if(!msgEl) return;
+  const orig = msgEl._origReq || '';
+  msgEl.remove();
+  showTyping();
+  _sendChat(orig);
+}
+
+async function _sendChat(text){
+  try{
+    const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data=await res.json(); hideTyping();
+    const reply=data.reply||'Sorry, no response.';
+    pushHistory('user',text); pushHistory('assistant',reply);
+    const msgDiv=addMsg('ai',reply); msgDiv._rawText=reply;
+  }catch(err){ hideTyping(); addMsg('ai','Could not reach Sedy. Please check your connection.'); console.error(err); }
 }
 
 // ── PDF ───────────────────────────────────────────────────────────────────────
@@ -705,6 +745,7 @@ async function sendMessage(){
     else if(intent==='both'){pushHistory('user',text);await handleFlashcards(topic,text,false);showTyping();await handleQuiz(topic,text,false);pushHistory('assistant','Generated flashcards and a quiz about '+topic);}
     else if(intent==='flashcard')await handleFlashcards(topic,text,true);
     else if(intent==='quiz')await handleQuiz(topic,text,true);
+    else if(isCodeRequest(text)){ hideTyping(); showCodeContextForm(text); }
     else await handleChat(text);
   }catch(err){hideTyping();addMsg('ai','Could not reach Sedy. Please check your connection.');console.error(err);}
 }
@@ -726,12 +767,6 @@ async function handleChat(text){
   pushHistory('user',text);pushHistory('assistant',reply);
   const msgDiv=addMsg('ai',reply);
   msgDiv._rawText=reply;
-
-  // Show follow-up suggestions when user sent a bare topic with no clear action
-  if(userMsgIsBare(text)){
-    const topic = resolveTopic(text) || text.trim();
-    addSuggestions(generateSuggestions(topic));
-  }
 }
 
 async function handleFlashcards(topic,originalText,saveHistory=true){

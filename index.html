@@ -387,29 +387,33 @@ function speakMsg(btnId){
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ── FEATURE 3: FOLLOW-UP SUGGESTIONS (only when AI needs more context) ────────
+// ── FEATURE 3: FOLLOW-UP SUGGESTIONS (when user message is a bare topic) ─────
 // ══════════════════════════════════════════════════════════════════════════════
-const NEEDS_CONTEXT = [
-  /could you (clarify|specify|tell me more|elaborate|be more specific)/i,
-  /what (exactly|specifically|topic|subject|area) (do you|are you|would you)/i,
-  /can you (clarify|be more specific|tell me more|give more detail)/i,
-  /which (topic|subject|area|concept|chapter)/i,
-  /please (clarify|specify|elaborate|be more specific)/i,
-  /i('m| am) not sure what you('re| are) (asking|referring|looking)/i,
-  /more (details|information|context|specifics)/i,
-  /what would you like (to know|me to explain|to learn)/i,
-];
 
-function replyNeedsContext(reply){
-  return NEEDS_CONTEXT.some(p => p.test(reply));
+// A "bare topic" = short noun phrase with no clear action attached
+// e.g. "mitosis", "world war 2", "photosynthesis", "newton laws"
+const ACTION_WORDS = /\b(what|how|why|explain|define|describe|solve|calculate|find|write|show|plot|graph|quiz|flashcard|help|tell|give|list|compare|summarize|when|who|is|are|does|do|can)\b/i;
+
+function userMsgIsBare(text){
+  const t = text.trim();
+  // Must be short (≤6 words), no question mark action words, no special intent
+  const words = t.split(/\s+/);
+  if(words.length > 6) return false;
+  if(t.endsWith('?')) return false;
+  if(ACTION_WORDS.test(t)) return false;
+  if(OBVIOUS_FLASHCARD.test(t)) return false;
+  if(OBVIOUS_QUIZ.test(t)) return false;
+  if(OBVIOUS_GRAPH.test(t)) return false;
+  // Must be at least 2 chars and look like a topic (letters/numbers/spaces)
+  return t.length >= 2 && /^[a-zA-Z0-9\s'-]+$/.test(t);
 }
 
-function generateSuggestions(userMsg){
-  const topic = resolveTopic(userMsg) || userMsg.trim().slice(0,30);
+function generateSuggestions(topic){
+  const t = topic || 'this topic';
   return [
-    `What is ${topic}?`,
-    `Explain ${topic} with examples`,
-    `Flashcards about ${topic}`,
+    `Explain ${t} simply`,
+    `Flashcards about ${t}`,
+    `Quiz me on ${t}`,
   ];
 }
 
@@ -723,9 +727,10 @@ async function handleChat(text){
   const msgDiv=addMsg('ai',reply);
   msgDiv._rawText=reply;
 
-  // Show follow-up suggestions only when AI reply needs more context
-  if(replyNeedsContext(reply)){
-    addSuggestions(generateSuggestions(text));
+  // Show follow-up suggestions when user sent a bare topic with no clear action
+  if(userMsgIsBare(text)){
+    const topic = resolveTopic(text) || text.trim();
+    addSuggestions(generateSuggestions(topic));
   }
 }
 

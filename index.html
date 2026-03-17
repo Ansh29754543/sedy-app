@@ -224,21 +224,23 @@ body::before{content:'';position:fixed;inset:0;
 }
 
 /* ── CODE CONTEXT Q&A FORM ── */
-.ccf-wrap{display:flex;flex-direction:column;gap:12px;}
+/* ── CODE CONTEXT MCQ FORM ── */
+.ccf-wrap{display:flex;flex-direction:column;gap:14px;}
 .ccf-header{display:flex;align-items:flex-start;gap:10px;}
 .ccf-icon{font-size:20px;flex-shrink:0;margin-top:2px;}
 .ccf-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);}
 .ccf-sub{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace;}
-.ccf-fields{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
-.ccf-field{display:flex;flex-direction:column;gap:4px;}
-.ccf-qlabel{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif;}
-.ccf-qnum{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;background:rgba(79,142,255,.15);color:var(--accent);font-size:9px;font-family:'DM Mono',monospace;font-weight:700;flex-shrink:0;}
-.ccf-arow{display:flex;align-items:center;gap:6px;}
-.ccf-alabel{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);font-weight:600;flex-shrink:0;}
-.ccf-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
-.ccf-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(79,142,255,.1);}
-.ccf-input::placeholder{color:var(--text3);}
-.ccf-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px;}
+.ccf-loading{display:flex;align-items:center;gap:8px;color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;padding:8px 0;}
+.ccf-spinner{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ccf-questions{display:flex;flex-direction:column;gap:14px;}
+.ccf-q{display:flex;flex-direction:column;gap:7px;}
+.ccf-qlabel{font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;font-weight:500;line-height:1.4;}
+.ccf-opts{display:flex;flex-wrap:wrap;gap:6px;}
+.ccf-opt{padding:6px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;user-select:none;}
+.ccf-opt:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,142,255,.07);}
+.ccf-opt.selected{border-color:var(--accent);color:var(--accent);background:rgba(79,142,255,.15);font-weight:600;}
+.ccf-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:2px;}
 .ccf-skip{background:none;border:1px solid var(--border2);border-radius:9px;padding:7px 14px;font-size:12px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
 .ccf-skip:hover{border-color:var(--text2);color:var(--text2);}
 .ccf-submit{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;padding:7px 16px;font-size:12px;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .2s;}
@@ -409,50 +411,151 @@ function speakMsg(btnId){
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ── FEATURE 3: CODE CONTEXT Q&A FORM ─────────────────────────────────────────
-// When user asks for code, shows Q&A form to gather requirements first.
+// ── FEATURE 3: AI-GENERATED MCQ CONTEXT FORM FOR CODE REQUESTS ───────────────
+// Uses AI to generate 2-3 smart, relevant MCQ questions based on what the
+// user already said. Skips obvious info (e.g. language already mentioned).
 // ══════════════════════════════════════════════════════════════════════════════
 
 const CODE_REQUEST = /\b(write|create|make|build|code|program|develop|implement|generate)\b.{0,80}\b(code|script|function|program|app|tool|bot|website|api|class|component|snippet|algorithm|game|calculator|system|project|application)\b|\b(code|script|function|app|program|game|calculator)\b.{0,40}\b(for|that|to|which|in|using|with)\b|\b(using|in)\s+(html|css|javascript|python|java|c\+\+|react|node)/i;
 function isCodeRequest(text){ return CODE_REQUEST.test(text.trim()); }
 
-const CODE_QUESTIONS = [
-  { id:'lang',    label:'Programming language?',       placeholder:'e.g. Python, JavaScript, Java, C++...' },
-  { id:'purpose', label:'What should it do exactly?',  placeholder:'Describe the main goal in one sentence' },
-  { id:'input',   label:'What input does it receive?', placeholder:'e.g. a list of numbers, a file, user text...' },
-  { id:'output',  label:'What output / result?',       placeholder:'e.g. sorted list, printed table, saved file...' },
-  { id:'extra',   label:'Any special requirements?',   placeholder:'e.g. add comments, use recursion, no libraries...' },
-];
+// Calls the Anthropic API directly to generate smart MCQ questions
+async function generateCodeQuestions(userRequest){
+  const systemPrompt = `You are a smart assistant helping clarify a coding request before writing code.
+The user has asked: "${userRequest}"
 
-function showCodeContextForm(originalRequest){
-  const wrap = document.getElementById('chat-messages');
-  const fid = 'ccf'+Date.now();
-  const fieldsHtml = CODE_QUESTIONS.map((q,i)=>
-    `<div class="ccf-field"><div class="ccf-qlabel"><span class="ccf-qnum">Q${i+1}</span>${q.label}</div><div class="ccf-arow"><span class="ccf-alabel">A.</span><input class="ccf-input" id="${fid}-${q.id}" type="text" placeholder="${q.placeholder}" autocomplete="off"></div></div>`
-  ).join('');
-  const div = document.createElement('div');
-  div.className = 'msg ai'; div.id = fid+'-msg';
-  div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-content"><div class="msg-bubble"><div class="ccf-wrap"><div class="ccf-header"><span class="ccf-icon">💬</span><div><div class="ccf-title">A few quick questions</div><div class="ccf-sub">Answer what you can — I will write better code for you</div></div></div><div class="ccf-fields">${fieldsHtml}</div><div class="ccf-actions"><button class="ccf-skip" onclick="skipCodeForm('${fid}',this)">Skip — just write it</button><button class="ccf-submit" onclick="submitCodeForm('${fid}',this)">✓ Generate Code</button></div></div></div></div>`;
-  div._origReq = originalRequest;
-  wrap.appendChild(div); scrollBottom();
-  setTimeout(()=>{ const f=document.getElementById(fid+'-lang'); if(f) f.focus(); }, 300);
-  const last=document.getElementById(fid+'-extra');
-  if(last) last.addEventListener('keydown',e=>{ if(e.key==='Enter') submitCodeForm(fid,last); });
+Your job: Generate 2-3 SHORT, RELEVANT multiple-choice questions to clarify missing details.
+RULES:
+- NEVER ask about something already mentioned (e.g. if they said "Python", don't ask language)
+- NEVER ask obvious or redundant questions
+- Questions should help produce better code (complexity level, features, UI style, error handling, etc.)
+- Each question has 3-4 short option labels (1-4 words each)
+- Return ONLY valid JSON, no markdown, no explanation
+
+FORMAT:
+[
+  {
+    "question": "Short question text?",
+    "options": ["Option A", "Option B", "Option C"]
+  }
+]`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: 'Generate the clarifying questions now.' }]
+      })
+    });
+    if(!res.ok) throw new Error('API error');
+    const data = await res.json();
+    const raw = data.content?.[0]?.text || '[]';
+    // Strip markdown fences if present
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch(e) {
+    console.warn('generateCodeQuestions failed:', e);
+    return [];
+  }
 }
 
-function submitCodeForm(fid, triggerEl){
+async function showCodeContextForm(originalRequest){
+  const wrap = document.getElementById('chat-messages');
+  const fid = 'ccf'+Date.now();
+
+  // Show loading state immediately
+  const div = document.createElement('div');
+  div.className = 'msg ai'; div.id = fid+'-msg';
+  div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-content"><div class="msg-bubble"><div class="ccf-wrap">
+    <div class="ccf-header"><span class="ccf-icon">💬</span><div><div class="ccf-title">Let me ask a couple of things first</div><div class="ccf-sub">This helps me write exactly what you need</div></div></div>
+    <div class="ccf-loading" id="${fid}-loading"><div class="ccf-spinner"></div>Thinking of the right questions...</div>
+    <div class="ccf-questions" id="${fid}-qs" style="display:none"></div>
+    <div class="ccf-actions" id="${fid}-actions" style="display:none">
+      <button class="ccf-skip" onclick="skipCodeForm('${fid}')">Skip — just write it</button>
+      <button class="ccf-submit" onclick="submitCodeForm('${fid}')">✓ Generate Code</button>
+    </div>
+  </div></div></div>`;
+  div._origReq = originalRequest;
+  div._answers = {};
+  wrap.appendChild(div);
+  scrollBottom();
+
+  // Fetch AI-generated questions
+  const questions = await generateCodeQuestions(originalRequest);
+
+  const loadingEl = document.getElementById(fid+'-loading');
+  const qsEl = document.getElementById(fid+'-qs');
+  const actionsEl = document.getElementById(fid+'-actions');
+  if(!loadingEl) return; // form was removed
+
+  if(!questions.length){
+    // No questions needed — just write the code
+    div.remove();
+    showTyping();
+    _sendChat(originalRequest);
+    return;
+  }
+
+  // Hide loading, show questions
+  loadingEl.style.display = 'none';
+
+  questions.forEach((q, qi) => {
+    const qDiv = document.createElement('div');
+    qDiv.className = 'ccf-q';
+    const optsHtml = q.options.map((opt, oi) =>
+      `<button class="ccf-opt" id="${fid}-q${qi}-o${oi}" onclick="selectOpt('${fid}',${qi},${oi},this)">${_esc(opt)}</button>`
+    ).join('');
+    qDiv.innerHTML = `<div class="ccf-qlabel">${_esc(q.question)}</div><div class="ccf-opts">${optsHtml}</div>`;
+    qsEl.appendChild(qDiv);
+  });
+
+  div._questions = questions;
+  qsEl.style.display = 'flex';
+  qsEl.style.flexDirection = 'column';
+  qsEl.style.gap = '14px';
+  actionsEl.style.display = 'flex';
+  scrollBottom();
+}
+
+function selectOpt(fid, qi, oi, btn){
+  const msgEl = document.getElementById(fid+'-msg');
+  if(!msgEl) return;
+  // Deselect all options for this question
+  const allOpts = document.querySelectorAll(`[id^="${fid}-q${qi}-o"]`);
+  allOpts.forEach(b => b.classList.remove('selected'));
+  // Select clicked
+  btn.classList.add('selected');
+  if(!msgEl._answers) msgEl._answers = {};
+  msgEl._answers[qi] = btn.textContent;
+}
+
+function submitCodeForm(fid){
   const msgEl = document.getElementById(fid+'-msg');
   if(!msgEl) return;
   const orig = msgEl._origReq || '';
-  const answers = CODE_QUESTIONS.map(q=>{ const el=document.getElementById(fid+'-'+q.id); return el&&el.value.trim()?`- ${q.label} ${el.value.trim()}`:null; }).filter(Boolean);
+  const questions = msgEl._questions || [];
+  const answers = msgEl._answers || {};
+
+  const details = questions
+    .map((q, qi) => answers[qi] ? `- ${q.question} → ${answers[qi]}` : null)
+    .filter(Boolean);
+
   msgEl.remove();
-  if(!answers.length){ showTyping(); _sendChat(orig); return; }
-  const enriched = orig + '\n\nRequirements:\n' + answers.join('\n');
+
+  const enriched = details.length
+    ? orig + '\n\nExtra requirements:\n' + details.join('\n')
+    : orig;
+
   showTyping();
   _sendChat(enriched);
 }
 
-function skipCodeForm(fid, triggerEl){
+function skipCodeForm(fid){
   const msgEl = document.getElementById(fid+'-msg');
   if(!msgEl) return;
   const orig = msgEl._origReq || '';
@@ -731,8 +834,7 @@ async function sendMessage(){
 
   // ── Code request interception — must happen before intent detection ──
   if(!currentPdf && isCodeRequest(text)){
-    showTyping();
-    setTimeout(()=>{ hideTyping(); showCodeContextForm(text); }, 400);
+    showCodeContextForm(text);
     return;
   }
 

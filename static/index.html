@@ -1100,13 +1100,14 @@ async function sendMessage(){
 
   showTyping();
 
-  // PDF mode — use first PDF (future: handle multiple)
+  // PDF mode — process each staged PDF
   if (pdfsToSend.length) {
-    const pdf   = pdfsToSend[0];
     const intent = await detectIntent(text);
 
+    // Flashcard / quiz intent — use first PDF's name as topic
     if (intent === 'flashcard' || intent === 'both' || intent === 'quiz') {
-      let topic = resolveTopic(text);
+      const pdf   = pdfsToSend[0];
+      let topic   = resolveTopic(text);
       if (isVague(topic) || topic.length <= 2)
         topic = pdf.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ').trim();
       try {
@@ -1125,16 +1126,21 @@ async function sendMessage(){
       return;
     }
 
-    try { await handlePdfChat(text, pdf); }
-    catch(err) {
-      hideTyping();
-      const m = err.message || '';
-      if (m.includes('pypdf') || m.includes('No PDF library'))
-        addMsg('ai','⚠️ **PDF engine missing on server.** Add `pypdf` to requirements.txt and redeploy.');
-      else if (m.includes('image-only') || m.includes('scanned'))
-        addMsg('ai','⚠️ This PDF is scanned/image-only — no text to extract. Try a text-based PDF.');
-      else
-        addMsg('ai','⚠️ PDF error: ' + m);
+    // Chat with each PDF in sequence
+    for (let i = 0; i < pdfsToSend.length; i++) {
+      const pdf = pdfsToSend[i];
+      if (i > 0) showTyping(); // re-show typing between PDFs
+      try { await handlePdfChat(text, pdf); }
+      catch(err) {
+        hideTyping();
+        const m = err.message || '';
+        if (m.includes('pypdf') || m.includes('No PDF library'))
+          addMsg('ai','⚠️ **PDF engine missing on server.** Add `pypdf` to requirements.txt and redeploy.');
+        else if (m.includes('image-only') || m.includes('scanned'))
+          addMsg('ai','⚠️ "' + _esc(pdf.name) + '" is scanned/image-only — no extractable text.');
+        else
+          addMsg('ai','⚠️ Error with "' + _esc(pdf.name) + '": ' + m);
+      }
     }
     return;
   }
@@ -1169,6 +1175,30 @@ function addMsgWithAttachments(text, pdfs) {
   wrap.appendChild(div);
   scrollBottom();
   return div;
+}
+
+async function handlePdfChat(text, pdf) {
+  const res = await fetch(API_URL + '/pdf-chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message:    text,
+      pdf_base64: pdf.base64,
+      pdf_name:   pdf.name,
+      history:    chatHistory.slice(-20)
+    })
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.detail || 'HTTP ' + res.status);
+  }
+  const data  = await res.json();
+  hideTyping();
+  const reply = data.reply || 'Could not process the PDF.';
+  const msgDiv = addMsg('ai', '<div class="pdf-reply-badge">📄 ' + _esc(pdf.name) + '</div>' + renderMarkdown(reply), true);
+  msgDiv._rawText = reply;
+  pushHistory('user', '[PDF: ' + pdf.name + '] ' + text);
+  pushHistory('assistant', reply);
 }
 
 async function handleGraph(text){

@@ -222,6 +222,102 @@ body::before{content:'';position:fixed;inset:0;
 }
 @keyframes skeletonShift { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
 
+/* ── RATE LIMIT MODAL ── */
+.rl-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(8,11,18,.88);
+  backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: fadeIn .2s ease;
+}
+.rl-card {
+  background: var(--card);
+  border: 1px solid rgba(255,79,106,.25);
+  border-radius: 24px;
+  padding: 32px 28px 28px;
+  width: 100%; max-width: 380px;
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  box-shadow: 0 0 0 1px rgba(255,79,106,.08), 0 32px 80px rgba(0,0,0,.6);
+  animation: slideUp .24s ease;
+  text-align: center;
+}
+.rl-icon {
+  width: 64px; height: 64px; border-radius: 18px;
+  background: rgba(255,79,106,.1);
+  border: 1px solid rgba(255,79,106,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+}
+.rl-title {
+  font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800;
+  color: var(--text);
+}
+.rl-subtitle {
+  font-size: 13px; color: var(--text2); line-height: 1.6; margin-top: -8px;
+}
+.rl-countdown-wrap {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.rl-countdown-label {
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  color: var(--text3); text-transform: uppercase; letter-spacing: 1px;
+}
+.rl-countdown-timer {
+  font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800;
+  background: linear-gradient(135deg, var(--danger), #ff8c42);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  line-height: 1; letter-spacing: -1px;
+}
+.rl-bar-track {
+  width: 100%; height: 4px;
+  background: rgba(255,79,106,.12); border-radius: 4px; overflow: hidden;
+}
+.rl-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--danger), #ff8c42);
+  border-radius: 4px;
+  transition: width 1s linear;
+}
+.rl-limit-info {
+  font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3);
+  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+}
+.rl-limit-info span { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.rl-limit-info b { font-size: 13px; color: var(--text2); font-family: 'Syne', sans-serif; }
+.rl-divider {
+  width: 100%; height: 1px; background: var(--border);
+}
+.rl-premium-label {
+  font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 1.5px;
+}
+.rl-premium-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #ff8c42, var(--danger));
+  border: none; border-radius: 12px;
+  padding: 13px 20px;
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+  color: white; cursor: pointer;
+  transition: all .2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.rl-premium-btn:hover { opacity: .88; transform: translateY(-1px); }
+.rl-premium-btn:active { transform: scale(.97); }
+.rl-dismiss-btn {
+  background: none; border: 1px solid var(--border2); border-radius: 10px;
+  padding: 10px 20px; width: 100%;
+  font-size: 13px; color: var(--text3); cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .2s;
+}
+.rl-dismiss-btn:hover { border-color: var(--text2); color: var(--text2); }
+
 /* ── FOLLOW-UP SUGGESTION CHIPS ── */
 .suggestions-wrap{display:flex;flex-wrap:wrap;gap:7px;padding-left:40px;animation:msgIn .3s ease;}
 .suggestion-chip{padding:6px 13px;background:var(--card2);border:1px solid var(--border2);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap;}
@@ -472,6 +568,31 @@ body::before{content:'';position:fixed;inset:0;
   </div>
 
   <div class="chat-messages" id="chat-messages"></div>
+
+  <!-- Rate-limit modal — shown when Groq 429 is returned -->
+  <div class="rl-overlay" id="rl-overlay" style="display:none;">
+    <div class="rl-card">
+      <div class="rl-icon">⏳</div>
+      <div>
+        <div class="rl-title">Free Usage Limit Reached</div>
+        <div class="rl-subtitle" id="rl-subtitle">You've used up the free AI quota for now.</div>
+      </div>
+      <div class="rl-countdown-wrap">
+        <div class="rl-countdown-label">Resets in</div>
+        <div class="rl-countdown-timer" id="rl-timer">--:--</div>
+        <div class="rl-bar-track"><div class="rl-bar-fill" id="rl-bar" style="width:100%"></div></div>
+        <div class="rl-limit-info" id="rl-limit-info"></div>
+      </div>
+      <div class="rl-divider"></div>
+      <div style="width:100%;display:flex;flex-direction:column;gap:8px;">
+        <div class="rl-premium-label">Want unlimited access?</div>
+        <button class="rl-premium-btn" onclick="window.open('https://console.groq.com/settings/billing','_blank')">
+          ⚡ Upgrade to Premium
+        </button>
+        <button class="rl-dismiss-btn" onclick="closeRateLimit()">I'll wait — dismiss</button>
+      </div>
+    </div>
+  </div>
 
   <div class="input-area">
     <!-- Staged PDFs row — shown above input, hidden until a PDF is selected -->
@@ -1189,8 +1310,9 @@ async function handlePdfChat(text, pdf) {
     })
   });
   if (!res.ok) {
+    if (res.status === 429) { const d=await res.json().catch(()=>({})); hideTyping(); showRateLimit(typeof d.detail==='object'?d.detail:{wait_seconds:900}); return; }
     const e = await res.json().catch(() => ({}));
-    throw new Error(e.detail || 'HTTP ' + res.status);
+    throw new Error(typeof e.detail==='string'?e.detail:(e.detail?.message||'HTTP '+res.status));
   }
   const data  = await res.json();
   hideTyping();
@@ -1204,6 +1326,7 @@ async function handlePdfChat(text, pdf) {
 async function handleGraph(text){
   const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
   if(!res.ok)throw new Error('HTTP '+res.status);
+  if(await handleApiError(res,'graph')) return;
   const data=await res.json();hideTyping();
   if(!data.series||!data.series.length){addMsg('ai','Could not generate graph data for that request.');return;}
   pushHistory('user',text);pushHistory('assistant','Generated a '+(data.chart_type||'line')+' chart: '+data.title);
@@ -1212,7 +1335,7 @@ async function handleGraph(text){
 
 async function handleChat(text){
   const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
-  if(!res.ok)throw new Error('HTTP '+res.status);
+  if(!res.ok){ if(await handleApiError(res,'chat')) return; throw new Error('HTTP '+res.status); }
   const data=await res.json();hideTyping();
   const reply=data.reply||'Sorry, no response.';
   pushHistory('user',text);pushHistory('assistant',reply);
@@ -1235,7 +1358,7 @@ async function handleFlashcards(topic,originalText,saveHistory=true){
   const requestedCount = await parseRequestedCount(originalText);
   const count = requestedCount ?? 0; // 0 = let AI decide
   const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,count,history:chatHistory.slice(-20)})});
-  if(!res.ok)throw new Error('HTTP '+res.status);
+  if(!res.ok){ if(await handleApiError(res,'flashcards')) return; throw new Error('HTTP '+res.status); }
   const data=await res.json();hideTyping();
   const rt=data.topic||topic,cards=data.cards||[];
   if(!cards.length){addMsg('ai','Could not generate flashcards for "'+rt+'".');return;}
@@ -1251,7 +1374,7 @@ async function handleQuiz(topic,originalText,saveHistory=true){
   const requestedCount = await parseRequestedCount(originalText);
   const count = requestedCount ?? 0; // 0 = let AI decide
   const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,difficulty:diff,count,history:chatHistory.slice(-20)})});
-  if(!res.ok)throw new Error('HTTP '+res.status);
+  if(!res.ok){ if(await handleApiError(res,'quiz')) return; throw new Error('HTTP '+res.status); }
   const data=await res.json();hideTyping();
   const rt=data.topic||topic,qs=data.questions||[];
   if(!qs.length){addMsg('ai','Could not generate a quiz for "'+rt+'".');return;}
@@ -1299,6 +1422,97 @@ function initSession(){
     addMsg('ai','Welcome back! I remember our previous conversation ('+uc+' message'+(uc!==1?'s':'')+').\n\nUpload a PDF with the 📎 button, or just type to continue!');
     updateMemoryBadge();
   }
+}
+
+// ── RATE LIMIT MODAL ─────────────────────────────────────────────────────────
+let _rlTimerInterval = null;
+
+function showRateLimit(detail) {
+  // detail = { wait_seconds, wait_display, limit_type, used, limit }
+  const overlay  = document.getElementById('rl-overlay');
+  const subtitle = document.getElementById('rl-subtitle');
+  const timerEl  = document.getElementById('rl-timer');
+  const barEl    = document.getElementById('rl-bar');
+  const infoEl   = document.getElementById('rl-limit-info');
+  if (!overlay) return;
+
+  const waitSec   = detail.wait_seconds || 0;
+  const limitType = detail.limit_type   || 'tokens';
+  const used      = detail.used         || 0;
+  const limit     = detail.limit        || 0;
+
+  // Subtitle
+  const typeLabel = limitType === 'TPD' ? 'daily token'
+                  : limitType === 'TPM' ? 'per-minute token'
+                  : limitType === 'RPM' ? 'per-minute request'
+                  : 'free usage';
+  subtitle.textContent = `You've reached the ${typeLabel} limit for the free AI tier.`;
+
+  // Usage info
+  if (used && limit) {
+    infoEl.innerHTML = `
+      <span><b>${fmtNum(used)}</b>tokens used</span>
+      <span><b>${fmtNum(limit)}</b>daily limit</span>
+      <span><b>${fmtNum(Math.max(0, limit - used))}</b>remaining</span>`;
+  } else {
+    infoEl.innerHTML = '';
+  }
+
+  // Countdown
+  clearInterval(_rlTimerInterval);
+  const totalSec = waitSec;
+  let remaining  = waitSec;
+
+  function tick() {
+    if (remaining <= 0) {
+      timerEl.textContent = 'Ready!';
+      barEl.style.width   = '0%';
+      clearInterval(_rlTimerInterval);
+      // Auto-dismiss after 2s when timer hits 0
+      setTimeout(() => closeRateLimit(), 2000);
+      return;
+    }
+    const h = Math.floor(remaining / 3600);
+    const m = Math.floor((remaining % 3600) / 60);
+    const s = remaining % 60;
+    timerEl.textContent = h > 0
+      ? `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`
+      : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    barEl.style.width = totalSec > 0 ? (remaining / totalSec * 100) + '%' : '0%';
+    remaining--;
+  }
+
+  tick();
+  _rlTimerInterval = setInterval(tick, 1000);
+
+  overlay.style.display = 'flex';
+}
+
+function closeRateLimit() {
+  clearInterval(_rlTimerInterval);
+  const overlay = document.getElementById('rl-overlay');
+  if (overlay) {
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity .2s ease';
+    setTimeout(() => { overlay.style.display = 'none'; overlay.style.opacity = '1'; }, 220);
+  }
+}
+
+function fmtNum(n) {
+  if (n >= 1000) return (n/1000).toFixed(1) + 'k ';
+  return n + ' ';
+}
+
+// Central error handler — call this for all Groq API responses
+async function handleApiError(res, fallbackMsg) {
+  if (res.status === 429) {
+    const data = await res.json().catch(() => ({}));
+    const detail = data.detail || {};
+    hideTyping();
+    showRateLimit(typeof detail === 'object' ? detail : { wait_seconds: 900, limit_type: 'tokens', used: 0, limit: 0 });
+    return true; // handled
+  }
+  return false; // not a rate limit, let caller handle
 }
 
 // ── RENDER KEEP-ALIVE — ping every 13 min so the free dyno stays warm ───────

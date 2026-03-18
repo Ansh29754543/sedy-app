@@ -1537,19 +1537,20 @@ async function handleApiError(res, fallbackMsg) {
 }
 
 // ── MODEL SWITCHER ───────────────────────────────────────────────────────────
+const MODEL_NAMES = { auto:'Auto', pro:'Sedy Pro 🚀', flash:'Sedy Flash ⚡', smart:'Sedy Smart 🧠' };
+const MODEL_DESC  = {
+  auto:  'Auto mode — I pick the best model for each task automatically.',
+  pro:   'Sedy Pro — llama-3.3-70b, best quality for complex tasks.',
+  flash: 'Sedy Flash — llama-3.1-8b, fastest responses.',
+  smart: 'Sedy Smart — Gemma2-9b, great for structured content and quizzes.'
+};
+
 function setModel(model) {
   activeModel = model;
   document.querySelectorAll('.model-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.model === model);
   });
-  // Show a subtle toast confirming the switch
-  const names = { auto:'Auto (picks best model)', pro:'Sedy Pro 🚀', flash:'Sedy Flash ⚡', smart:'Sedy Smart 🧠' };
-  const desc  = { auto:'I'll choose the best model for each task automatically.',
-                  pro:'Using llama-3.3-70b — best quality for complex tasks.',
-                  flash:'Using llama-3.1-8b — fastest responses.',
-                  smart:'Using Gemma2-9b — great for structured content & quizzes.' };
-  addMsg('ai', `**${names[model]}**  
-${desc[model]}`);
+  addMsg('ai', '**' + MODEL_NAMES[model] + '** selected — ' + MODEL_DESC[model]);
 }
 
 // ── RENDER KEEP-ALIVE — ping every 13 min so the free dyno stays warm ───────

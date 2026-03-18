@@ -579,7 +579,7 @@ body::before{content:'';position:fixed;inset:0;
         <button class="model-btn active" data-model="auto" onclick="setModel('auto')" title="Auto — picks best model for each task">✦ Auto</button>
         <button class="model-btn" data-model="pro"   onclick="setModel('pro')"   title="Sedy Pro — best quality, complex tasks">🚀 Pro</button>
         <button class="model-btn" data-model="flash" onclick="setModel('flash')" title="Sedy Flash — fastest responses">⚡ Flash</button>
-        <button class="model-btn" data-model="smart" onclick="setModel('smart')" title="Sedy Smart — structured content &amp; quizzes">🧠 Smart</button>
+        <button class="model-btn" data-model="smart" onclick="setModel('smart')" title="Sedy Smart — Qwen3-32b, multilingual &amp; reasoning">🧠 Smart</button>
       </div>
       <div class="memory-badge"><div class="memory-dot"></div><span id="memory-count">0 messages</span></div>
       <button class="clear-header-btn" onclick="clearChat()">🗑 Clear</button>
@@ -1542,7 +1542,7 @@ const MODEL_DESC  = {
   auto:  'Auto mode — I pick the best model for each task automatically.',
   pro:   'Sedy Pro — llama-3.3-70b, best quality for complex tasks.',
   flash: 'Sedy Flash — llama-3.1-8b, fastest responses.',
-  smart: 'Sedy Smart — Gemma2-9b, great for structured content and quizzes.'
+  smart: 'Sedy Smart — Qwen3-32b, multilingual reasoning with 128K context window.'
 };
 
 function setModel(model) {

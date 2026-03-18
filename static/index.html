@@ -1219,9 +1219,22 @@ async function handleChat(text){
   const msgDiv=addMsg('ai',reply);msgDiv._rawText=reply;
 }
 
+async function parseRequestedCount(text) {
+  // Match patterns like "10 cards", "20 flashcards", "15 questions", "make 8", "give me 12"
+  const m = text.match(/\b(\d+)\s*(?:cards?|flashcards?|questions?|mcqs?|q(?:uestions?)?)?\b/i)
+           || text.match(/\b(?:make|create|generate|give me|show me|want)\s+(\d+)\b/i);
+  if (m) {
+    const n = parseInt(m[1] || m[2], 10);
+    if (n >= 1 && n <= 50) return n;
+  }
+  return null; // null = auto (let backend decide)
+}
+
 async function handleFlashcards(topic,originalText,saveHistory=true){
   topic=isVague(topic)?(getLastTopic()||topic):topic;
-  const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,count:6,history:chatHistory.slice(-20)})});
+  const requestedCount = await parseRequestedCount(originalText);
+  const count = requestedCount ?? 0; // 0 = let AI decide
+  const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,count,history:chatHistory.slice(-20)})});
   if(!res.ok)throw new Error('HTTP '+res.status);
   const data=await res.json();hideTyping();
   const rt=data.topic||topic,cards=data.cards||[];
@@ -1235,7 +1248,9 @@ async function handleFlashcards(topic,originalText,saveHistory=true){
 async function handleQuiz(topic,originalText,saveHistory=true){
   topic=isVague(topic)?(getLastTopic()||topic):topic;
   let diff='medium';if(/easy|simple|basic/i.test(originalText))diff='easy';if(/hard|difficult|advanced/i.test(originalText))diff='hard';
-  const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,difficulty:diff,count:5,history:chatHistory.slice(-20)})});
+  const requestedCount = await parseRequestedCount(originalText);
+  const count = requestedCount ?? 0; // 0 = let AI decide
+  const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,difficulty:diff,count,history:chatHistory.slice(-20)})});
   if(!res.ok)throw new Error('HTTP '+res.status);
   const data=await res.json();hideTyping();
   const rt=data.topic||topic,qs=data.questions||[];

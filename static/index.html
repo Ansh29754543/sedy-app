@@ -51,6 +51,17 @@ body::before{content:'';position:fixed;inset:0;
 .memory-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);box-shadow:0 0 6px var(--accent2);}
 .clear-header-btn{display:flex;align-items:center;gap:6px;padding:5px 11px;background:none;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;cursor:pointer;transition:all .2s;white-space:nowrap;}
 .clear-header-btn:hover{border-color:rgba(255,79,106,.4);color:var(--danger);background:rgba(255,79,106,.06);}
+
+/* ── MODEL SWITCHER ── */
+.model-switcher{display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:3px;}
+.model-btn{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:18px;border:none;background:none;cursor:pointer;font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);transition:all .18s;white-space:nowrap;}
+.model-btn:hover{color:var(--text2);}
+.model-btn.active{color:#fff;font-weight:600;}
+.model-btn[data-model="auto"].active{background:linear-gradient(135deg,#4f8eff,#7c5cfc);}
+.model-btn[data-model="pro"].active{background:linear-gradient(135deg,#ff6b9d,#c084fc);}
+.model-btn[data-model="flash"].active{background:linear-gradient(135deg,#ffb547,#ff8c42);}
+.model-btn[data-model="smart"].active{background:linear-gradient(135deg,#00e5c0,#4f8eff);}
+.model-label-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.7;flex-shrink:0;}
 .chat-messages{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 20px 12px;display:flex;flex-direction:column;gap:16px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .chat-messages::-webkit-scrollbar{width:3px;}
 .chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
@@ -530,6 +541,8 @@ body::before{content:'';position:fixed;inset:0;
   .suggestions-wrap{padding-left:0;}
   .img-card{max-width:100%;}
   .pdf-staged-name{max-width:100px;}
+  .model-btn{padding:4px 7px;font-size:10px;}
+  .model-switcher{gap:2px;}
 }
 @media(max-width:380px){
   .msg-content{max-width:95%;}
@@ -562,6 +575,12 @@ body::before{content:'';position:fixed;inset:0;
       <div class="header-sub">Ask anything &bull; Voice &bull; PDF &bull; Code &bull; Math &bull; Flashcards &bull; Quizzes &bull; Graphs &bull; Images</div>
     </div>
     <div class="header-right">
+      <div class="model-switcher" id="model-switcher">
+        <button class="model-btn active" data-model="auto" onclick="setModel('auto')" title="Auto — picks best model for each task">✦ Auto</button>
+        <button class="model-btn" data-model="pro"   onclick="setModel('pro')"   title="Sedy Pro — best quality, complex tasks">🚀 Pro</button>
+        <button class="model-btn" data-model="flash" onclick="setModel('flash')" title="Sedy Flash — fastest responses">⚡ Flash</button>
+        <button class="model-btn" data-model="smart" onclick="setModel('smart')" title="Sedy Smart — structured content &amp; quizzes">🧠 Smart</button>
+      </div>
       <div class="memory-badge"><div class="memory-dot"></div><span id="memory-count">0 messages</span></div>
       <button class="clear-header-btn" onclick="clearChat()">🗑 Clear</button>
     </div>
@@ -613,6 +632,7 @@ const API_URL = 'https://sedy-ai-3.onrender.com';
 const STORAGE_KEY = 'sedy_chat_history';
 let activeQuiz = null;
 let stagedPdfs = [];     // Array of { name, base64, sizeKb, pageCount, thumbDataUrl }
+let activeModel = 'auto'; // 'auto' | 'pro' | 'flash' | 'smart'
 let lastImagePrompt = '';
 let currentEditCardId = null;
 
@@ -889,7 +909,7 @@ function skipCodeForm(fid){const msgEl=document.getElementById(fid+'-msg');if(!m
 
 async function _sendChat(text){
   try{
-    const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
+    const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,model:activeModel,history:chatHistory.slice(-20)})});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();hideTyping();
     const reply=data.reply||'Sorry, no response.';
@@ -1306,6 +1326,7 @@ async function handlePdfChat(text, pdf) {
       message:    text,
       pdf_base64: pdf.base64,
       pdf_name:   pdf.name,
+      model:      activeModel,
       history:    chatHistory.slice(-20)
     })
   });
@@ -1324,7 +1345,7 @@ async function handlePdfChat(text, pdf) {
 }
 
 async function handleGraph(text){
-  const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
+  const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,model:activeModel,history:chatHistory.slice(-20)})});
   if(!res.ok)throw new Error('HTTP '+res.status);
   if(await handleApiError(res,'graph')) return;
   const data=await res.json();hideTyping();
@@ -1334,7 +1355,7 @@ async function handleGraph(text){
 }
 
 async function handleChat(text){
-  const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
+  const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,model:activeModel,history:chatHistory.slice(-20)})});
   if(!res.ok){ if(await handleApiError(res,'chat')) return; throw new Error('HTTP '+res.status); }
   const data=await res.json();hideTyping();
   const reply=data.reply||'Sorry, no response.';
@@ -1357,7 +1378,7 @@ async function handleFlashcards(topic,originalText,saveHistory=true){
   topic=isVague(topic)?(getLastTopic()||topic):topic;
   const requestedCount = await parseRequestedCount(originalText);
   const count = requestedCount ?? 0; // 0 = let AI decide
-  const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,count,history:chatHistory.slice(-20)})});
+  const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,count,model:activeModel,history:chatHistory.slice(-20)})});
   if(!res.ok){ if(await handleApiError(res,'flashcards')) return; throw new Error('HTTP '+res.status); }
   const data=await res.json();hideTyping();
   const rt=data.topic||topic,cards=data.cards||[];
@@ -1373,7 +1394,7 @@ async function handleQuiz(topic,originalText,saveHistory=true){
   let diff='medium';if(/easy|simple|basic/i.test(originalText))diff='easy';if(/hard|difficult|advanced/i.test(originalText))diff='hard';
   const requestedCount = await parseRequestedCount(originalText);
   const count = requestedCount ?? 0; // 0 = let AI decide
-  const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,difficulty:diff,count,history:chatHistory.slice(-20)})});
+  const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,difficulty:diff,count,model:activeModel,history:chatHistory.slice(-20)})});
   if(!res.ok){ if(await handleApiError(res,'quiz')) return; throw new Error('HTTP '+res.status); }
   const data=await res.json();hideTyping();
   const rt=data.topic||topic,qs=data.questions||[];
@@ -1513,6 +1534,22 @@ async function handleApiError(res, fallbackMsg) {
     return true; // handled
   }
   return false; // not a rate limit, let caller handle
+}
+
+// ── MODEL SWITCHER ───────────────────────────────────────────────────────────
+function setModel(model) {
+  activeModel = model;
+  document.querySelectorAll('.model-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.model === model);
+  });
+  // Show a subtle toast confirming the switch
+  const names = { auto:'Auto (picks best model)', pro:'Sedy Pro 🚀', flash:'Sedy Flash ⚡', smart:'Sedy Smart 🧠' };
+  const desc  = { auto:'I'll choose the best model for each task automatically.',
+                  pro:'Using llama-3.3-70b — best quality for complex tasks.',
+                  flash:'Using llama-3.1-8b — fastest responses.',
+                  smart:'Using Gemma2-9b — great for structured content & quizzes.' };
+  addMsg('ai', `**${names[model]}**  
+${desc[model]}`);
 }
 
 // ── RENDER KEEP-ALIVE — ping every 13 min so the free dyno stays warm ───────

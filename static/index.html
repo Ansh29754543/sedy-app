@@ -94,435 +94,110 @@ body::before{content:'';position:fixed;inset:0;
 .speak-btn.speaking{border-color:var(--accent3);color:var(--accent3);background:rgba(0,229,192,.07);animation:speakPulse 1.4s infinite;}
 @keyframes speakPulse{0%,100%{opacity:1;}50%{opacity:.55;}}
 
+/* ── PDF INFO PANEL ── */
+.pdf-info-panel {
+  background: rgba(124,92,252,.07);
+  border: 1px solid rgba(124,92,252,.25);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+.pdf-info-header { display:flex; align-items:center; gap:8px; }
+.pdf-info-icon { font-size:20px; }
+.pdf-info-meta { flex:1; }
+.pdf-info-name { font-weight:700; color:var(--accent2); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px; }
+.pdf-info-stats { color:var(--text3); font-family:'DM Mono',monospace; font-size:10px; margin-top:2px; }
+.pdf-info-actions { display:flex; gap:6px; flex-wrap:wrap; }
+.pdf-quick-btn {
+  padding: 5px 11px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text2);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.pdf-quick-btn:hover { border-color:var(--accent2); color:var(--accent2); background:rgba(124,92,252,.08); }
+.pdf-quick-btn:active { transform:scale(.96); }
+
 /* ── FOLLOW-UP SUGGESTION CHIPS ── */
 .suggestions-wrap{display:flex;flex-wrap:wrap;gap:7px;padding-left:40px;animation:msgIn .3s ease;}
 .suggestion-chip{padding:6px 13px;background:var(--card2);border:1px solid var(--border2);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap;}
 .suggestion-chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,142,255,.08);}
 .suggestion-chip:active{transform:scale(.96);}
 
-/* ══════════════════════════════════════════════════════════
-   ── IMAGE GENERATION UI ────────────────────────────────
-   ══════════════════════════════════════════════════════════ */
+/* ── IMAGE GENERATION UI ── */
+.img-card {background:var(--card);border:1px solid var(--border2);border-radius:18px;overflow:hidden;width:100%;max-width:420px;position:relative;}
+.img-loading {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:36px 24px;background:linear-gradient(135deg,#0d1120 0%,#121828 50%,#0d1120 100%);position:relative;overflow:hidden;min-height:260px;}
+.img-loading::before {content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(255,107,157,.06) 45%,rgba(192,132,252,.10) 50%,rgba(251,146,60,.06) 55%,transparent 70%);background-size:200% 100%;animation:shimmerSweep 2.2s ease-in-out infinite;}
+@keyframes shimmerSweep{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.img-loading::after {content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(255,107,157,.04) 28px,rgba(255,107,157,.04) 29px),repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(192,132,252,.04) 28px,rgba(192,132,252,.04) 29px);pointer-events:none;}
+.img-spinner-wrap {position:relative;width:72px;height:72px;flex-shrink:0;z-index:1;}
+.img-spinner-ring {width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,107,157,.15);border-top-color:var(--img-accent);border-right-color:var(--img-accent2);animation:imgSpin 1.1s cubic-bezier(.5,0,.5,1) infinite;position:absolute;top:0;left:0;}
+.img-spinner-ring2 {width:56px;height:56px;border-radius:50%;border:2px solid rgba(192,132,252,.12);border-bottom-color:var(--img-accent2);border-left-color:var(--img-accent3);animation:imgSpin 1.6s cubic-bezier(.5,0,.5,1) infinite reverse;position:absolute;top:8px;left:8px;}
+@keyframes imgSpin{to{transform:rotate(360deg);}}
+.img-spinner-icon {position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:20px;animation:imgIconPulse 2s ease-in-out infinite;z-index:2;}
+@keyframes imgIconPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:1;}50%{transform:translate(-50%,-50%) scale(1.15);opacity:.7;}}
+.img-progress-wrap {display:flex;flex-direction:column;align-items:center;gap:8px;z-index:1;width:100%;max-width:220px;}
+.img-progress-pct {font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:linear-gradient(135deg,var(--img-accent),var(--img-accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;animation:imgPctPulse 1.4s ease-in-out infinite;}
+@keyframes imgPctPulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+.img-progress-bar-track {width:100%;height:4px;background:rgba(255,107,157,.12);border-radius:4px;overflow:hidden;}
+.img-progress-bar-fill {height:100%;background:linear-gradient(90deg,var(--img-accent),var(--img-accent2),var(--img-accent3));border-radius:4px;transition:width .4s ease;background-size:200% 100%;animation:imgBarShift 2s linear infinite;}
+@keyframes imgBarShift{0%{background-position:0% 0;}100%{background-position:200% 0;}}
+.img-progress-label {font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.5px;}
+.img-card-header {display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,107,157,.06);border-bottom:1px solid rgba(255,107,157,.12);}
+.img-card-badge {display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:10px;color:var(--img-accent);letter-spacing:.8px;text-transform:uppercase;}
+.img-card-badge-dot {width:6px;height:6px;border-radius:50%;background:var(--img-accent);box-shadow:0 0 8px var(--img-accent);animation:imgDotPulse 1.4s infinite;}
+@keyframes imgDotPulse{0%,100%{box-shadow:0 0 4px var(--img-accent);}50%{box-shadow:0 0 12px var(--img-accent);}}
+.img-card-prompt-preview {margin-left:auto;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.img-result {display:none;flex-direction:column;}
+.img-result.visible {display:flex;}
+.img-result-img {width:100%;display:block;border-radius:0;max-height:420px;object-fit:cover;}
+.img-result-footer {padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:var(--card);}
+.img-prompt-used {font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;line-height:1.5;max-height:36px;overflow:hidden;cursor:pointer;transition:max-height .3s ease;}
+.img-prompt-used.expanded {max-height:200px;}
+.img-prompt-used::before {content:'✦ ';color:var(--img-accent);}
+.img-actions {display:flex;gap:6px;flex-wrap:wrap;}
+.img-action-btn {display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:9px;font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .2s;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);text-decoration:none;white-space:nowrap;}
+.img-action-btn:hover {transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.img-action-btn.download {border-color:rgba(0,229,160,.3);color:var(--success);background:rgba(0,229,160,.06);}
+.img-action-btn.download:hover {background:rgba(0,229,160,.12);border-color:var(--success);}
+.img-action-btn.regen {border-color:rgba(79,142,255,.3);color:var(--accent);background:rgba(79,142,255,.06);}
+.img-action-btn.regen:hover {background:rgba(79,142,255,.12);border-color:var(--accent);}
+.img-action-btn.share {border-color:rgba(192,132,252,.3);color:var(--img-accent2);background:rgba(192,132,252,.06);}
+.img-action-btn.share:hover {background:rgba(192,132,252,.12);border-color:var(--img-accent2);}
+.img-action-btn.edit {border-color:rgba(255,107,157,.3);color:var(--img-accent);background:rgba(255,107,157,.06);}
+.img-action-btn.edit:hover {background:rgba(255,107,157,.12);border-color:var(--img-accent);}
+.img-edit-modal {display:none;position:fixed;inset:0;z-index:100;background:rgba(8,11,18,.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;}
+.img-edit-modal.visible {display:flex;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.img-edit-box {background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:20px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px;animation:slideUp .25s ease;}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0;}to{transform:none;opacity:1;}}
+.img-edit-title {font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);}
+.img-edit-title span{color:var(--img-accent);}
+.img-edit-textarea {background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;min-height:80px;outline:none;transition:border-color .2s;line-height:1.6;}
+.img-edit-textarea:focus {border-color:var(--img-accent);}
+.img-edit-actions {display:flex;gap:8px;justify-content:flex-end;}
+.img-edit-cancel {background:none;border:1px solid var(--border2);border-radius:9px;padding:8px 16px;font-size:12px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.img-edit-cancel:hover {color:var(--text2);border-color:var(--text3);}
+.img-edit-generate {background:linear-gradient(135deg,var(--img-accent),var(--img-accent2));border:none;border-radius:9px;padding:8px 18px;font-size:12px;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .2s;}
+.img-edit-generate:hover {opacity:.88;}
+.img-edit-generate:active {transform:scale(.97);}
+.img-error {display:none;flex-direction:column;align-items:center;gap:10px;padding:28px 20px;text-align:center;}
+.img-error.visible {display:flex;}
+.img-error-icon {font-size:28px;}
+.img-error-msg {font-size:12px;color:var(--danger);font-family:'DM Mono',monospace;}
+.img-error-retry {padding:7px 18px;background:rgba(255,79,106,.1);border:1px solid rgba(255,79,106,.3);border-radius:9px;color:var(--danger);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .2s;}
+.img-error-retry:hover {background:rgba(255,79,106,.18);}
 
-.img-card {
-  background: var(--card);
-  border: 1px solid var(--border2);
-  border-radius: 18px;
-  overflow: hidden;
-  width: 100%;
-  max-width: 420px;
-  position: relative;
-}
-
-/* ── Loading state ── */
-.img-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  padding: 36px 24px;
-  background: linear-gradient(135deg, #0d1120 0%, #121828 50%, #0d1120 100%);
-  position: relative;
-  overflow: hidden;
-  min-height: 260px;
-}
-
-/* shimmer sweep */
-.img-loading::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    105deg,
-    transparent 30%,
-    rgba(255,107,157,.06) 45%,
-    rgba(192,132,252,.10) 50%,
-    rgba(251,146,60,.06) 55%,
-    transparent 70%
-  );
-  background-size: 200% 100%;
-  animation: shimmerSweep 2.2s ease-in-out infinite;
-}
-@keyframes shimmerSweep {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* placeholder art lines */
-.img-loading::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 28px,
-      rgba(255,107,157,.04) 28px,
-      rgba(255,107,157,.04) 29px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 28px,
-      rgba(192,132,252,.04) 28px,
-      rgba(192,132,252,.04) 29px
-    );
-  pointer-events: none;
-}
-
-/* spinner ring */
-.img-spinner-wrap {
-  position: relative;
-  width: 72px;
-  height: 72px;
-  flex-shrink: 0;
-  z-index: 1;
-}
-.img-spinner-ring {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  border: 3px solid rgba(255,107,157,.15);
-  border-top-color: var(--img-accent);
-  border-right-color: var(--img-accent2);
-  animation: imgSpin 1.1s cubic-bezier(.5,0,.5,1) infinite;
-  position: absolute;
-  top: 0; left: 0;
-}
-.img-spinner-ring2 {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 2px solid rgba(192,132,252,.12);
-  border-bottom-color: var(--img-accent2);
-  border-left-color: var(--img-accent3);
-  animation: imgSpin 1.6s cubic-bezier(.5,0,.5,1) infinite reverse;
-  position: absolute;
-  top: 8px; left: 8px;
-}
-@keyframes imgSpin { to { transform: rotate(360deg); } }
-
-/* icon inside spinner */
-.img-spinner-icon {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 20px;
-  animation: imgIconPulse 2s ease-in-out infinite;
-  z-index: 2;
-}
-@keyframes imgIconPulse {
-  0%, 100% { transform: translate(-50%,-50%) scale(1);   opacity: 1; }
-  50%       { transform: translate(-50%,-50%) scale(1.15); opacity: .7; }
-}
-
-/* progress % */
-.img-progress-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  z-index: 1;
-  width: 100%;
-  max-width: 220px;
-}
-.img-progress-pct {
-  font-family: 'Syne', sans-serif;
-  font-size: 28px;
-  font-weight: 800;
-  background: linear-gradient(135deg, var(--img-accent), var(--img-accent2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  line-height: 1;
-  animation: imgPctPulse 1.4s ease-in-out infinite;
-}
-@keyframes imgPctPulse {
-  0%,100% { opacity: 1; }
-  50%     { opacity: .6; }
-}
-.img-progress-bar-track {
-  width: 100%;
-  height: 4px;
-  background: rgba(255,107,157,.12);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.img-progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--img-accent), var(--img-accent2), var(--img-accent3));
-  border-radius: 4px;
-  transition: width .4s ease;
-  background-size: 200% 100%;
-  animation: imgBarShift 2s linear infinite;
-}
-@keyframes imgBarShift {
-  0%   { background-position: 0% 0; }
-  100% { background-position: 200% 0; }
-}
-.img-progress-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--text3);
-  letter-spacing: .5px;
-}
-
-/* ── Header strip inside card ── */
-.img-card-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background: rgba(255,107,157,.06);
-  border-bottom: 1px solid rgba(255,107,157,.12);
-}
-.img-card-badge {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--img-accent);
-  letter-spacing: .8px;
-  text-transform: uppercase;
-}
-.img-card-badge-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--img-accent);
-  box-shadow: 0 0 8px var(--img-accent);
-  animation: imgDotPulse 1.4s infinite;
-}
-@keyframes imgDotPulse {
-  0%,100% { box-shadow: 0 0 4px var(--img-accent); }
-  50%     { box-shadow: 0 0 12px var(--img-accent); }
-}
-.img-card-prompt-preview {
-  margin-left: auto;
-  font-size: 10px;
-  color: var(--text3);
-  font-family: 'DM Mono', monospace;
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ── Result state ── */
-.img-result {
-  display: none;
-  flex-direction: column;
-}
-.img-result.visible {
-  display: flex;
-}
-.img-result-img {
-  width: 100%;
-  display: block;
-  border-radius: 0;
-  max-height: 420px;
-  object-fit: cover;
-}
-.img-result-footer {
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: var(--card);
-}
-.img-prompt-used {
-  font-size: 10px;
-  color: var(--text3);
-  font-family: 'DM Mono', monospace;
-  line-height: 1.5;
-  max-height: 36px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: max-height .3s ease;
-}
-.img-prompt-used.expanded {
-  max-height: 200px;
-}
-.img-prompt-used::before {
-  content: '✦ ';
-  color: var(--img-accent);
-}
-.img-actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.img-action-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  border-radius: 9px;
-  font-size: 11px;
-  font-family: 'DM Mono', monospace;
-  cursor: pointer;
-  transition: all .2s;
-  border: 1px solid var(--border2);
-  background: var(--bg3);
-  color: var(--text2);
-  text-decoration: none;
-  white-space: nowrap;
-}
-.img-action-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0,0,0,.3);
-}
-.img-action-btn.download {
-  border-color: rgba(0,229,160,.3);
-  color: var(--success);
-  background: rgba(0,229,160,.06);
-}
-.img-action-btn.download:hover {
-  background: rgba(0,229,160,.12);
-  border-color: var(--success);
-}
-.img-action-btn.regen {
-  border-color: rgba(79,142,255,.3);
-  color: var(--accent);
-  background: rgba(79,142,255,.06);
-}
-.img-action-btn.regen:hover {
-  background: rgba(79,142,255,.12);
-  border-color: var(--accent);
-}
-.img-action-btn.share {
-  border-color: rgba(192,132,252,.3);
-  color: var(--img-accent2);
-  background: rgba(192,132,252,.06);
-}
-.img-action-btn.share:hover {
-  background: rgba(192,132,252,.12);
-  border-color: var(--img-accent2);
-}
-.img-action-btn.edit {
-  border-color: rgba(255,107,157,.3);
-  color: var(--img-accent);
-  background: rgba(255,107,157,.06);
-}
-.img-action-btn.edit:hover {
-  background: rgba(255,107,157,.12);
-  border-color: var(--img-accent);
-}
-
-/* ── Edit prompt modal ── */
-.img-edit-modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  background: rgba(8,11,18,.85);
-  backdrop-filter: blur(8px);
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  animation: fadeIn .2s ease;
-}
-.img-edit-modal.visible {
-  display: flex;
-}
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.img-edit-box {
-  background: var(--card);
-  border: 1px solid var(--border2);
-  border-radius: 18px;
-  padding: 20px;
-  width: 100%;
-  max-width: 440px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  animation: slideUp .25s ease;
-}
-@keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
-.img-edit-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-}
-.img-edit-title span { color: var(--img-accent); }
-.img-edit-textarea {
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  padding: 10px 12px;
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  resize: vertical;
-  min-height: 80px;
-  outline: none;
-  transition: border-color .2s;
-  line-height: 1.6;
-}
-.img-edit-textarea:focus {
-  border-color: var(--img-accent);
-}
-.img-edit-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-.img-edit-cancel {
-  background: none;
-  border: 1px solid var(--border2);
-  border-radius: 9px;
-  padding: 8px 16px;
-  font-size: 12px;
-  color: var(--text3);
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  transition: all .2s;
-}
-.img-edit-cancel:hover { color: var(--text2); border-color: var(--text3); }
-.img-edit-generate {
-  background: linear-gradient(135deg, var(--img-accent), var(--img-accent2));
-  border: none;
-  border-radius: 9px;
-  padding: 8px 18px;
-  font-size: 12px;
-  color: white;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 600;
-  transition: all .2s;
-}
-.img-edit-generate:hover { opacity: .88; }
-.img-edit-generate:active { transform: scale(.97); }
-
-/* ── Error state ── */
-.img-error {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 28px 20px;
-  text-align: center;
-}
-.img-error.visible { display: flex; }
-.img-error-icon { font-size: 28px; }
-.img-error-msg { font-size: 12px; color: var(--danger); font-family: 'DM Mono', monospace; }
-.img-error-retry {
-  padding: 7px 18px;
-  background: rgba(255,79,106,.1);
-  border: 1px solid rgba(255,79,106,.3);
-  border-radius: 9px;
-  color: var(--danger);
-  font-size: 12px;
-  cursor: pointer;
-  font-family: 'DM Mono', monospace;
-  transition: all .2s;
-}
-.img-error-retry:hover { background: rgba(255,79,106,.18); }
-
-/* ══════════════════════════════════════════════════════════ */
-
+/* ── FLASHCARDS ── */
 .fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:10px;}
 .fc-card{height:140px;perspective:800px;cursor:pointer;}
 .fc-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);}
@@ -535,6 +210,8 @@ body::before{content:'';position:fixed;inset:0;
 .fc-back .fc-tag{color:var(--accent3);}
 .fc-text{font-size:12px;color:var(--text);line-height:1.5;font-weight:500;flex:1;display:flex;align-items:center;margin:6px 0;}
 .fc-hint{font-size:9px;color:var(--text3);text-align:right;}
+
+/* ── QUIZ ── */
 .quiz-wrap{margin-top:2px;}
 .quiz-prog{height:3px;background:var(--border);border-radius:2px;margin-bottom:12px;overflow:hidden;}
 .quiz-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;}
@@ -562,11 +239,15 @@ body::before{content:'';position:fixed;inset:0;
 .qr-n.g{color:var(--success);}
 .qr-n.r{color:var(--danger);}
 .qr-sl{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* ── TYPING ── */
 .typing-indicator{display:flex;gap:5px;padding:3px 0;}
 .typing-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:bounce 1.2s infinite;}
 .typing-dot:nth-child(2){animation-delay:.2s;}
 .typing-dot:nth-child(3){animation-delay:.4s;}
 @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-6px);opacity:1;}}
+
+/* ── GRAPH ── */
 .graph-wrap{margin-top:4px;background:var(--bg3);border:1px solid var(--border2);border-radius:14px;overflow:visible;padding:16px 12px 14px;}
 .graph-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
 .graph-header-left{display:flex;flex-direction:column;gap:3px;}
@@ -598,6 +279,8 @@ body::before{content:'';position:fixed;inset:0;
 .graph-tooltip-swatch.circle{width:10px;height:10px;border-radius:50%;}
 .graph-tooltip-label{color:var(--text2);}
 .graph-tooltip-val{color:var(--text);font-weight:500;margin-left:auto;padding-left:14px;}
+
+/* ── INPUT AREA ── */
 .upload-btn{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;flex-shrink:0;}
 .upload-btn:hover,.upload-btn.active{border-color:var(--accent2);background:rgba(124,92,252,.15);}
 .upload-btn:active{transform:scale(.93);}
@@ -626,28 +309,8 @@ body::before{content:'';position:fixed;inset:0;
 .send-btn{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s;flex-shrink:0;}
 .send-btn:active{transform:scale(.93);}
 .input-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:6px;font-family:'DM Mono',monospace;letter-spacing:.2px;}
-@media(max-width:640px){
-  .header{padding:0 14px;padding-top:var(--safe-t);}
-  .header-sub{display:none;}
-  .memory-badge{padding:4px 8px;font-size:10px;}
-  .clear-header-btn{padding:4px 9px;font-size:10px;}
-  .chat-messages{padding:14px 12px 10px;}
-  .msg-content{max-width:90%;}
-  .fc-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
-  .fc-card{height:130px;}
-  .input-area{padding:8px 12px;padding-bottom:calc(8px + var(--safe-b));}
-  .input-hint{display:none;}
-  .suggestions-wrap{padding-left:0;}
-  .img-card{max-width:100%;}
-}
-@media(max-width:380px){
-  .msg-content{max-width:95%;}
-  .fc-grid{grid-template-columns:1fr 1fr;}
-  .fc-card{height:120px;}
-  .fc-text{font-size:11px;}
-}
 
-/* ── CODE CONTEXT MCQ FORM ── */
+/* ── CODE CONTEXT FORM ── */
 .ccf-wrap{display:flex;flex-direction:column;gap:14px;}
 .ccf-header{display:flex;align-items:flex-start;gap:10px;}
 .ccf-icon{font-size:20px;flex-shrink:0;margin-top:2px;}
@@ -669,6 +332,28 @@ body::before{content:'';position:fixed;inset:0;
 .ccf-submit{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;padding:7px 16px;font-size:12px;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .2s;}
 .ccf-submit:hover{opacity:.88;}
 .ccf-submit:active{transform:scale(.97);}
+
+@media(max-width:640px){
+  .header{padding:0 14px;padding-top:var(--safe-t);}
+  .header-sub{display:none;}
+  .memory-badge{padding:4px 8px;font-size:10px;}
+  .clear-header-btn{padding:4px 9px;font-size:10px;}
+  .chat-messages{padding:14px 12px 10px;}
+  .msg-content{max-width:90%;}
+  .fc-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
+  .fc-card{height:130px;}
+  .input-area{padding:8px 12px;padding-bottom:calc(8px + var(--safe-b));}
+  .input-hint{display:none;}
+  .suggestions-wrap{padding-left:0;}
+  .img-card{max-width:100%;}
+  .pdf-info-name{max-width:160px;}
+}
+@media(max-width:380px){
+  .msg-content{max-width:95%;}
+  .fc-grid{grid-template-columns:1fr 1fr;}
+  .fc-card{height:120px;}
+  .fc-text{font-size:11px;}
+}
 </style>
 </head>
 <body>
@@ -725,7 +410,7 @@ body::before{content:'';position:fixed;inset:0;
 const API_URL = 'https://sedy-ai-3.onrender.com';
 const STORAGE_KEY = 'sedy_chat_history';
 let activeQuiz = null;
-let currentPdf = null;
+let currentPdf = null;   // { name, base64 (pure, no data-URL prefix), sizeKb, pages }
 let lastImagePrompt = '';
 let currentEditCardId = null;
 
@@ -752,9 +437,7 @@ function pushHistory(role,content){
   persistHistory(); updateMemoryBadge();
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
 // ── VOICE INPUT ───────────────────────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════════════
 let recognition = null;
 let isRecording = false;
 
@@ -800,9 +483,7 @@ function toggleVoice(){
   try{ recognition.start(); } catch(e){ console.warn('Voice start error:',e); }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
 // ── TEXT-TO-SPEECH ────────────────────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════════════
 let currentUtterance = null;
 let currentSpeakBtn  = null;
 
@@ -838,14 +519,10 @@ function speakMsg(btnId){
   speakText(rawText, btn);
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ── IMAGE GENERATION UI ───────────────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════════════
-
+// ── IMAGE GENERATION ──────────────────────────────────────────────────────────
 const IMAGE_REQUEST = /\b(generate|create|make|draw|show|paint|design|produce)\b.{0,50}\b(image|picture|photo|illustration|artwork|poster|logo|painting|sketch|render|visual)\b|\b(image|picture|photo|illustration)\s+(of|showing|depicting)\b/i;
 function isImageRequest(text){ return IMAGE_REQUEST.test(text.trim()); }
 
-// Simulate smooth progress 0→95% while waiting, then jump to 100%
 function startProgressSim(pctEl, fillEl, labelEl) {
   let pct = 0;
   const stages = [
@@ -855,35 +532,19 @@ function startProgressSim(pctEl, fillEl, labelEl) {
     { target: 80, speed: 300, label: 'Rendering details...' },
     { target: 95, speed: 500, label: 'Almost there...' },
   ];
-  let stageIdx = 0;
-  let interval = null;
-
+  let stageIdx = 0, interval = null;
   function tick() {
-    const stage = stages[stageIdx];
-    if (!stage) return;
+    const stage = stages[stageIdx]; if (!stage) return;
     if (pct < stage.target) {
       pct = Math.min(pct + 1, stage.target);
-      pctEl.textContent = pct + '%';
-      fillEl.style.width = pct + '%';
+      pctEl.textContent = pct + '%'; fillEl.style.width = pct + '%';
       if (labelEl) labelEl.textContent = stage.label;
       interval = setTimeout(tick, stage.speed);
-    } else {
-      stageIdx++;
-      if (stages[stageIdx]) {
-        interval = setTimeout(tick, stages[stageIdx].speed);
-      }
-    }
+    } else { stageIdx++; if (stages[stageIdx]) interval = setTimeout(tick, stages[stageIdx].speed); }
   }
   tick();
-
   return {
-    finish: () => {
-      clearTimeout(interval);
-      pct = 100;
-      pctEl.textContent = '100%';
-      fillEl.style.width = '100%';
-      if (labelEl) labelEl.textContent = 'Done!';
-    },
+    finish: () => { clearTimeout(interval); pct=100; pctEl.textContent='100%'; fillEl.style.width='100%'; if(labelEl) labelEl.textContent='Done!'; },
     stop: () => clearTimeout(interval)
   };
 }
@@ -891,35 +552,20 @@ function startProgressSim(pctEl, fillEl, labelEl) {
 async function handleImageGen(promptText) {
   const cardId = 'imgcard_' + Date.now();
   lastImagePrompt = promptText;
-
-  // Build the card HTML
   const cardHtml = `
     <div class="img-card" id="${cardId}">
       <div class="img-card-header">
-        <div class="img-card-badge">
-          <div class="img-card-badge-dot"></div>
-          🎨 Image Generation
-        </div>
+        <div class="img-card-badge"><div class="img-card-badge-dot"></div>🎨 Image Generation</div>
         <div class="img-card-prompt-preview" id="${cardId}_preview">${_esc(promptText)}</div>
       </div>
-
-      <!-- Loading state -->
       <div class="img-loading" id="${cardId}_loading">
-        <div class="img-spinner-wrap">
-          <div class="img-spinner-ring"></div>
-          <div class="img-spinner-ring2"></div>
-          <div class="img-spinner-icon">🎨</div>
-        </div>
+        <div class="img-spinner-wrap"><div class="img-spinner-ring"></div><div class="img-spinner-ring2"></div><div class="img-spinner-icon">🎨</div></div>
         <div class="img-progress-wrap">
           <div class="img-progress-pct" id="${cardId}_pct">0%</div>
-          <div class="img-progress-bar-track">
-            <div class="img-progress-bar-fill" id="${cardId}_fill" style="width:0%"></div>
-          </div>
+          <div class="img-progress-bar-track"><div class="img-progress-bar-fill" id="${cardId}_fill" style="width:0%"></div></div>
           <div class="img-progress-label" id="${cardId}_lbl">Initialising...</div>
         </div>
       </div>
-
-      <!-- Result state -->
       <div class="img-result" id="${cardId}_result">
         <img class="img-result-img" id="${cardId}_img" src="" alt="Generated image" />
         <div class="img-result-footer">
@@ -932,206 +578,90 @@ async function handleImageGen(promptText) {
           </div>
         </div>
       </div>
-
-      <!-- Error state -->
       <div class="img-error" id="${cardId}_error">
         <div class="img-error-icon">⚠️</div>
         <div class="img-error-msg" id="${cardId}_errmsg">Something went wrong.</div>
         <button class="img-error-retry" onclick="regenImage('${cardId}')">Try Again</button>
       </div>
     </div>`;
-
-  const msgDiv = addMsg('ai', cardHtml, true);
+  addMsg('ai', cardHtml, true);
   scrollBottom();
-
-  // Start progress simulation
-  const pctEl  = document.getElementById(cardId + '_pct');
-  const fillEl = document.getElementById(cardId + '_fill');
-  const lblEl  = document.getElementById(cardId + '_lbl');
+  const pctEl=document.getElementById(cardId+'_pct'), fillEl=document.getElementById(cardId+'_fill'), lblEl=document.getElementById(cardId+'_lbl');
   const sim = startProgressSim(pctEl, fillEl, lblEl);
-
   try {
-    const res = await fetch(API_URL + '/generate-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: promptText })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'HTTP ' + res.status);
-    }
+    const res = await fetch(API_URL+'/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:promptText})});
+    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.detail||'HTTP '+res.status);}
     const data = await res.json();
     sim.finish();
-
-    // Short delay so user sees 100%
-    await new Promise(r => setTimeout(r, 400));
-
-    // Show result
-    showImageResult(cardId, data.image_url, data.prompt_used || promptText);
-    pushHistory('user', promptText);
-    pushHistory('assistant', 'Generated image for: ' + promptText);
-
-  } catch(err) {
-    sim.stop();
-    showImageError(cardId, err.message);
-  }
+    await new Promise(r=>setTimeout(r,400));
+    showImageResult(cardId, data.image_url, data.prompt_used||promptText);
+    pushHistory('user',promptText); pushHistory('assistant','Generated image for: '+promptText);
+  } catch(err){sim.stop();showImageError(cardId,err.message);}
 }
 
-function showImageResult(cardId, url, promptUsed) {
-  const loadingEl = document.getElementById(cardId + '_loading');
-  const resultEl  = document.getElementById(cardId + '_result');
-  const imgEl     = document.getElementById(cardId + '_img');
-  const dlEl      = document.getElementById(cardId + '_dl');
-  const puEl      = document.getElementById(cardId + '_promptused');
-
-  if (!loadingEl || !resultEl) return;
-
-  imgEl.src = url;
-  dlEl.href = url;
-  if (puEl) puEl.textContent = promptUsed;
-
-  loadingEl.style.display = 'none';
-  resultEl.classList.add('visible');
-  scrollBottom();
+function showImageResult(cardId,url,promptUsed){
+  const loadingEl=document.getElementById(cardId+'_loading'), resultEl=document.getElementById(cardId+'_result');
+  const imgEl=document.getElementById(cardId+'_img'), dlEl=document.getElementById(cardId+'_dl'), puEl=document.getElementById(cardId+'_promptused');
+  if(!loadingEl||!resultEl)return;
+  imgEl.src=url; dlEl.href=url; if(puEl) puEl.textContent=promptUsed;
+  loadingEl.style.display='none'; resultEl.classList.add('visible'); scrollBottom();
 }
-
-function showImageError(cardId, msg) {
-  const loadingEl = document.getElementById(cardId + '_loading');
-  const errorEl   = document.getElementById(cardId + '_error');
-  const errMsgEl  = document.getElementById(cardId + '_errmsg');
-  if (!loadingEl || !errorEl) return;
-  if (errMsgEl) errMsgEl.textContent = msg || 'Image generation failed.';
-  loadingEl.style.display = 'none';
-  errorEl.classList.add('visible');
-  scrollBottom();
+function showImageError(cardId,msg){
+  const loadingEl=document.getElementById(cardId+'_loading'), errorEl=document.getElementById(cardId+'_error'), errMsgEl=document.getElementById(cardId+'_errmsg');
+  if(!loadingEl||!errorEl)return;
+  if(errMsgEl) errMsgEl.textContent=msg||'Image generation failed.';
+  loadingEl.style.display='none'; errorEl.classList.add('visible'); scrollBottom();
 }
-
-// Regenerate — reset card and re-run with same prompt
-async function regenImage(cardId) {
-  const loadingEl = document.getElementById(cardId + '_loading');
-  const resultEl  = document.getElementById(cardId + '_result');
-  const errorEl   = document.getElementById(cardId + '_error');
-  const pctEl     = document.getElementById(cardId + '_pct');
-  const fillEl    = document.getElementById(cardId + '_fill');
-  const lblEl     = document.getElementById(cardId + '_lbl');
-  if (!loadingEl) return;
-
-  // Reset states
-  resultEl && resultEl.classList.remove('visible');
-  errorEl  && errorEl.classList.remove('visible');
-  loadingEl.style.display = 'flex';
-  if (pctEl)  pctEl.textContent  = '0%';
-  if (fillEl) fillEl.style.width  = '0%';
-  if (lblEl)  lblEl.textContent   = 'Initialising...';
-
-  const sim = startProgressSim(pctEl, fillEl, lblEl);
-
-  try {
-    const res = await fetch(API_URL + '/generate-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: lastImagePrompt })
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    sim.finish();
-    await new Promise(r => setTimeout(r, 400));
-    showImageResult(cardId, data.image_url, data.prompt_used || lastImagePrompt);
-  } catch(err) {
-    sim.stop();
-    showImageError(cardId, err.message);
-  }
+async function regenImage(cardId){
+  const loadingEl=document.getElementById(cardId+'_loading'), resultEl=document.getElementById(cardId+'_result'), errorEl=document.getElementById(cardId+'_error');
+  const pctEl=document.getElementById(cardId+'_pct'), fillEl=document.getElementById(cardId+'_fill'), lblEl=document.getElementById(cardId+'_lbl');
+  if(!loadingEl)return;
+  resultEl&&resultEl.classList.remove('visible'); errorEl&&errorEl.classList.remove('visible');
+  loadingEl.style.display='flex'; if(pctEl)pctEl.textContent='0%'; if(fillEl)fillEl.style.width='0%'; if(lblEl)lblEl.textContent='Initialising...';
+  const sim=startProgressSim(pctEl,fillEl,lblEl);
+  try{
+    const res=await fetch(API_URL+'/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:lastImagePrompt})});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json(); sim.finish();
+    await new Promise(r=>setTimeout(r,400)); showImageResult(cardId,data.image_url,data.prompt_used||lastImagePrompt);
+  }catch(err){sim.stop();showImageError(cardId,err.message);}
 }
-
-async function shareImage(cardId) {
-  const imgEl = document.getElementById(cardId + '_img');
-  if (!imgEl || !imgEl.src) return;
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: 'Sedy AI Image', url: imgEl.src });
-    } catch(e) { /* user cancelled */ }
-  } else {
-    await navigator.clipboard.writeText(imgEl.src);
-    addMsg('ai', '📋 Image URL copied to clipboard!');
-  }
+async function shareImage(cardId){
+  const imgEl=document.getElementById(cardId+'_img'); if(!imgEl||!imgEl.src)return;
+  if(navigator.share){try{await navigator.share({title:'Sedy AI Image',url:imgEl.src});}catch(e){}}
+  else{await navigator.clipboard.writeText(imgEl.src);addMsg('ai','📋 Image URL copied to clipboard!');}
 }
-
-function openEditModal(cardId) {
-  currentEditCardId = cardId;
-  const modal = document.getElementById('img-edit-modal');
-  const ta    = document.getElementById('img-edit-textarea');
-  ta.value = lastImagePrompt;
-  modal.classList.add('visible');
-  setTimeout(() => ta.focus(), 100);
+function openEditModal(cardId){ currentEditCardId=cardId; const ta=document.getElementById('img-edit-textarea'); ta.value=lastImagePrompt; document.getElementById('img-edit-modal').classList.add('visible'); setTimeout(()=>ta.focus(),100); }
+function closeEditModal(){ document.getElementById('img-edit-modal').classList.remove('visible'); currentEditCardId=null; }
+async function generateFromEdit(){
+  const ta=document.getElementById('img-edit-textarea'), newPrompt=ta.value.trim(); if(!newPrompt)return; closeEditModal(); lastImagePrompt=newPrompt;
+  if(currentEditCardId){const previewEl=document.getElementById(currentEditCardId+'_preview');if(previewEl)previewEl.textContent=newPrompt;await regenImage(currentEditCardId);}
+  else{addMsg('user',newPrompt);showTyping();await handleImageGen(newPrompt);}
 }
+document.getElementById('img-edit-modal').addEventListener('click',function(e){if(e.target===this)closeEditModal();});
 
-function closeEditModal() {
-  document.getElementById('img-edit-modal').classList.remove('visible');
-  currentEditCardId = null;
-}
-
-async function generateFromEdit() {
-  const ta = document.getElementById('img-edit-textarea');
-  const newPrompt = ta.value.trim();
-  if (!newPrompt) return;
-  closeEditModal();
-  lastImagePrompt = newPrompt;
-
-  if (currentEditCardId) {
-    // Reuse existing card with new prompt
-    const previewEl = document.getElementById(currentEditCardId + '_preview');
-    if (previewEl) previewEl.textContent = newPrompt;
-    await regenImage(currentEditCardId);
-  } else {
-    addMsg('user', newPrompt);
-    showTyping();
-    await handleImageGen(newPrompt);
-  }
-}
-
-// Close modal on backdrop click
-document.getElementById('img-edit-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeEditModal();
-});
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ── CODE CONTEXT MCQ FORM ─────────────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════════════
-
+// ── CODE CONTEXT FORM ─────────────────────────────────────────────────────────
 const CODE_REQUEST = /\b(write|create|make|build|code|program|develop|implement|generate)\b.{0,80}\b(code|script|function|program|app|tool|bot|website|api|class|component|snippet|algorithm|game|calculator|system|project|application)\b|\b(code|script|function|app|program|game|calculator)\b.{0,40}\b(for|that|to|which|in|using|with)\b|\b(using|in)\s+(html|css|javascript|python|java|c\+\+|react|node)/i;
 function isCodeRequest(text){ return CODE_REQUEST.test(text.trim()); }
 
 async function generateCodeQuestions(userRequest){
-  try {
-    const res = await fetch(API_URL + '/code-questions', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: userRequest })
-    });
-    if(res.ok){ const data=await res.json(); if(Array.isArray(data.questions)&&data.questions.length>0) return data.questions; }
-  } catch(e) { console.warn('Backend code-questions failed:', e); }
-
-  const t = userRequest.toLowerCase();
-  const hasLang    = /(python|javascript|js|java|c\+\+|cpp|c#|typescript|ruby|go|rust|php|swift|kotlin|html|css|react|vue|node|flutter)/.test(t);
-  const hasUI      = /(gui|tkinter|pygame|cli|terminal|web|browser|mobile|desktop|console|api)/.test(t);
-  const hasStorage = /(database|db|sql|sqlite|file|json|csv|storage|save|persist)/.test(t);
-  const hasFeature = /(login|auth|search|filter|sort|export|import|upload|download|notification|dark.?mode)/.test(t);
-  const isGame     = /(game|tic.?tac|snake|chess|sudoku|quiz|puzzle)/.test(t);
-  const isWeb      = /(html|css|website|webpage|landing|frontend|ui)/.test(t);
-  const questions  = [];
+  try{const res=await fetch(API_URL+'/code-questions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:userRequest})});if(res.ok){const data=await res.json();if(Array.isArray(data.questions)&&data.questions.length>0)return data.questions;}}catch(e){}
+  const t=userRequest.toLowerCase();
+  const hasLang=/(python|javascript|js|java|c\+\+|cpp|c#|typescript|ruby|go|rust|php|swift|kotlin|html|css|react|vue|node|flutter)/.test(t);
+  const hasUI=/(gui|tkinter|pygame|cli|terminal|web|browser|mobile|desktop|console|api)/.test(t);
+  const isGame=/(game|tic.?tac|snake|chess|sudoku|quiz|puzzle)/.test(t);
+  const isWeb=/(html|css|website|webpage|landing|frontend|ui)/.test(t);
+  const questions=[];
   if(!hasLang&&!isWeb) questions.push({question:'Which programming language?',options:['Python','JavaScript','Java','Other']});
   if(!hasUI&&!isWeb&&!isGame) questions.push({question:'What kind of interface?',options:['Command line (CLI)','GUI window','Web browser','API only']});
-  if(isGame){ questions.push({question:'Game mode?',options:['2 players','vs Computer (AI)','Both modes']}); questions.push({question:'Visual style?',options:['Simple text/emoji','Styled with CSS','Animated']}); }
+  if(isGame){questions.push({question:'Game mode?',options:['2 players','vs Computer (AI)','Both modes']});questions.push({question:'Visual style?',options:['Simple text/emoji','Styled with CSS','Animated']});}
   if(isWeb) questions.push({question:'Design style?',options:['Minimal & clean','Dark theme','Colorful & bold','Match a framework']});
-  if(!hasStorage&&!isGame&&!isWeb) questions.push({question:'Should data be saved?',options:['No — session only','Yes — save to file','Yes — use a database']});
-  if(!hasFeature&&!isGame) questions.push({question:'Any extra features?',options:['Keep it simple','Add error handling','Add input validation','Add comments']});
   return questions.slice(0,3);
 }
 
 async function showCodeContextForm(originalRequest){
-  const wrap=document.getElementById('chat-messages');
-  const fid='ccf'+Date.now();
-  const div=document.createElement('div');
-  div.className='msg ai'; div.id=fid+'-msg';
+  const wrap=document.getElementById('chat-messages');const fid='ccf'+Date.now();
+  const div=document.createElement('div');div.className='msg ai';div.id=fid+'-msg';
   div.innerHTML=`<div class="msg-avatar">🤖</div><div class="msg-content"><div class="msg-bubble"><div class="ccf-wrap">
     <div class="ccf-header"><span class="ccf-icon">💬</span><div><div class="ccf-title">Let me ask a couple of things first</div><div class="ccf-sub">This helps me write exactly what you need</div></div></div>
     <div class="ccf-loading" id="${fid}-loading"><div class="ccf-spinner"></div>Thinking of the right questions...</div>
@@ -1141,81 +671,95 @@ async function showCodeContextForm(originalRequest){
       <button class="ccf-submit" onclick="submitCodeForm('${fid}')">✓ Generate Code</button>
     </div>
   </div></div></div>`;
-  div._origReq=originalRequest; div._answers={};
-  wrap.appendChild(div); scrollBottom();
+  div._origReq=originalRequest;div._answers={};
+  wrap.appendChild(div);scrollBottom();
   const questions=await generateCodeQuestions(originalRequest);
-  const loadingEl=document.getElementById(fid+'-loading');
-  const qsEl=document.getElementById(fid+'-qs');
-  const actionsEl=document.getElementById(fid+'-actions');
-  if(!loadingEl) return;
-  if(!questions.length){ div.remove(); showTyping(); _sendChat(originalRequest); return; }
+  const loadingEl=document.getElementById(fid+'-loading'),qsEl=document.getElementById(fid+'-qs'),actionsEl=document.getElementById(fid+'-actions');
+  if(!loadingEl)return;
+  if(!questions.length){div.remove();showTyping();_sendChat(originalRequest);return;}
   loadingEl.style.display='none';
-  questions.forEach((q,qi)=>{
-    const qDiv=document.createElement('div'); qDiv.className='ccf-q';
-    const optsHtml=q.options.map((opt,oi)=>`<button class="ccf-opt" id="${fid}-q${qi}-o${oi}" onclick="selectOpt('${fid}',${qi},${oi},this)">${_esc(opt)}</button>`).join('');
-    qDiv.innerHTML=`<div class="ccf-qlabel">${_esc(q.question)}</div><div class="ccf-opts">${optsHtml}</div>`;
-    qsEl.appendChild(qDiv);
-  });
-  div._questions=questions;
-  qsEl.style.display='flex'; qsEl.style.flexDirection='column'; qsEl.style.gap='14px';
-  actionsEl.style.display='flex'; scrollBottom();
+  questions.forEach((q,qi)=>{const qDiv=document.createElement('div');qDiv.className='ccf-q';qDiv.innerHTML=`<div class="ccf-qlabel">${_esc(q.question)}</div><div class="ccf-opts">${q.options.map((opt,oi)=>`<button class="ccf-opt" id="${fid}-q${qi}-o${oi}" onclick="selectOpt('${fid}',${qi},${oi},this)">${_esc(opt)}</button>`).join('')}</div>`;qsEl.appendChild(qDiv);});
+  div._questions=questions;qsEl.style.display='flex';qsEl.style.flexDirection='column';qsEl.style.gap='14px';actionsEl.style.display='flex';scrollBottom();
 }
-
-function selectOpt(fid,qi,oi,btn){
-  const msgEl=document.getElementById(fid+'-msg'); if(!msgEl) return;
-  document.querySelectorAll(`[id^="${fid}-q${qi}-o"]`).forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
-  if(!msgEl._answers) msgEl._answers={};
-  msgEl._answers[qi]=btn.textContent;
-}
-
-function submitCodeForm(fid){
-  const msgEl=document.getElementById(fid+'-msg'); if(!msgEl) return;
-  const orig=msgEl._origReq||''; const questions=msgEl._questions||[]; const answers=msgEl._answers||{};
-  const details=questions.map((q,qi)=>answers[qi]?`- ${q.question} → ${answers[qi]}`:null).filter(Boolean);
-  msgEl.remove();
-  const enriched=details.length?orig+'\n\nExtra requirements:\n'+details.join('\n'):orig;
-  showTyping(); _sendChat(enriched);
-}
-
-function skipCodeForm(fid){
-  const msgEl=document.getElementById(fid+'-msg'); if(!msgEl) return;
-  const orig=msgEl._origReq||''; msgEl.remove(); showTyping(); _sendChat(orig);
-}
+function selectOpt(fid,qi,oi,btn){const msgEl=document.getElementById(fid+'-msg');if(!msgEl)return;document.querySelectorAll(`[id^="${fid}-q${qi}-o"]`).forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');if(!msgEl._answers)msgEl._answers={};msgEl._answers[qi]=btn.textContent;}
+function submitCodeForm(fid){const msgEl=document.getElementById(fid+'-msg');if(!msgEl)return;const orig=msgEl._origReq||'',questions=msgEl._questions||[],answers=msgEl._answers||{};const details=questions.map((q,qi)=>answers[qi]?`- ${q.question} → ${answers[qi]}`:null).filter(Boolean);msgEl.remove();const enriched=details.length?orig+'\n\nExtra requirements:\n'+details.join('\n'):orig;showTyping();_sendChat(enriched);}
+function skipCodeForm(fid){const msgEl=document.getElementById(fid+'-msg');if(!msgEl)return;const orig=msgEl._origReq||'';msgEl.remove();showTyping();_sendChat(orig);}
 
 async function _sendChat(text){
   try{
     const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-20)})});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data=await res.json(); hideTyping();
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();hideTyping();
     const reply=data.reply||'Sorry, no response.';
-    pushHistory('user',text); pushHistory('assistant',reply);
-    const msgDiv=addMsg('ai',reply); msgDiv._rawText=reply;
-  }catch(err){ hideTyping(); addMsg('ai','Could not reach Sedy. Please check your connection.'); console.error(err); }
+    pushHistory('user',text);pushHistory('assistant',reply);
+    const msgDiv=addMsg('ai',reply);msgDiv._rawText=reply;
+  }catch(err){hideTyping();addMsg('ai','Could not reach Sedy. Please check your connection.');console.error(err);}
 }
 
-// ── PDF ───────────────────────────────────────────────────────────────────────
+// ── PDF HANDLING ──────────────────────────────────────────────────────────────
 function handlePdfSelect(event){
   const file=event.target.files[0]; if(!file) return;
-  if(file.type!=='application/pdf'){addMsg('ai','Please upload a valid .pdf file.');return;}
-  if(file.size>25*1024*1024){addMsg('ai','PDF too large (max 25 MB). Try a smaller file.');return;}
+  if(file.type!=='application/pdf'){ addMsg('ai','⚠️ Please upload a valid **.pdf** file.'); return; }
+  if(file.size>25*1024*1024){ addMsg('ai','⚠️ PDF too large (max 25 MB). Try a smaller file.'); return; }
+
   const reader=new FileReader();
   reader.onload=()=>{
-    const base64=reader.result.split(',')[1];
-    const sizeKb=Math.round(file.size/1024);
-    currentPdf={name:file.name,base64,sizeKb};
-    document.getElementById('pdf-chip-name').textContent=file.name;
-    document.getElementById('pdf-chip-size').textContent=sizeKb+' KB';
+    // reader.result is "data:application/pdf;base64,XXXXX"
+    // Strip the prefix so we send ONLY the raw base64 to the backend
+    const dataUrl  = reader.result;
+    const base64   = dataUrl.includes(',') ? dataUrl.split(',',2)[1] : dataUrl;
+    const sizeKb   = Math.round(file.size/1024);
+
+    // Quick check: does this look like a PDF? (%PDF in first bytes)
+    try {
+      const firstBytes = atob(base64.slice(0,8));
+      if (!firstBytes.startsWith('%PDF')) {
+        addMsg('ai','⚠️ The file you uploaded does not appear to be a valid PDF.');
+        return;
+      }
+    } catch(e) { /* atob failed – let the server handle it */ }
+
+    currentPdf = { name: file.name, base64, sizeKb };
+
+    document.getElementById('pdf-chip-name').textContent = file.name;
+    document.getElementById('pdf-chip-size').textContent  = sizeKb + ' KB';
     document.getElementById('pdf-chip').classList.add('visible');
     document.getElementById('upload-btn').classList.add('active');
     document.getElementById('input-wrap').classList.add('pdf-mode');
-    document.getElementById('chat-input').placeholder='Ask anything about "'+file.name+'"...';
+    document.getElementById('chat-input').placeholder = 'Ask anything about "'+file.name+'"...';
     document.getElementById('chat-input').focus();
-    addMsg('ai','<div class="pdf-badge">PDF '+_esc(file.name)+' — '+sizeKb+' KB</div>PDF uploaded! I can answer questions, summarize, generate flashcards or a quiz from it. What would you like?',true);
+
+    // Show a rich PDF info panel in the chat
+    const panelHtml = `
+      <div class="pdf-info-panel">
+        <div class="pdf-info-header">
+          <div class="pdf-info-icon">📄</div>
+          <div class="pdf-info-meta">
+            <div class="pdf-info-name">${_esc(file.name)}</div>
+            <div class="pdf-info-stats">${sizeKb} KB &bull; uploaded just now</div>
+          </div>
+        </div>
+        <div class="pdf-info-actions">
+          <button class="pdf-quick-btn" onclick="pdfQuick('Summarise this PDF in bullet points')">📋 Summarise</button>
+          <button class="pdf-quick-btn" onclick="pdfQuick('Generate 6 flashcards from this PDF')">🃏 Flashcards</button>
+          <button class="pdf-quick-btn" onclick="pdfQuick('Quiz me on this PDF')">📝 Quiz</button>
+          <button class="pdf-quick-btn" onclick="pdfQuick('What are the key concepts in this PDF?')">💡 Key Concepts</button>
+        </div>
+      </div>
+      PDF loaded! Ask me anything — I can summarise, explain, quiz you, or make flashcards from it.`;
+    addMsg('ai', panelHtml, true);
   };
-  reader.onerror=()=>addMsg('ai','Could not read the PDF. Please try again.');
-  reader.readAsDataURL(file); event.target.value='';
+  reader.onerror = () => addMsg('ai','⚠️ Could not read the PDF file. Please try again.');
+  reader.readAsDataURL(file);
+  event.target.value = '';
 }
+
+function pdfQuick(question) {
+  if (!currentPdf) { addMsg('ai','Please upload a PDF first!'); return; }
+  document.getElementById('chat-input').value = question;
+  sendMessage();
+}
+
 function removePdf(){
   currentPdf=null;
   document.getElementById('pdf-chip').classList.remove('visible');
@@ -1224,15 +768,29 @@ function removePdf(){
   document.getElementById('input-wrap').classList.remove('pdf-mode');
   document.getElementById('chat-input').placeholder='Ask anything, graphs, flashcards, quiz, images... or upload a PDF';
 }
-async function handlePdfChat(text,pdf){
-  const res=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,pdf_base64:pdf.base64,pdf_name:pdf.name,history:chatHistory.slice(-20)})});
-  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.detail||'HTTP '+res.status);}
-  const data=await res.json(); hideTyping();
-  const reply=data.reply||'Could not process the PDF.';
-  const msgDiv=addMsg('ai','<div class="pdf-badge">PDF '+_esc(pdf.name)+'</div>'+renderMarkdown(reply),true);
-  msgDiv._rawText=reply;
+
+async function handlePdfChat(text, pdf){
+  const res = await fetch(API_URL+'/pdf-chat', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      message:   text,
+      pdf_base64: pdf.base64,   // pure base64, no data-URL prefix
+      pdf_name:  pdf.name,
+      history:   chatHistory.slice(-20)
+    })
+  });
+  if(!res.ok){
+    const e = await res.json().catch(()=>({}));
+    throw new Error(e.detail || 'HTTP '+res.status);
+  }
+  const data = await res.json();
+  hideTyping();
+  const reply = data.reply || 'Could not process the PDF.';
+  const msgDiv = addMsg('ai','<div class="pdf-badge">📄 '+_esc(pdf.name)+'</div>'+renderMarkdown(reply), true);
+  msgDiv._rawText = reply;
   pushHistory('user','[PDF: '+pdf.name+'] '+text);
-  pushHistory('assistant',reply);
+  pushHistory('assistant', reply);
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
@@ -1289,67 +847,27 @@ function addMsg(role, content, isHtml=false){
   scrollBottom();
   return div;
 }
-function showTyping(){
-  if(document.getElementById('typing'))return;
-  const wrap=document.getElementById('chat-messages');
-  const div=document.createElement('div');div.className='msg ai';div.id='typing';
-  div.innerHTML='<div class="msg-avatar">🤖</div><div class="msg-content"><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>';
-  wrap.appendChild(div);scrollBottom();
-}
+function showTyping(){if(document.getElementById('typing'))return;const wrap=document.getElementById('chat-messages');const div=document.createElement('div');div.className='msg ai';div.id='typing';div.innerHTML='<div class="msg-avatar">🤖</div><div class="msg-content"><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>';wrap.appendChild(div);scrollBottom();}
 function hideTyping(){const t=document.getElementById('typing');if(t)t.remove();}
 
 // ── GRAPH ENGINE ──────────────────────────────────────────────────────────────
 const PALETTE=['#4f8eff','#00e5c0','#ff4f6a','#ffb547','#7c5cfc','#00e5a0'];
 function renderGraph(g){
-  if(!g.series||!g.series.length) return;
+  if(!g.series||!g.series.length)return;
   g.series.forEach((s,i)=>s._c=PALETTE[i%PALETTE.length]);
   const ct=(g.chart_type||'line').toLowerCase();
   const uid='g'+Date.now()+Math.random().toString(36).slice(2,5);
-  const legend=ct==='pie'
-    ?g.series[0].data.map((pt,i)=>`<div class="graph-legend-item"><div class="graph-legend-dot" style="background:${PALETTE[i%PALETTE.length]}"></div>${_esc(String(pt.x))}</div>`).join('')
-    :g.series.map(s=>`<div class="graph-legend-item"><div class="graph-legend-line" style="background:${s._c}"></div>${_esc(s.label)}</div>`).join('');
+  const legend=ct==='pie'?g.series[0].data.map((pt,i)=>`<div class="graph-legend-item"><div class="graph-legend-dot" style="background:${PALETTE[i%PALETTE.length]}"></div>${_esc(String(pt.x))}</div>`).join(''):g.series.map(s=>`<div class="graph-legend-item"><div class="graph-legend-line" style="background:${s._c}"></div>${_esc(s.label)}</div>`).join('');
   const srcBadge=g.data_source==='live'?`<span class="graph-source-badge live">● LIVE</span>`:`<span class="graph-source-badge estimated">~ estimated</span>`;
-  const zoomPanTools=(ct!=='pie')?`
-    <button class="graph-tool-btn" id="zoom_${uid}" onclick="setMode('${uid}','zoom',this)">🔍 Zoom</button>
-    <button class="graph-tool-btn" id="pan_${uid}" onclick="setMode('${uid}','pan',this)">✋ Pan</button>
-    <button class="graph-tool-btn" id="reset_${uid}" onclick="resetView('${uid}')">↺ Reset</button>`:'';
-  const html=`<div class="graph-wrap">
-    <div class="graph-header"><div class="graph-header-left"><div class="graph-title">${_esc(g.title)}</div>${g.unit?`<div class="graph-unit-label">${_esc(g.unit)}</div>`:''}</div><div class="graph-legend">${legend}</div></div>
-    <div class="graph-meta">${srcBadge}${g.caption?`<span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">${_esc(g.caption)}</span>`:''}</div>
-    <div class="graph-toolbar" style="margin-top:10px;">${zoomPanTools}
-      <button class="graph-tool-btn" style="margin-left:${ct!=='pie'?'0':'auto'}" onclick="downloadChart('${uid}')">⬇ Download</button>
-      ${ct!=='pie'?`<span class="graph-zoom-hint">scroll=zoom &bull; drag=pan</span>`:''}
-    </div>
-    <div class="graph-canvas-wrap" id="cw_${uid}"><canvas id="cv_${uid}"></canvas><div class="graph-tooltip" id="tt_${uid}"></div></div>
-  </div>`;
+  const zoomPanTools=(ct!=='pie')?`<button class="graph-tool-btn" id="zoom_${uid}" onclick="setMode('${uid}','zoom',this)">🔍 Zoom</button><button class="graph-tool-btn" id="pan_${uid}" onclick="setMode('${uid}','pan',this)">✋ Pan</button><button class="graph-tool-btn" id="reset_${uid}" onclick="resetView('${uid}')">↺ Reset</button>`:'';
+  const html=`<div class="graph-wrap"><div class="graph-header"><div class="graph-header-left"><div class="graph-title">${_esc(g.title)}</div>${g.unit?`<div class="graph-unit-label">${_esc(g.unit)}</div>`:''}</div><div class="graph-legend">${legend}</div></div><div class="graph-meta">${srcBadge}${g.caption?`<span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">${_esc(g.caption)}</span>`:''}</div><div class="graph-toolbar" style="margin-top:10px;">${zoomPanTools}<button class="graph-tool-btn" style="margin-left:${ct!=='pie'?'0':'auto'}" onclick="downloadChart('${uid}')">⬇ Download</button>${ct!=='pie'?`<span class="graph-zoom-hint">scroll=zoom &bull; drag=pan</span>`:''}</div><div class="graph-canvas-wrap" id="cw_${uid}"><canvas id="cv_${uid}"></canvas><div class="graph-tooltip" id="tt_${uid}"></div></div></div>`;
   addMsg('ai',html,true);
-  requestAnimationFrame(()=>{
-    const wrap=document.getElementById('cw_'+uid),canvas=document.getElementById('cv_'+uid),tip=document.getElementById('tt_'+uid);
-    if(!wrap||!canvas)return;
-    if(ct==='pie')mountPie(canvas,tip,wrap,g); else mountLineBar(canvas,tip,wrap,g,ct);
-  });
+  requestAnimationFrame(()=>{const wrap=document.getElementById('cw_'+uid),canvas=document.getElementById('cv_'+uid),tip=document.getElementById('tt_'+uid);if(!wrap||!canvas)return;if(ct==='pie')mountPie(canvas,tip,wrap,g);else mountLineBar(canvas,tip,wrap,g,ct);});
 }
 const _modes={},_views={},_redraws={};
-function setMode(uid,mode,btn){
-  _modes[uid]=mode;
-  const wrap=document.getElementById('cw_'+uid);
-  if(wrap)wrap.className='graph-canvas-wrap '+(mode==='zoom'?'zoom-mode':mode==='pan'?'pan-mode':'');
-  ['zoom','pan'].forEach(m=>{const b=document.getElementById(m+'_'+uid);if(b)b.classList.toggle('active',m===mode);});
-}
-function resetView(uid){
-  if(_views[uid]){_views[uid].offsetX=0;_views[uid].offsetY=0;_views[uid].scale=1;}
-  setMode(uid,'crosshair',null);
-  const wrap=document.getElementById('cw_'+uid);
-  if(wrap)wrap.className='graph-canvas-wrap';
-  ['zoom','pan'].forEach(m=>{const b=document.getElementById(m+'_'+uid);if(b)b.classList.remove('active');});
-  if(_redraws[uid])_redraws[uid]();
-}
-function downloadChart(uid){
-  const canvas=document.getElementById('cv_'+uid);if(!canvas)return;
-  const off=document.createElement('canvas');off.width=canvas.width;off.height=canvas.height;
-  const ctx=off.getContext('2d');ctx.fillStyle='#080b12';ctx.fillRect(0,0,off.width,off.height);ctx.drawImage(canvas,0,0);
-  const a=document.createElement('a');a.download='sedy-chart-'+Date.now()+'.png';a.href=off.toDataURL('image/png');a.click();
-}
+function setMode(uid,mode,btn){_modes[uid]=mode;const wrap=document.getElementById('cw_'+uid);if(wrap)wrap.className='graph-canvas-wrap '+(mode==='zoom'?'zoom-mode':mode==='pan'?'pan-mode':'');['zoom','pan'].forEach(m=>{const b=document.getElementById(m+'_'+uid);if(b)b.classList.toggle('active',m===mode);});}
+function resetView(uid){if(_views[uid]){_views[uid].offsetX=0;_views[uid].offsetY=0;_views[uid].scale=1;}setMode(uid,'crosshair',null);const wrap=document.getElementById('cw_'+uid);if(wrap)wrap.className='graph-canvas-wrap';['zoom','pan'].forEach(m=>{const b=document.getElementById(m+'_'+uid);if(b)b.classList.remove('active');});if(_redraws[uid])_redraws[uid]();}
+function downloadChart(uid){const canvas=document.getElementById('cv_'+uid);if(!canvas)return;const off=document.createElement('canvas');off.width=canvas.width;off.height=canvas.height;const ctx=off.getContext('2d');ctx.fillStyle='#080b12';ctx.fillRect(0,0,off.width,off.height);ctx.drawImage(canvas,0,0);const a=document.createElement('a');a.download='sedy-chart-'+Date.now()+'.png';a.href=off.toDataURL('image/png');a.click();}
 function fmtVal(v){if(Math.abs(v)>=1e9)return(v/1e9).toFixed(1)+'B';if(Math.abs(v)>=1e6)return(v/1e6).toFixed(1)+'M';if(Math.abs(v)>=1e3)return(v/1e3).toFixed(1)+'k';return v%1===0?v.toString():v.toFixed(1);}
 function niceTicks(lo,hi,n=5){const range=hi-lo,rough=range/n,mag=Math.pow(10,Math.floor(Math.log10(rough||1))),norm=rough/mag,step=(norm<1.5?1:norm<3?2:norm<7?5:10)*mag,ticks=[];for(let v=Math.ceil(lo/step)*step;v<=hi+step*0.01;v+=step)ticks.push(Math.round(v*1e9)/1e9);return ticks;}
 
@@ -1367,13 +885,7 @@ function mountLineBar(canvas,tip,wrap,g,ct){
   function yToPixel(y,v){const{scale,offsetY}=v,base=PAD.t+(1-(y-yLoBase)/(yHiBase-yLoBase))*plotH();return(base-PAD.t)*scale+PAD.t+offsetY;}
   let prog=0,raf=null;
   function draw(p,v){const W=canvas.width/DPR;v=v||getView();const ctx=canvas.getContext('2d');ctx.save();ctx.scale(DPR,DPR);ctx.clearRect(0,0,W,H);ctx.save();ctx.beginPath();ctx.rect(PAD.l,PAD.t,plotW(W),plotH());ctx.clip();if(ct==='bar')drawBars(ctx,W,p,v);else drawLines(ctx,W,p,v);ctx.restore();drawAxes(ctx,W,v);ctx.restore();}
-  function drawAxes(ctx,W,v){
-    niceTicks(yLoBase,yHiBase).forEach(t=>{const py=yToPixel(t,v);if(py<PAD.t-2||py>H-PAD.b+2)return;ctx.strokeStyle='rgba(30,45,69,0.7)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PAD.l,py);ctx.lineTo(W-PAD.r,py);ctx.stroke();ctx.fillStyle='rgba(74,90,122,0.9)';ctx.font=`10px 'DM Mono',monospace`;ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(fmtVal(t),PAD.l-7,py);});
-    const maxTicks=Math.max(2,Math.floor(plotW(W)/52)),xStep=Math.ceil(allX.length/maxTicks);
-    allX.forEach((x,i)=>{if(i%xStep!==0&&i!==allX.length-1)return;const px=xToPixel(i,W,v);if(px<PAD.l||px>W-PAD.r)return;ctx.strokeStyle='rgba(30,45,69,0.35)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(px,PAD.t);ctx.lineTo(px,H-PAD.b);ctx.stroke();ctx.fillStyle='rgba(74,90,122,0.9)';ctx.font=`10px 'DM Mono',monospace`;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(String(x),px,H-PAD.b+8);});
-    if(g.unit){ctx.save();ctx.translate(13,PAD.t+plotH()/2);ctx.rotate(-Math.PI/2);ctx.fillStyle='rgba(74,90,122,0.7)';ctx.font=`9px 'DM Mono',monospace`;ctx.textAlign='center';ctx.fillText(g.unit,0,0);ctx.restore();}
-    ctx.strokeStyle='rgba(36,51,80,1)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(PAD.l,PAD.t);ctx.lineTo(PAD.l,H-PAD.b);ctx.lineTo(W-PAD.r,H-PAD.b);ctx.stroke();
-  }
+  function drawAxes(ctx,W,v){niceTicks(yLoBase,yHiBase).forEach(t=>{const py=yToPixel(t,v);if(py<PAD.t-2||py>H-PAD.b+2)return;ctx.strokeStyle='rgba(30,45,69,0.7)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PAD.l,py);ctx.lineTo(W-PAD.r,py);ctx.stroke();ctx.fillStyle='rgba(74,90,122,0.9)';ctx.font=`10px 'DM Mono',monospace`;ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(fmtVal(t),PAD.l-7,py);});const maxTicks=Math.max(2,Math.floor(plotW(W)/52)),xStep=Math.ceil(allX.length/maxTicks);allX.forEach((x,i)=>{if(i%xStep!==0&&i!==allX.length-1)return;const px=xToPixel(i,W,v);if(px<PAD.l||px>W-PAD.r)return;ctx.strokeStyle='rgba(30,45,69,0.35)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(px,PAD.t);ctx.lineTo(px,H-PAD.b);ctx.stroke();ctx.fillStyle='rgba(74,90,122,0.9)';ctx.font=`10px 'DM Mono',monospace`;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(String(x),px,H-PAD.b+8);});if(g.unit){ctx.save();ctx.translate(13,PAD.t+plotH()/2);ctx.rotate(-Math.PI/2);ctx.fillStyle='rgba(74,90,122,0.7)';ctx.font=`9px 'DM Mono',monospace`;ctx.textAlign='center';ctx.fillText(g.unit,0,0);ctx.restore();}ctx.strokeStyle='rgba(36,51,80,1)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(PAD.l,PAD.t);ctx.lineTo(PAD.l,H-PAD.b);ctx.lineTo(W-PAD.r,H-PAD.b);ctx.stroke();}
   function drawLines(ctx,W,p,v){g.series.forEach(s=>{const pts=allX.map((x,i)=>{const pt=s.data.find(d=>String(d.x)===String(x));return pt?{xi:i,y:+pt.y}:null;}).filter(Boolean);if(!pts.length)return;const vis=pts.slice(0,Math.max(1,Math.floor(pts.length*p)));const grd=ctx.createLinearGradient(0,PAD.t,0,H-PAD.b);grd.addColorStop(0,s._c+'2a');grd.addColorStop(1,s._c+'00');ctx.beginPath();vis.forEach((pt,i)=>{const x=xToPixel(pt.xi,W,v),y=yToPixel(pt.y,v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.lineTo(xToPixel(vis[vis.length-1].xi,W,v),H-PAD.b);ctx.lineTo(xToPixel(vis[0].xi,W,v),H-PAD.b);ctx.closePath();ctx.fillStyle=grd;ctx.fill();ctx.beginPath();ctx.strokeStyle=s._c;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';vis.forEach((pt,i)=>{const x=xToPixel(pt.xi,W,v),y=yToPixel(pt.y,v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.stroke();(p>=1?vis:[vis[vis.length-1]]).forEach(pt=>{const x=xToPixel(pt.xi,W,v),y=yToPixel(pt.y,v);ctx.beginPath();ctx.arc(x,y,p>=1?3.5:4.5,0,Math.PI*2);ctx.fillStyle=s._c;ctx.fill();ctx.strokeStyle='#080b12';ctx.lineWidth=1.5;ctx.stroke();});});}
   function drawBars(ctx,W,p,v){const n=g.series.length,groupW=allX.length>1?(xToPixel(1,W,v)-xToPixel(0,W,v))*0.7:40,barW=Math.max(4,(groupW/n)-2);allX.forEach((x,xi)=>{g.series.forEach((s,si)=>{const pt=s.data.find(d=>String(d.x)===String(x));if(!pt)return;const val=+pt.y*p,cx=xToPixel(xi,W,v),barX=cx-groupW/2+si*(barW+2),yBottom=yToPixel(Math.max(yLoBase,0),v),yTop=yToPixel(val,v),h=Math.abs(yBottom-yTop);if(h<1)return;const grd=ctx.createLinearGradient(0,yTop,0,yBottom);grd.addColorStop(0,s._c);grd.addColorStop(1,s._c+'88');ctx.fillStyle=grd;ctx.beginPath();ctx.roundRect?ctx.roundRect(barX,Math.min(yTop,yBottom),barW,h,3):ctx.rect(barX,Math.min(yTop,yBottom),barW,h);ctx.fill();});});}
   function animate(){prog+=0.035;if(prog>=1){prog=1;draw(1);return;}draw(prog);raf=requestAnimationFrame(animate);}
@@ -1391,8 +903,7 @@ function mountLineBar(canvas,tip,wrap,g,ct){
   canvas.addEventListener('mouseleave',()=>{if(!isDragging)hideTip();});
   canvas.addEventListener('touchmove',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();showTip(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);},{passive:false});
   canvas.addEventListener('touchend',()=>hideTip());
-  const ro=new ResizeObserver(()=>{if(prog>=1)resize();});
-  ro.observe(wrap);resize();animate();
+  const ro=new ResizeObserver(()=>{if(prog>=1)resize();});ro.observe(wrap);resize();animate();
 }
 
 function mountPie(canvas,tip,wrap,g){
@@ -1407,8 +918,7 @@ function mountPie(canvas,tip,wrap,g){
   canvas.style.cursor='default';
   canvas.addEventListener('mousemove',e=>{if(prog<1)return;const r2=canvas.getBoundingClientRect(),mx=e.clientX-r2.left,my=e.clientY-r2.top,idx=getSliceAt(mx,my);if(idx!==hoveredIdx){hoveredIdx=idx;draw(1);}if(idx>=0){const s=slices[idx];tip.innerHTML=`<div class="graph-tooltip-x">${_esc(s.label)}</div><div class="graph-tooltip-row"><div class="graph-tooltip-swatch circle" style="background:${s.color}"></div><span class="graph-tooltip-label">${_esc(s.label)}</span><span class="graph-tooltip-val">${_esc(fmtVal(s.value)+(g.unit?' '+g.unit:''))}</span></div>`;tip.classList.add('visible');const wW=wrap.clientWidth,tipW=tip.offsetWidth||150;let lx=mx+14;if(lx+tipW>wW-8)lx=mx-tipW-14;tip.style.left=Math.max(0,lx)+'px';tip.style.top=Math.max(0,my-20)+'px';canvas.style.cursor='pointer';}else{tip.classList.remove('visible');canvas.style.cursor='default';}});
   canvas.addEventListener('mouseleave',()=>{hoveredIdx=-1;tip.classList.remove('visible');if(prog>=1)draw(1);});
-  const ro=new ResizeObserver(()=>{if(prog>=1)resize();});
-  ro.observe(wrap);resize();animate();
+  const ro=new ResizeObserver(()=>{if(prog>=1)resize();});ro.observe(wrap);resize();animate();
 }
 
 // ── INTENT ────────────────────────────────────────────────────────────────────
@@ -1444,38 +954,49 @@ async function sendMessage(){
   document.querySelectorAll('.suggestions-wrap').forEach(el=>el.remove());
   addMsg('user',text);
 
-  // ── Image request interception ──
-  if(!currentPdf && isImageRequest(text)){
-    await handleImageGen(text);
-    return;
-  }
-
-  // ── Code request interception ──
-  if(!currentPdf && isCodeRequest(text)){
-    showCodeContextForm(text);
-    return;
-  }
+  if(!currentPdf && isImageRequest(text)){ await handleImageGen(text); return; }
+  if(!currentPdf && isCodeRequest(text)){ showCodeContextForm(text); return; }
 
   showTyping();
-  const intent=await detectIntent(text);
+  const intent = await detectIntent(text);
+
   if(currentPdf){
     if(intent==='flashcard'||intent==='both'||intent==='quiz'){
       let topic=resolveTopic(text);
-      if(isVague(topic)||topic.length<=2)topic=currentPdf.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ').trim();
-      try{if(intent==='both'){pushHistory('user',text);await handleFlashcards(topic,text,false);showTyping();await handleQuiz(topic,text,false);pushHistory('assistant','Generated flashcards and a quiz about '+topic);}else if(intent==='flashcard'){await handleFlashcards(topic,text,true);}else{await handleQuiz(topic,text,true);}}
-      catch(err){hideTyping();addMsg('ai','Could not generate: '+err.message);console.error(err);}return;
+      if(isVague(topic)||topic.length<=2) topic=currentPdf.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ').trim();
+      try{
+        if(intent==='both'){ pushHistory('user',text); await handleFlashcards(topic,text,false); showTyping(); await handleQuiz(topic,text,false); pushHistory('assistant','Generated flashcards and a quiz about '+topic); }
+        else if(intent==='flashcard'){ await handleFlashcards(topic,text,true); }
+        else{ await handleQuiz(topic,text,true); }
+      }catch(err){hideTyping();addMsg('ai','⚠️ Could not generate: '+err.message);console.error(err);}
+      return;
     }
-    try{await handlePdfChat(text,currentPdf);}catch(err){hideTyping();addMsg('ai','PDF processing failed: '+err.message);console.error(err);}return;
+    try{ await handlePdfChat(text,currentPdf); }
+    catch(err){
+      hideTyping();
+      // Show a user-friendly error
+      const errMsg = err.message||'Unknown error';
+      if(errMsg.includes('pypdf')||errMsg.includes('No PDF library')){
+        addMsg('ai','⚠️ **PDF engine not installed on the server.**\n\nPlease add `pypdf` to your `requirements.txt` and redeploy:\n```\npypdf\n```');
+      } else if(errMsg.includes('image-only')||errMsg.includes('scanned')){
+        addMsg('ai','⚠️ This PDF appears to be a **scanned image** — it has no extractable text. Please use a text-based PDF, or copy-paste the text you need help with.');
+      } else {
+        addMsg('ai','⚠️ PDF processing error: '+errMsg);
+      }
+      console.error(err);
+    }
+    return;
   }
+
   const topic=resolveTopic(text);
   try{
-    if(intent==='graph')await handleGraph(text);
-    else if(intent==='image')await handleImageGen(text);
-    else if(intent==='both'){pushHistory('user',text);await handleFlashcards(topic,text,false);showTyping();await handleQuiz(topic,text,false);pushHistory('assistant','Generated flashcards and a quiz about '+topic);}
-    else if(intent==='flashcard')await handleFlashcards(topic,text,true);
-    else if(intent==='quiz')await handleQuiz(topic,text,true);
+    if(intent==='graph') await handleGraph(text);
+    else if(intent==='image') await handleImageGen(text);
+    else if(intent==='both'){ pushHistory('user',text); await handleFlashcards(topic,text,false); showTyping(); await handleQuiz(topic,text,false); pushHistory('assistant','Generated flashcards and a quiz about '+topic); }
+    else if(intent==='flashcard') await handleFlashcards(topic,text,true);
+    else if(intent==='quiz') await handleQuiz(topic,text,true);
     else await handleChat(text);
-  }catch(err){hideTyping();addMsg('ai','Could not reach Sedy. Please check your connection.');console.error(err);}
+  }catch(err){hideTyping();addMsg('ai','⚠️ Could not reach Sedy. Please check your connection.');console.error(err);}
 }
 
 async function handleGraph(text){
@@ -1493,8 +1014,7 @@ async function handleChat(text){
   const data=await res.json();hideTyping();
   const reply=data.reply||'Sorry, no response.';
   pushHistory('user',text);pushHistory('assistant',reply);
-  const msgDiv=addMsg('ai',reply);
-  msgDiv._rawText=reply;
+  const msgDiv=addMsg('ai',reply);msgDiv._rawText=reply;
 }
 
 async function handleFlashcards(topic,originalText,saveHistory=true){
@@ -1556,13 +1076,22 @@ function showQuizResult(){
 // ── INIT ──────────────────────────────────────────────────────────────────────
 function initSession(){
   if(chatHistory.length===0){
-    addMsg('ai','Hey! I\'m **Sedy**, your AI study companion made by Ansh Verma\n\nMemory saved across page refreshes!\n\n**🎤 Voice input** — tap the mic and speak your question\n**🔊 Text-to-speech** — click Speak on any AI reply to hear it\n**📎 Upload a PDF** — ask questions, get summaries, generate flashcards\n**📈 Graphs** — "show onion prices 2000-2020" or "plot GDP of India vs China"\n**🎨 Images** — "generate an image of a sunset over mountains"\n**🃏 Flashcards** — "flashcards about X"\n**📝 Quiz** — "quiz me on X"\n**🔢 Math** — KaTeX rendering \\(E=mc^2\\)\n**💻 Code** — syntax highlighted');
+    addMsg('ai','Hey! I\'m **Sedy**, your AI study companion made by Ansh Verma\n\nMemory saved across page refreshes!\n\n**🎤 Voice input** — tap the mic and speak your question\n**🔊 Text-to-speech** — click Speak on any AI reply to hear it\n**📎 Upload a PDF** — tap 📎, then use the quick buttons to summarise, get flashcards or a quiz\n**📈 Graphs** — "show onion prices 2000-2020" or "plot GDP of India vs China"\n**🎨 Images** — "generate an image of a sunset over mountains"\n**🃏 Flashcards** — "flashcards about X"\n**📝 Quiz** — "quiz me on X"\n**🔢 Math** — KaTeX rendering \\(E=mc^2\\)\n**💻 Code** — syntax highlighted');
   } else {
     const uc=chatHistory.filter(h=>h.role==='user').length;
     addMsg('ai','Welcome back! I remember our previous conversation ('+uc+' message'+(uc!==1?'s':'')+').\n\nUpload a PDF with the 📎 button, or just type to continue!');
     updateMemoryBadge();
   }
 }
+
+// ── RENDER KEEP-ALIVE — ping every 13 min so the free dyno stays warm ───────
+// Render free tier spins down after 15 min inactivity, causing the first
+// request after idle to take 30-60s and often return empty/wrong answers.
+(function keepAlive() {
+  const ping = () => fetch(API_URL + '/', { method: 'GET' }).catch(() => {});
+  ping(); // ping immediately on load
+  setInterval(ping, 13 * 60 * 1000); // then every 13 minutes
+})();
 
 initVoice();
 initSession();

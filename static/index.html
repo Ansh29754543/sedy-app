@@ -864,7 +864,18 @@ document.getElementById('img-edit-modal').addEventListener('click',function(e){i
 
 // ── CODE CONTEXT FORM ─────────────────────────────────────────────────────────
 const CODE_REQUEST = /\b(write|create|make|build|code|program|develop|implement|generate)\b.{0,80}\b(code|script|function|program|app|tool|bot|website|api|class|component|snippet|algorithm|game|calculator|system|project|application)\b|\b(code|script|function|app|program|game|calculator)\b.{0,40}\b(for|that|to|which|in|using|with)\b|\b(using|in)\s+(html|css|javascript|python|java|c\+\+|react|node)/i;
-function isCodeRequest(text){ return CODE_REQUEST.test(text.trim()); }
+
+// Phrases that mean the user is SHARING code, not requesting it
+const CODE_SHARE = /^(here|here'?s|this is|i have|look at|check|fix|debug|review|explain|why|what|help with|error in|issue with|problem with|my code|the code)/i;
+
+function isCodeRequest(text){
+  const t = text.trim();
+  // Don't intercept if user is sharing/pasting existing code
+  if (CODE_SHARE.test(t)) return false;
+  if (t.startsWith('```') || t.includes('<!DOCTYPE') || t.includes('<html')) return false;
+  if (t.length > 300) return false; // long pastes are sharing, not requesting
+  return CODE_REQUEST.test(t);
+}
 
 async function generateCodeQuestions(userRequest){
   try{const res=await fetch(API_URL+'/code-questions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:userRequest})});if(res.ok){const data=await res.json();if(Array.isArray(data.questions)&&data.questions.length>0)return data.questions;}}catch(e){}

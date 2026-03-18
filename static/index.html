@@ -13,6 +13,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  // Point PDF.js worker to CDN
+  if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
 <style>
 :root {
   --bg:#080b12;--bg2:#0d1120;--bg3:#121828;
@@ -200,6 +206,91 @@ body::before{content:'';position:fixed;inset:0;
   border-radius: 12px; font-size: 9px; color: var(--accent2);
   font-family: 'DM Mono', monospace; letter-spacing: .3px;
 }
+
+/* ── PDF PREVIEW CARD (shown in chat after upload) ── */
+.pdf-preview-card {
+  background: var(--card2);
+  border: 1px solid rgba(124,92,252,.25);
+  border-radius: 16px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 340px;
+  animation: msgIn .3s ease;
+}
+.pdf-preview-page {
+  width: 100%;
+  display: block;
+  background: #fff;
+  border-bottom: 1px solid rgba(124,92,252,.15);
+  /* canvas will be injected here */
+}
+.pdf-preview-page canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+.pdf-preview-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--card2);
+}
+.pdf-preview-icon { font-size: 22px; flex-shrink: 0; }
+.pdf-preview-info { flex: 1; min-width: 0; }
+.pdf-preview-name {
+  font-size: 12px; font-weight: 700; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pdf-preview-meta {
+  font-size: 10px; color: var(--text3);
+  font-family: 'DM Mono', monospace; margin-top: 2px;
+}
+.pdf-preview-ready {
+  font-size: 10px; color: var(--accent2);
+  font-family: 'DM Mono', monospace; font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── PDF THUMBNAIL on user message ── */
+.pdf-user-thumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  max-width: 260px;
+}
+.pdf-user-thumb-img {
+  width: 36px; height: 48px;
+  border-radius: 5px;
+  object-fit: cover;
+  background: #fff;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,.15);
+}
+.pdf-user-thumb-info { flex: 1; min-width: 0; }
+.pdf-user-thumb-name {
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,.95);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pdf-user-thumb-sub {
+  font-size: 9px; color: rgba(255,255,255,.6);
+  font-family: 'DM Mono', monospace; margin-top: 2px;
+}
+.pdf-page-skeleton {
+  width: 100%; min-height: 220px;
+  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 50%, #f5f5f5 100%);
+  background-size: 200% 100%;
+  animation: skeletonShift 1.4s ease-in-out infinite;
+  display: flex; align-items: center; justify-content: center;
+  color: #aaa; font-size: 13px; font-family: sans-serif;
+}
+@keyframes skeletonShift { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
 
 /* ── FOLLOW-UP SUGGESTION CHIPS ── */
 .suggestions-wrap{display:flex;flex-wrap:wrap;gap:7px;padding-left:40px;animation:msgIn .3s ease;}
@@ -804,6 +895,79 @@ function hidePdfLoader() {
   setTimeout(() => overlay.remove(), 260);
 }
 
+// ── Render first page of PDF to a canvas using PDF.js ──────────────────────
+async function renderPdfFirstPage(arrayBuffer) {
+  if (!window.pdfjsLib) return null;
+  try {
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 1.5 });
+    const canvas = document.createElement('canvas');
+    canvas.width  = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+    return { canvas, pageCount: pdf.numPages };
+  } catch(e) {
+    console.warn('PDF.js render failed:', e);
+    return null;
+  }
+}
+
+// ── Insert the rendered preview card into the chat ────────────────────────────
+function showPdfPreviewInChat(file, sizeKb, canvas, pageCount) {
+  const previewId = 'pdfprev_' + Date.now();
+
+  // Build the card DOM directly so we can appendChild the canvas
+  const msgWrap = document.getElementById('chat-messages');
+  const msgDiv  = document.createElement('div');
+  msgDiv.className = 'msg ai';
+  msgDiv.innerHTML = `
+    <div class="msg-avatar">🤖</div>
+    <div class="msg-content">
+      <div class="msg-bubble">
+        <div class="pdf-preview-card" id="${previewId}">
+          <div class="pdf-preview-page" id="${previewId}_page">
+            <div class="pdf-page-skeleton" id="${previewId}_skel">Rendering preview…</div>
+          </div>
+          <div class="pdf-preview-footer">
+            <div class="pdf-preview-icon">📄</div>
+            <div class="pdf-preview-info">
+              <div class="pdf-preview-name">${_esc(file.name)}</div>
+              <div class="pdf-preview-meta">${sizeKb} KB${pageCount ? ' &bull; ' + pageCount + ' pages' : ''}</div>
+            </div>
+            <div class="pdf-preview-ready">Ready ✓</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:13px;color:var(--text2);line-height:1.6;">
+          Ask me anything about this document — summarise, explain, quiz, or flashcards.
+        </div>
+      </div>
+      <div class="msg-actions">
+        <button class="speak-btn" onclick="speakText('PDF ready. Ask me anything about this document.', this)">🔊 Speak</button>
+      </div>
+    </div>`;
+  msgWrap.appendChild(msgDiv);
+
+  // Inject canvas (replacing skeleton) after DOM is ready
+  requestAnimationFrame(() => {
+    const pageEl = document.getElementById(previewId + '_page');
+    const skelEl = document.getElementById(previewId + '_skel');
+    if (canvas && pageEl) {
+      if (skelEl) skelEl.remove();
+      canvas.style.width  = '100%';
+      canvas.style.height = 'auto';
+      canvas.style.display = 'block';
+      pageEl.appendChild(canvas);
+    } else if (skelEl) {
+      skelEl.textContent = '(Preview unavailable)';
+      skelEl.style.animation = 'none';
+    }
+    scrollBottom();
+  });
+
+  return msgDiv;
+}
+
 function handlePdfSelect(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -821,12 +985,13 @@ function handlePdfSelect(event) {
   updatePdfLoader('Reading document…', 15);
 
   const reader = new FileReader();
-  reader.onload = () => {
-    updatePdfLoader('Processing pages…', 55);
+  reader.onload = async () => {
+    updatePdfLoader('Rendering preview…', 40);
 
-    const dataUrl = reader.result;
-    const base64  = dataUrl.includes(',') ? dataUrl.split(',', 2)[1] : dataUrl;
-    const sizeKb  = Math.round(file.size / 1024);
+    const dataUrl   = reader.result;
+    const base64    = dataUrl.includes(',') ? dataUrl.split(',', 2)[1] : dataUrl;
+    const sizeKb    = Math.round(file.size / 1024);
+    const arrayBuf  = reader.result; // we'll re-read as ArrayBuffer for PDF.js
 
     // Quick magic-byte check
     try {
@@ -838,45 +1003,65 @@ function handlePdfSelect(event) {
       }
     } catch (e) { /* let server handle */ }
 
-    updatePdfLoader('Almost ready…', 88);
+    updatePdfLoader('Almost ready…', 75);
 
-    // Small artificial delay so the animation feels intentional (like Claude)
-    setTimeout(() => {
-      updatePdfLoader('Done!', 100);
-      setTimeout(() => {
-        hidePdfLoader();
-
-        // Store PDF silently — no panel shown in chat
-        currentPdf = { name: file.name, base64, sizeKb };
-
-        // Update the thin active bar below the header
-        document.getElementById('pdf-active-name').textContent = file.name;
-        document.getElementById('pdf-active-size').textContent = sizeKb + ' KB';
-        document.getElementById('pdf-active-bar').classList.add('visible');
-        document.getElementById('upload-btn').classList.add('active');
-        document.getElementById('input-wrap').classList.add('pdf-mode');
-
-        // Update placeholder to hint PDF is ready
-        const shortName = file.name.length > 30
-          ? file.name.slice(0, 28) + '…'
-          : file.name;
-        document.getElementById('chat-input').placeholder =
-          'Ask anything about "' + shortName + '"…';
-        document.getElementById('chat-input').focus();
-
-        // Single quiet AI confirmation — no buttons, just a nudge
-        addMsg('ai',
-          `**${_esc(file.name)}** is ready — ask me anything about it. ` +
-          `I can summarise, explain concepts, quiz you, or make flashcards.`
-        );
-      }, 300);
-    }, 400);
+    // Store PDF in currentPdf
+    currentPdf = { name: file.name, base64, sizeKb };
   };
-  reader.onerror = () => {
+
+  // Read as DataURL for base64 (for backend)
+  reader.readAsDataURL(file);
+
+  // Separately read as ArrayBuffer for PDF.js (no conflict)
+  const abReader = new FileReader();
+  abReader.onload = async () => {
+    const arrayBuf = abReader.result;
+    const sizeKb   = Math.round(file.size / 1024);
+
+    // Render first page with PDF.js
+    const result = await renderPdfFirstPage(arrayBuf);
+    const canvas    = result?.canvas    || null;
+    const pageCount = result?.pageCount || null;
+
+    updatePdfLoader('Done!', 100);
+
+    setTimeout(() => {
+      hidePdfLoader();
+
+      // Activate PDF mode UI
+      document.getElementById('pdf-active-name').textContent = file.name;
+      document.getElementById('pdf-active-size').textContent = sizeKb + ' KB';
+      document.getElementById('pdf-active-bar').classList.add('visible');
+      document.getElementById('upload-btn').classList.add('active');
+      document.getElementById('input-wrap').classList.add('pdf-mode');
+
+      const shortName = file.name.length > 30 ? file.name.slice(0, 28) + '…' : file.name;
+      document.getElementById('chat-input').placeholder = 'Ask anything about "' + shortName + '"…';
+
+      // Store page count + thumbnail dataUrl for user message display
+      if (currentPdf && pageCount) currentPdf.pageCount = pageCount;
+      if (currentPdf && canvas) {
+        // Scale canvas down to a small thumb (max 120px wide) for the user bubble
+        const thumbCanvas = document.createElement('canvas');
+        const maxW = 120;
+        const scale = Math.min(1, maxW / canvas.width);
+        thumbCanvas.width  = Math.round(canvas.width  * scale);
+        thumbCanvas.height = Math.round(canvas.height * scale);
+        thumbCanvas.getContext('2d').drawImage(canvas, 0, 0, thumbCanvas.width, thumbCanvas.height);
+        currentPdf._thumbDataUrl = thumbCanvas.toDataURL('image/jpeg', 0.7);
+      }
+
+      // Show preview card in chat (like Claude)
+      showPdfPreviewInChat(file, sizeKb, canvas, pageCount);
+
+      document.getElementById('chat-input').focus();
+    }, 350);
+  };
+  abReader.onerror = () => {
     hidePdfLoader();
     addMsg('ai', '⚠️ Could not read the PDF file. Please try again.');
   };
-  reader.readAsDataURL(file);
+  abReader.readAsArrayBuffer(file);
 }
 
 function removePdf() {
@@ -911,6 +1096,35 @@ async function handlePdfChat(text, pdf){
   msgDiv._rawText = reply;
   pushHistory('user','[PDF: '+pdf.name+'] '+text);
   pushHistory('assistant', reply);
+}
+
+// ── Add user message with PDF thumbnail attached ─────────────────────────────
+function addMsgWithPdfThumb(role, text, pdf) {
+  const wrap = document.getElementById('chat-messages');
+  const div  = document.createElement('div');
+  div.className = 'msg user';
+
+  const thumbHtml = pdf._thumbDataUrl
+    ? `<img class="pdf-user-thumb-img" src="${pdf._thumbDataUrl}" alt="PDF page 1">`
+    : `<div class="pdf-user-thumb-img" style="display:flex;align-items:center;justify-content:center;font-size:18px;">📄</div>`;
+
+  div.innerHTML = `
+    <div class="msg-avatar">👤</div>
+    <div class="msg-content" style="align-items:flex-end;">
+      <div class="msg-bubble">
+        <div class="pdf-user-thumb">
+          ${thumbHtml}
+          <div class="pdf-user-thumb-info">
+            <div class="pdf-user-thumb-name">${_esc(pdf.name)}</div>
+            <div class="pdf-user-thumb-sub">${pdf.sizeKb} KB${pdf.pageCount ? ' · ' + pdf.pageCount + ' pages' : ''}</div>
+          </div>
+        </div>
+        ${_esc(text).replace(/\n/g,'<br>')}
+      </div>
+    </div>`;
+  wrap.appendChild(div);
+  scrollBottom();
+  return div;
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
@@ -1072,7 +1286,13 @@ async function sendMessage(){
   input.value=''; input.style.height='auto';
   stopSpeaking();
   document.querySelectorAll('.suggestions-wrap').forEach(el=>el.remove());
-  addMsg('user',text);
+
+  // If a PDF is loaded, add a thumbnail to the user message
+  if (currentPdf && currentPdf._thumbDataUrl) {
+    addMsgWithPdfThumb('user', text, currentPdf);
+  } else {
+    addMsg('user', text);
+  }
 
   if(!currentPdf && isImageRequest(text)){ await handleImageGen(text); return; }
   if(!currentPdf && isCodeRequest(text)){ showCodeContextForm(text); return; }

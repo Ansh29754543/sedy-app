@@ -335,70 +335,6 @@ body::before{content:'';position:fixed;inset:0;
 .suggestion-chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,142,255,.08);}
 .suggestion-chip:active{transform:scale(.96);}
 
-/* ── IMAGE GENERATION UI ── */
-.img-card {background:var(--card);border:1px solid var(--border2);border-radius:18px;overflow:hidden;width:100%;max-width:420px;position:relative;}
-.img-loading {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:36px 24px;background:linear-gradient(135deg,#0d1120 0%,#121828 50%,#0d1120 100%);position:relative;overflow:hidden;min-height:260px;}
-.img-loading::before {content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(255,107,157,.06) 45%,rgba(192,132,252,.10) 50%,rgba(251,146,60,.06) 55%,transparent 70%);background-size:200% 100%;animation:shimmerSweep 2.2s ease-in-out infinite;}
-@keyframes shimmerSweep{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
-.img-loading::after {content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(255,107,157,.04) 28px,rgba(255,107,157,.04) 29px),repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(192,132,252,.04) 28px,rgba(192,132,252,.04) 29px);pointer-events:none;}
-.img-spinner-wrap {position:relative;width:72px;height:72px;flex-shrink:0;z-index:1;}
-.img-spinner-ring {width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,107,157,.15);border-top-color:var(--img-accent);border-right-color:var(--img-accent2);animation:imgSpin 1.1s cubic-bezier(.5,0,.5,1) infinite;position:absolute;top:0;left:0;}
-.img-spinner-ring2 {width:56px;height:56px;border-radius:50%;border:2px solid rgba(192,132,252,.12);border-bottom-color:var(--img-accent2);border-left-color:var(--img-accent3);animation:imgSpin 1.6s cubic-bezier(.5,0,.5,1) infinite reverse;position:absolute;top:8px;left:8px;}
-@keyframes imgSpin{to{transform:rotate(360deg);}}
-.img-spinner-icon {position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:20px;animation:imgIconPulse 2s ease-in-out infinite;z-index:2;}
-@keyframes imgIconPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:1;}50%{transform:translate(-50%,-50%) scale(1.15);opacity:.7;}}
-.img-progress-wrap {display:flex;flex-direction:column;align-items:center;gap:8px;z-index:1;width:100%;max-width:220px;}
-.img-progress-pct {font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:linear-gradient(135deg,var(--img-accent),var(--img-accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;animation:imgPctPulse 1.4s ease-in-out infinite;}
-@keyframes imgPctPulse{0%,100%{opacity:1;}50%{opacity:.6;}}
-.img-progress-bar-track {width:100%;height:4px;background:rgba(255,107,157,.12);border-radius:4px;overflow:hidden;}
-.img-progress-bar-fill {height:100%;background:linear-gradient(90deg,var(--img-accent),var(--img-accent2),var(--img-accent3));border-radius:4px;transition:width .4s ease;background-size:200% 100%;animation:imgBarShift 2s linear infinite;}
-@keyframes imgBarShift{0%{background-position:0% 0;}100%{background-position:200% 0;}}
-.img-progress-label {font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.5px;}
-.img-card-header {display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,107,157,.06);border-bottom:1px solid rgba(255,107,157,.12);}
-.img-card-badge {display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:10px;color:var(--img-accent);letter-spacing:.8px;text-transform:uppercase;}
-.img-card-badge-dot {width:6px;height:6px;border-radius:50%;background:var(--img-accent);box-shadow:0 0 8px var(--img-accent);animation:imgDotPulse 1.4s infinite;}
-@keyframes imgDotPulse{0%,100%{box-shadow:0 0 4px var(--img-accent);}50%{box-shadow:0 0 12px var(--img-accent);}}
-.img-card-prompt-preview {margin-left:auto;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.img-result {display:none;flex-direction:column;}
-.img-result.visible {display:flex;}
-.img-result-img {width:100%;display:block;border-radius:0;max-height:420px;object-fit:cover;}
-.img-result-footer {padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:var(--card);}
-.img-prompt-used {font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;line-height:1.5;max-height:36px;overflow:hidden;cursor:pointer;transition:max-height .3s ease;}
-.img-prompt-used.expanded {max-height:200px;}
-.img-prompt-used::before {content:'✦ ';color:var(--img-accent);}
-.img-actions {display:flex;gap:6px;flex-wrap:wrap;}
-.img-action-btn {display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:9px;font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .2s;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);text-decoration:none;white-space:nowrap;}
-.img-action-btn:hover {transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.3);}
-.img-action-btn.download {border-color:rgba(0,229,160,.3);color:var(--success);background:rgba(0,229,160,.06);}
-.img-action-btn.download:hover {background:rgba(0,229,160,.12);border-color:var(--success);}
-.img-action-btn.regen {border-color:rgba(79,142,255,.3);color:var(--accent);background:rgba(79,142,255,.06);}
-.img-action-btn.regen:hover {background:rgba(79,142,255,.12);border-color:var(--accent);}
-.img-action-btn.share {border-color:rgba(192,132,252,.3);color:var(--img-accent2);background:rgba(192,132,252,.06);}
-.img-action-btn.share:hover {background:rgba(192,132,252,.12);border-color:var(--img-accent2);}
-.img-action-btn.edit {border-color:rgba(255,107,157,.3);color:var(--img-accent);background:rgba(255,107,157,.06);}
-.img-action-btn.edit:hover {background:rgba(255,107,157,.12);border-color:var(--img-accent);}
-.img-edit-modal {display:none;position:fixed;inset:0;z-index:100;background:rgba(8,11,18,.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;}
-.img-edit-modal.visible {display:flex;}
-@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-.img-edit-box {background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:20px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px;animation:slideUp .25s ease;}
-@keyframes slideUp{from{transform:translateY(16px);opacity:0;}to{transform:none;opacity:1;}}
-.img-edit-title {font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);}
-.img-edit-title span{color:var(--img-accent);}
-.img-edit-textarea {background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;min-height:80px;outline:none;transition:border-color .2s;line-height:1.6;}
-.img-edit-textarea:focus {border-color:var(--img-accent);}
-.img-edit-actions {display:flex;gap:8px;justify-content:flex-end;}
-.img-edit-cancel {background:none;border:1px solid var(--border2);border-radius:9px;padding:8px 16px;font-size:12px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
-.img-edit-cancel:hover {color:var(--text2);border-color:var(--text3);}
-.img-edit-generate {background:linear-gradient(135deg,var(--img-accent),var(--img-accent2));border:none;border-radius:9px;padding:8px 18px;font-size:12px;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .2s;}
-.img-edit-generate:hover {opacity:.88;}
-.img-edit-generate:active {transform:scale(.97);}
-.img-error {display:none;flex-direction:column;align-items:center;gap:10px;padding:28px 20px;text-align:center;}
-.img-error.visible {display:flex;}
-.img-error-icon {font-size:28px;}
-.img-error-msg {font-size:12px;color:var(--danger);font-family:'DM Mono',monospace;}
-.img-error-retry {padding:7px 18px;background:rgba(255,79,106,.1);border:1px solid rgba(255,79,106,.3);border-radius:9px;color:var(--danger);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .2s;}
-.img-error-retry:hover {background:rgba(255,79,106,.18);}
-
 /* ── FLASHCARDS ── */
 .fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:10px;}
 .fc-card{height:140px;perspective:800px;cursor:pointer;}
@@ -556,23 +492,11 @@ body::before{content:'';position:fixed;inset:0;
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
 
-<!-- Edit Prompt Modal -->
-<div class="img-edit-modal" id="img-edit-modal">
-  <div class="img-edit-box">
-    <div class="img-edit-title">✦ <span>Edit Prompt</span></div>
-    <textarea class="img-edit-textarea" id="img-edit-textarea" rows="3" placeholder="Describe the image you want..."></textarea>
-    <div class="img-edit-actions">
-      <button class="img-edit-cancel" onclick="closeEditModal()">Cancel</button>
-      <button class="img-edit-generate" onclick="generateFromEdit()">🎨 Generate</button>
-    </div>
-  </div>
-</div>
-
 <div class="app">
   <div class="header">
     <div class="header-brand">
       <div class="logo-text">Sedy</div>
-      <div class="header-sub">Ask anything &bull; Voice &bull; PDF &bull; Code &bull; Math &bull; Flashcards &bull; Quizzes &bull; Graphs &bull; Images</div>
+      <div class="header-sub">Ask anything &bull; Voice &bull; PDF &bull; Code &bull; Math &bull; Flashcards &bull; Quizzes &bull; Graphs</div>
     </div>
     <div class="header-right">
       <div class="model-switcher" id="model-switcher">
@@ -623,7 +547,7 @@ body::before{content:'';position:fixed;inset:0;
       <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="Voice input">🎤</button>
       <button class="send-btn" onclick="sendMessage()">➤</button>
     </div>
-    <div class="input-hint">🎤 voice &bull; 📎 attach PDF(s) &bull; 📈 graphs &bull; 🎨 images &bull; 🔊 speak any reply</div>
+    <div class="input-hint">🎤 voice &bull; 📎 attach PDF(s) &bull; 📈 graphs &bull; 🔊 speak any reply</div>
   </div>
 </div>
 
@@ -742,8 +666,6 @@ function speakMsg(btnId){
 }
 
 // ── IMAGE GENERATION ──────────────────────────────────────────────────────────
-const IMAGE_REQUEST = /\b(generate|create|make|draw|show|paint|design|produce)\b.{0,50}\b(image|picture|photo|illustration|artwork|poster|logo|painting|sketch|render|visual)\b|\b(image|picture|photo|illustration)\s+(of|showing|depicting)\b/i;
-function isImageRequest(text){ return IMAGE_REQUEST.test(text.trim()); }
 
 function startProgressSim(pctEl, fillEl, labelEl) {
   let pct = 0;
@@ -771,96 +693,6 @@ function startProgressSim(pctEl, fillEl, labelEl) {
   };
 }
 
-async function handleImageGen(promptText) {
-  const cardId = 'imgcard_' + Date.now();
-  lastImagePrompt = promptText;
-  const cardHtml = `
-    <div class="img-card" id="${cardId}">
-      <div class="img-card-header">
-        <div class="img-card-badge"><div class="img-card-badge-dot"></div>🎨 Image Generation</div>
-        <div class="img-card-prompt-preview" id="${cardId}_preview">${_esc(promptText)}</div>
-      </div>
-      <div class="img-loading" id="${cardId}_loading">
-        <div class="img-spinner-wrap"><div class="img-spinner-ring"></div><div class="img-spinner-ring2"></div><div class="img-spinner-icon">🎨</div></div>
-        <div class="img-progress-wrap">
-          <div class="img-progress-pct" id="${cardId}_pct">0%</div>
-          <div class="img-progress-bar-track"><div class="img-progress-bar-fill" id="${cardId}_fill" style="width:0%"></div></div>
-          <div class="img-progress-label" id="${cardId}_lbl">Initialising...</div>
-        </div>
-      </div>
-      <div class="img-result" id="${cardId}_result">
-        <img class="img-result-img" id="${cardId}_img" src="" alt="Generated image" />
-        <div class="img-result-footer">
-          <div class="img-prompt-used" id="${cardId}_promptused" onclick="this.classList.toggle('expanded')"></div>
-          <div class="img-actions">
-            <a class="img-action-btn download" id="${cardId}_dl" href="#" download="sedy-image.webp" target="_blank">⬇ Download</a>
-            <button class="img-action-btn regen" onclick="regenImage('${cardId}')">↺ Regenerate</button>
-            <button class="img-action-btn share" onclick="shareImage('${cardId}')">↗ Share</button>
-            <button class="img-action-btn edit" onclick="openEditModal('${cardId}')">✎ Edit Prompt</button>
-          </div>
-        </div>
-      </div>
-      <div class="img-error" id="${cardId}_error">
-        <div class="img-error-icon">⚠️</div>
-        <div class="img-error-msg" id="${cardId}_errmsg">Something went wrong.</div>
-        <button class="img-error-retry" onclick="regenImage('${cardId}')">Try Again</button>
-      </div>
-    </div>`;
-  addMsg('ai', cardHtml, true);
-  scrollBottom();
-  const pctEl=document.getElementById(cardId+'_pct'), fillEl=document.getElementById(cardId+'_fill'), lblEl=document.getElementById(cardId+'_lbl');
-  const sim = startProgressSim(pctEl, fillEl, lblEl);
-  try {
-    const res = await fetch(API_URL+'/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:promptText})});
-    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.detail||'HTTP '+res.status);}
-    const data = await res.json();
-    sim.finish();
-    await new Promise(r=>setTimeout(r,400));
-    showImageResult(cardId, data.image_url, data.prompt_used||promptText);
-    pushHistory('user',promptText); pushHistory('assistant','Generated image for: '+promptText);
-  } catch(err){sim.stop();showImageError(cardId,err.message);}
-}
-
-function showImageResult(cardId,url,promptUsed){
-  const loadingEl=document.getElementById(cardId+'_loading'), resultEl=document.getElementById(cardId+'_result');
-  const imgEl=document.getElementById(cardId+'_img'), dlEl=document.getElementById(cardId+'_dl'), puEl=document.getElementById(cardId+'_promptused');
-  if(!loadingEl||!resultEl)return;
-  imgEl.src=url; dlEl.href=url; if(puEl) puEl.textContent=promptUsed;
-  loadingEl.style.display='none'; resultEl.classList.add('visible'); scrollBottom();
-}
-function showImageError(cardId,msg){
-  const loadingEl=document.getElementById(cardId+'_loading'), errorEl=document.getElementById(cardId+'_error'), errMsgEl=document.getElementById(cardId+'_errmsg');
-  if(!loadingEl||!errorEl)return;
-  if(errMsgEl) errMsgEl.textContent=msg||'Image generation failed.';
-  loadingEl.style.display='none'; errorEl.classList.add('visible'); scrollBottom();
-}
-async function regenImage(cardId){
-  const loadingEl=document.getElementById(cardId+'_loading'), resultEl=document.getElementById(cardId+'_result'), errorEl=document.getElementById(cardId+'_error');
-  const pctEl=document.getElementById(cardId+'_pct'), fillEl=document.getElementById(cardId+'_fill'), lblEl=document.getElementById(cardId+'_lbl');
-  if(!loadingEl)return;
-  resultEl&&resultEl.classList.remove('visible'); errorEl&&errorEl.classList.remove('visible');
-  loadingEl.style.display='flex'; if(pctEl)pctEl.textContent='0%'; if(fillEl)fillEl.style.width='0%'; if(lblEl)lblEl.textContent='Initialising...';
-  const sim=startProgressSim(pctEl,fillEl,lblEl);
-  try{
-    const res=await fetch(API_URL+'/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:lastImagePrompt})});
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const data=await res.json(); sim.finish();
-    await new Promise(r=>setTimeout(r,400)); showImageResult(cardId,data.image_url,data.prompt_used||lastImagePrompt);
-  }catch(err){sim.stop();showImageError(cardId,err.message);}
-}
-async function shareImage(cardId){
-  const imgEl=document.getElementById(cardId+'_img'); if(!imgEl||!imgEl.src)return;
-  if(navigator.share){try{await navigator.share({title:'Sedy AI Image',url:imgEl.src});}catch(e){}}
-  else{await navigator.clipboard.writeText(imgEl.src);addMsg('ai','📋 Image URL copied to clipboard!');}
-}
-function openEditModal(cardId){ currentEditCardId=cardId; const ta=document.getElementById('img-edit-textarea'); ta.value=lastImagePrompt; document.getElementById('img-edit-modal').classList.add('visible'); setTimeout(()=>ta.focus(),100); }
-function closeEditModal(){ document.getElementById('img-edit-modal').classList.remove('visible'); currentEditCardId=null; }
-async function generateFromEdit(){
-  const ta=document.getElementById('img-edit-textarea'), newPrompt=ta.value.trim(); if(!newPrompt)return; closeEditModal(); lastImagePrompt=newPrompt;
-  if(currentEditCardId){const previewEl=document.getElementById(currentEditCardId+'_preview');if(previewEl)previewEl.textContent=newPrompt;await regenImage(currentEditCardId);}
-  else{addMsg('user',newPrompt);showTyping();await handleImageGen(newPrompt);}
-}
-document.getElementById('img-edit-modal').addEventListener('click',function(e){if(e.target===this)closeEditModal();});
 
 // ── CODE CONTEXT FORM ─────────────────────────────────────────────────────────
 const CODE_REQUEST = /\b(write|create|make|build|code|program|develop|implement|generate)\b.{0,80}\b(code|script|function|program|app|tool|bot|website|api|class|component|snippet|algorithm|game|calculator|system|project|application)\b|\b(code|script|function|app|program|game|calculator)\b.{0,40}\b(for|that|to|which|in|using|with)\b|\b(using|in)\s+(html|css|javascript|python|java|c\+\+|react|node)/i;
@@ -1246,7 +1078,6 @@ async function sendMessage(){
 
   // No PDFs → normal routing
   if (!pdfsToSend.length) {
-    if (isImageRequest(text)){ await handleImageGen(text); return; }
     if (isCodeRequest(text)) { showCodeContextForm(text); return; }
   }
 
@@ -1302,7 +1133,6 @@ async function sendMessage(){
   const topic  = resolveTopic(text);
   try{
     if(intent==='graph')      await handleGraph(text);
-    else if(intent==='image') await handleImageGen(text);
     else if(intent==='both') { pushHistory('user',text); await handleFlashcards(topic,text,false); showTyping(); await handleQuiz(topic,text,false); pushHistory('assistant','Generated flashcards and a quiz about '+topic); }
     else if(intent==='flashcard') await handleFlashcards(topic,text,true);
     else if(intent==='quiz')      await handleQuiz(topic,text,true);

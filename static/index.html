@@ -1192,8 +1192,10 @@ function mountPie(canvas,tip,wrap,g){
 }
 
 // ── INTENT ────────────────────────────────────────────────────────────────────
-const OBVIOUS_CHAT=[/^(hi|hey|hello|hii|helo|hiya|yo|sup|howdy|greetings)[\s!?.]*$/i,/^(thanks|thank you|thx|ty|ok|okay|k|sure|got it|cool|nice|great|awesome|perfect)[\s!.]*$/i,/^(bye|goodbye|see you|cya|good night|gn)[\s!.]*$/i,/^what\s+is\s+(a|an|the)\s+/i,/^(explain|define|describe|tell me about|what does|what are)\s+/i,/^(how\s+does|how\s+do)\s+/i,/^(why\s+is|why\s+are|why\s+does|why\s+do)\s+/i,/^(can\s+you\s+(explain|help|tell|write|solve|give))/i,/^(solve|calculate|find|compute|derive|integrate|differentiate)\s+/i,/^(write\s+(a|an|the|me)\s+)/i,/^(help\s+me\s+)/i,/^\w{1,12}[?!.]*$/,/^write\s+answer/i,/^(answer|solution|prove|proof|show)\s+/i,/\b(conjecture|theorem|equation|formula|problem|question)\b/i,/^(is\s+it|will\s+you|does\s+it|can\s+it|would\s+it)\s+/i];
+const OBVIOUS_CHAT=[/^(hi|hey|hello|hii|helo|hiya|yo|sup|howdy|greetings)[\s!?.]*$/i,/^(thanks|thank you|thx|ty|ok|okay|k|sure|got it|cool|nice|great|awesome|perfect)[\s!.]*$/i,/^(bye|goodbye|see you|cya|good night|gn)[\s!.]*$/i,/^what\s+is\s+(a|an|the)\s+/i,/^(explain|define|describe|tell me about|what does|what are)\s+/i,/^(how\s+does|how\s+do)\s+/i,/^(why\s+is|why\s+are|why\s+does|why\s+do)\s+/i,/^(can\s+you\s+(explain|help|tell|write|solve|give))/i,/^(solve|calculate|find|compute|derive|integrate|differentiate)\s+/i,/^(write\s+(a|an|the|me)\s+)/i,/^(help\s+me\s+)/i,/^\w{1,12}[?!.]*$/,/^write\s+answer/i,/^(answer|solution|prove|proof|show)\s+/i,/\b(conjecture|theorem|problem|question)\b/i,/^(is\s+it|will\s+you|does\s+it|can\s+it|would\s+it)\s+/i];
 const OBVIOUS_FLASHCARD=/(flashcard|flashcards|flash card|flash cards|study cards|make cards|create cards)/i;
+const OBVIOUS_NOTES=/(make\s+(me\s+)?(study\s+)?notes|study\s+notes|revision\s+notes|notes\s+(on|for|about)|note(s)?\s+(on|for|about)|summaris[e|ing].*(revision|study|notes)|i\s+need\s+to\s+study|help\s+me\s+study|study\s+guide|study\s+sheet|give\s+me\s+notes|create\s+notes|generate\s+notes)/i;
+const OBVIOUS_FORMULA=/(formula\s+sheet|key\s+terms|cheat\s+sheet|all\s+(the\s+)?formulas?|important\s+formulas?|list\s+(of\s+)?formulas?|definitions?\s+(list|sheet|of)|terminology|all\s+definitions?|extract\s+(all\s+)?formulas?|reference\s+sheet)/i;
 const OBVIOUS_QUIZ=/(quiz me|test me|give me a quiz|start a quiz|mcq|multiple choice)/i;
 const OBVIOUS_BOTH=/(flashcard|flashcards).{0,40}(quiz|test)|(quiz|test).{0,40}(flashcard|flashcards)/i;
 const OBVIOUS_GRAPH=/(show|make|create|generate|draw|plot|give me|want|need|display).{0,30}(bar chart|pie chart|line graph|bar graph|line chart|donut chart)|(bar chart|pie chart|line graph|bar graph|line chart|donut chart).{0,20}(of|for|on|about)/i;
@@ -1204,6 +1206,8 @@ async function detectIntent(text){
   if(OBVIOUS_FLASHCARD.test(t))return'flashcard';
   if(OBVIOUS_QUIZ.test(t))return'quiz';
   if(OBVIOUS_GRAPH.test(t))return'graph';
+  if(OBVIOUS_NOTES.test(t))return'notes';
+  if(OBVIOUS_FORMULA.test(t))return'formula';
   if(OBVIOUS_CHAT.some(p=>p.test(t)))return'chat';
   try{const res=await fetch(API_URL+'/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,history:chatHistory.slice(-10)})});if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();return data.intent||'chat';}
   catch(e){console.warn('Intent API failed:',e);return'chat';}
@@ -1248,6 +1252,16 @@ async function sendMessage(){
   // PDF mode — process each staged PDF
   if (pdfsToSend.length) {
     const intent = await detectIntent(text);
+
+    // Notes / Formula from PDF — pass PDF data directly
+    if (intent === 'notes') {
+      try { await handleNotes(text); } catch(err) { hideTyping(); addMsg('ai','⚠️ '+err.message); }
+      return;
+    }
+    if (intent === 'formula') {
+      try { await handleFormula(text); } catch(err) { hideTyping(); addMsg('ai','⚠️ '+err.message); }
+      return;
+    }
 
     // Flashcard / quiz intent — use first PDF's name as topic
     if (intent === 'flashcard' || intent === 'both' || intent === 'quiz') {

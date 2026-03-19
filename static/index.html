@@ -329,6 +329,160 @@ body::before{content:'';position:fixed;inset:0;
 }
 .rl-dismiss-btn:hover { border-color: var(--text2); color: var(--text2); }
 
+/* ── NOTES CARD ── */
+.notes-card {
+  background: var(--card);
+  border: 1px solid rgba(0,229,192,.2);
+  border-left: 4px solid var(--accent3);
+  border-radius: 14px;
+  overflow: hidden;
+  width: 100%;
+}
+.notes-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(0,229,192,.06);
+  border-bottom: 1px solid rgba(0,229,192,.12);
+}
+.notes-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  color: var(--accent3); letter-spacing: .8px; text-transform: uppercase;
+}
+.notes-badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent3); box-shadow: 0 0 6px var(--accent3);
+}
+.notes-copy-btn {
+  background: none; border: 1px solid rgba(0,229,192,.25);
+  border-radius: 8px; padding: 3px 10px;
+  font-size: 10px; color: var(--accent3); cursor: pointer;
+  font-family: 'DM Mono', monospace; transition: all .2s;
+}
+.notes-copy-btn:hover { background: rgba(0,229,192,.1); }
+.notes-body {
+  padding: 14px 16px;
+  font-size: 13.5px; line-height: 1.75;
+  color: var(--text);
+}
+.notes-body h1{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;background:linear-gradient(135deg,var(--accent3),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0 6px;border-bottom:1px solid rgba(0,229,192,.2);padding-bottom:5px;}
+.notes-body h2{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--accent3);margin:10px 0 4px;}
+.notes-body h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--accent);margin:8px 0 3px;}
+.notes-body strong{color:var(--text);font-weight:700;}
+.notes-body ul,.notes-body ol{padding-left:18px;margin:5px 0;}
+.notes-body li{margin:3px 0;line-height:1.6;}
+.notes-body ul li::marker{color:var(--accent3);}
+.notes-body p{margin:4px 0;}
+
+/* ── FORMULA SHEET ── */
+.formula-card {
+  background: var(--card);
+  border: 1px solid rgba(124,92,252,.25);
+  border-left: 4px solid var(--accent2);
+  border-radius: 14px;
+  overflow: hidden;
+  width: 100%;
+}
+.formula-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(124,92,252,.07);
+  border-bottom: 1px solid rgba(124,92,252,.15);
+}
+.formula-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  color: var(--accent2); letter-spacing: .8px; text-transform: uppercase;
+}
+.formula-badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent2); box-shadow: 0 0 6px var(--accent2);
+}
+.formula-copy-btn {
+  background: none; border: 1px solid rgba(124,92,252,.25);
+  border-radius: 8px; padding: 3px 10px;
+  font-size: 10px; color: var(--accent2); cursor: pointer;
+  font-family: 'DM Mono', monospace; transition: all .2s;
+}
+.formula-copy-btn:hover { background: rgba(124,92,252,.1); }
+.formula-body {
+  padding: 14px 16px;
+  font-size: 13.5px; line-height: 1.8;
+  color: var(--text);
+}
+.formula-body h1{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent2);margin:8px 0 6px;border-bottom:1px solid rgba(124,92,252,.2);padding-bottom:5px;}
+.formula-body h2{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--accent2);margin:10px 0 5px;}
+.formula-body h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--accent);margin:8px 0 3px;}
+.formula-body strong{color:var(--accent2);font-weight:700;}
+.formula-body ul,.formula-body ol{padding-left:18px;margin:5px 0;}
+.formula-body li{margin:4px 0;line-height:1.7;}
+.formula-body ul li::marker{color:var(--accent2);}
+.formula-body p{margin:4px 0;}
+
+/* ── TEXT SELECTION FOLLOW-UP POPUP ── */
+.selection-popup {
+  position: fixed;
+  z-index: 500;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(79,142,255,.08);
+  animation: slideUp .15s ease;
+  pointer-events: all;
+}
+.selection-popup.visible { display: flex; }
+.sel-add-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; border-radius: 8px;
+  font-size: 12px; font-weight: 600; color: white;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  white-space: nowrap; transition: opacity .15s;
+}
+.sel-add-btn:hover { opacity: .88; }
+.sel-ask-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 12px;
+  background: none;
+  border: 1px solid var(--border2); border-radius: 8px;
+  font-size: 12px; color: var(--text2);
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  white-space: nowrap; transition: all .15s;
+}
+.sel-ask-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── SELECTED CONTEXT CHIPS (above input) ── */
+.sel-context-row {
+  display: none; flex-wrap: wrap; gap: 5px; padding: 5px 0 3px;
+}
+.sel-context-row.visible { display: flex; }
+.sel-ctx-chip {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 8px;
+  background: rgba(79,142,255,.1);
+  border: 1px solid rgba(79,142,255,.25);
+  border-radius: 8px;
+  font-size: 11px; color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  max-width: 220px;
+  animation: msgIn .15s ease;
+}
+.sel-ctx-text {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 170px;
+}
+.sel-ctx-remove {
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-size: 12px; line-height: 1;
+  padding: 0; flex-shrink: 0; transition: color .15s;
+}
+.sel-ctx-remove:hover { color: var(--danger); }
+
 /* ── FOLLOW-UP SUGGESTION CHIPS ── */
 .suggestions-wrap{display:flex;flex-wrap:wrap;gap:7px;padding-left:40px;animation:msgIn .3s ease;}
 .suggestion-chip{padding:6px 13px;background:var(--card2);border:1px solid var(--border2);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap;}
@@ -512,6 +666,12 @@ body::before{content:'';position:fixed;inset:0;
 
   <div class="chat-messages" id="chat-messages"></div>
 
+  <!-- Text selection follow-up popup -->
+  <div class="selection-popup" id="sel-popup">
+    <button class="sel-add-btn" onclick="addSelectionToContext()">✦ Add to Follow-up</button>
+    <button class="sel-ask-btn" onclick="askSelectionNow()">Ask about this</button>
+  </div>
+
   <!-- Rate-limit modal — shown when Groq 429 is returned -->
   <div class="rl-overlay" id="rl-overlay" style="display:none;">
     <div class="rl-card">
@@ -538,6 +698,8 @@ body::before{content:'';position:fixed;inset:0;
   </div>
 
   <div class="input-area">
+    <!-- Selected text context chips — shown when user adds text selections -->
+    <div class="sel-context-row" id="sel-context-row"></div>
     <!-- Staged PDFs row — shown above input, hidden until a PDF is selected -->
     <div class="pdf-staged-row" id="pdf-staged-row"></div>
     <input type="file" id="pdf-input" accept=".pdf" multiple onchange="handlePdfSelect(event)">
@@ -1128,15 +1290,20 @@ async function sendMessage(){
     return;
   }
 
-  // Normal chat routing
-  const intent = await detectIntent(text);
-  const topic  = resolveTopic(text);
+  // Normal chat routing — include selected text context if any
+  const fullText = buildTextWithContext(text);
+  const intent = await detectIntent(fullText);
+  const topic  = resolveTopic(fullText);
+  // Clear selections after sending
+  clearSelectionContext();
   try{
-    if(intent==='graph')      await handleGraph(text);
-    else if(intent==='both') { pushHistory('user',text); await handleFlashcards(topic,text,false); showTyping(); await handleQuiz(topic,text,false); pushHistory('assistant','Generated flashcards and a quiz about '+topic); }
-    else if(intent==='flashcard') await handleFlashcards(topic,text,true);
-    else if(intent==='quiz')      await handleQuiz(topic,text,true);
-    else await handleChat(text);
+    if(intent==='graph')          await handleGraph(fullText);
+    else if(intent==='notes')     await handleNotes(fullText);
+    else if(intent==='formula')   await handleFormula(fullText);
+    else if(intent==='both') { pushHistory('user',fullText); await handleFlashcards(topic,fullText,false); showTyping(); await handleQuiz(topic,fullText,false); pushHistory('assistant','Generated flashcards and a quiz about '+topic); }
+    else if(intent==='flashcard') await handleFlashcards(topic,fullText,true);
+    else if(intent==='quiz')      await handleQuiz(topic,fullText,true);
+    else await handleChat(fullText);
   } catch(err) { hideTyping(); addMsg('ai','⚠️ Could not reach Sedy. Please check your connection.'); console.error(err); }
 }
 
@@ -1184,6 +1351,256 @@ async function handlePdfChat(text, pdf) {
   pushHistory('user', '[PDF: ' + pdf.name + '] ' + text);
   pushHistory('assistant', reply);
 }
+
+// ── NOTES RENDERER ───────────────────────────────────────────────────────────
+function renderNotesCard(notesMarkdown, topic) {
+  const cardId = 'notes_' + Date.now();
+  const wrap = document.getElementById('chat-messages');
+  const div  = document.createElement('div');
+  div.className = 'msg ai';
+  div.innerHTML = `
+    <div class="msg-avatar">🤖</div>
+    <div class="msg-content">
+      <div class="msg-bubble" style="padding:0;background:none;border:none;">
+        <div class="notes-card">
+          <div class="notes-header">
+            <div class="notes-badge"><div class="notes-badge-dot"></div>📝 Study Notes — ${_esc(topic)}</div>
+            <button class="notes-copy-btn" onclick="copyNotes('${cardId}')">⎘ Copy</button>
+          </div>
+          <div class="notes-body" id="${cardId}"></div>
+        </div>
+      </div>
+      <div class="msg-actions">
+        <button class="speak-btn" onclick="speakMsg('spk${cardId}')">🔊 Speak</button>
+      </div>
+    </div>`;
+  div._rawText = notesMarkdown;
+  wrap.appendChild(div);
+
+  // Render markdown into notes body
+  const body = document.getElementById(cardId);
+  if (body) {
+    body.innerHTML = renderMarkdown(notesMarkdown);
+    renderMath(body);
+    body.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+  }
+  scrollBottom();
+  return div;
+}
+
+function copyNotes(cardId) {
+  const el = document.getElementById(cardId);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const btn = el.closest('.notes-card').querySelector('.notes-copy-btn');
+    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = '⎘ Copy', 2000); }
+  });
+}
+
+// ── FORMULA RENDERER ──────────────────────────────────────────────────────────
+function renderFormulaCard(sheetMarkdown, topic) {
+  const cardId = 'formula_' + Date.now();
+  const wrap = document.getElementById('chat-messages');
+  const div  = document.createElement('div');
+  div.className = 'msg ai';
+  div.innerHTML = `
+    <div class="msg-avatar">🤖</div>
+    <div class="msg-content">
+      <div class="msg-bubble" style="padding:0;background:none;border:none;">
+        <div class="formula-card">
+          <div class="formula-header">
+            <div class="formula-badge"><div class="formula-badge-dot"></div>📐 Formula Sheet — ${_esc(topic)}</div>
+            <button class="formula-copy-btn" onclick="copyFormula('${cardId}')">⎘ Copy</button>
+          </div>
+          <div class="formula-body" id="${cardId}"></div>
+        </div>
+      </div>
+      <div class="msg-actions">
+        <button class="speak-btn" onclick="speakMsg('spk${cardId}')">🔊 Speak</button>
+      </div>
+    </div>`;
+  div._rawText = sheetMarkdown;
+  wrap.appendChild(div);
+
+  const body = document.getElementById(cardId);
+  if (body) {
+    body.innerHTML = renderMarkdown(sheetMarkdown);
+    renderMath(body);
+    body.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+  }
+  scrollBottom();
+  return div;
+}
+
+function copyFormula(cardId) {
+  const el = document.getElementById(cardId);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const btn = el.closest('.formula-card').querySelector('.formula-copy-btn');
+    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = '⎘ Copy', 2000); }
+  });
+}
+
+// ── NOTES + FORMULA HANDLERS ──────────────────────────────────────────────────
+async function handleNotes(text) {
+  const topic = resolveTopic(text) || text;
+  const pdfData = stagedPdfs.length ? stagedPdfs[0] : null;
+  const body = {
+    topic, model: activeModel, history: chatHistory.slice(-20),
+    ...(pdfData ? { pdf_base64: pdfData.base64, pdf_name: pdfData.name } : {})
+  };
+  const res = await fetch(API_URL + '/notes', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (res.status === 429) { const d=await res.json().catch(()=>({})); hideTyping(); showRateLimit(typeof d.detail==='object'?d.detail:{wait_seconds:900}); return; }
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  hideTyping();
+  pushHistory('user', text);
+  pushHistory('assistant', '[Notes generated on: ' + data.topic + ']');
+  renderNotesCard(data.notes, data.topic);
+}
+
+async function handleFormula(text) {
+  const topic = resolveTopic(text) || text;
+  const pdfData = stagedPdfs.length ? stagedPdfs[0] : null;
+  const body = {
+    topic, model: activeModel, history: chatHistory.slice(-20),
+    ...(pdfData ? { pdf_base64: pdfData.base64, pdf_name: pdfData.name } : {})
+  };
+  const res = await fetch(API_URL + '/formula-sheet', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (res.status === 429) { const d=await res.json().catch(()=>({})); hideTyping(); showRateLimit(typeof d.detail==='object'?d.detail:{wait_seconds:900}); return; }
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  hideTyping();
+  pushHistory('user', text);
+  pushHistory('assistant', '[Formula sheet generated on: ' + data.topic + ']');
+  renderFormulaCard(data.sheet, data.topic);
+}
+
+// ── TEXT SELECTION FOLLOW-UP SYSTEM ──────────────────────────────────────────
+let selectedContexts = []; // array of selected text strings
+let _selPopupTimeout = null;
+
+function renderSelContextRow() {
+  const row = document.getElementById('sel-context-row');
+  if (!row) return;
+  row.innerHTML = '';
+  if (!selectedContexts.length) { row.classList.remove('visible'); return; }
+  row.classList.add('visible');
+  selectedContexts.forEach((ctx, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'sel-ctx-chip';
+    chip.innerHTML = `<span class="sel-ctx-text" title="${_esc(ctx)}">"${_esc(ctx.length > 40 ? ctx.slice(0,40)+'…' : ctx)}"</span>
+      <button class="sel-ctx-remove" onclick="removeSelCtx(${i})">✕</button>`;
+    row.appendChild(chip);
+  });
+}
+
+function removeSelCtx(i) {
+  selectedContexts.splice(i, 1);
+  renderSelContextRow();
+}
+
+function clearSelectionContext() {
+  selectedContexts = [];
+  renderSelContextRow();
+}
+
+function buildTextWithContext(userText) {
+  if (!selectedContexts.length) return userText;
+  const ctxBlock = selectedContexts.map(c => `"${c}"`).join('\n');
+  return `${userText}\n\n[Context from conversation:\n${ctxBlock}]`;
+}
+
+function addSelectionToContext() {
+  const sel = window.getSelection();
+  if (!sel || !sel.toString().trim()) return;
+  const text = sel.toString().trim();
+  if (!selectedContexts.includes(text)) {
+    selectedContexts.push(text);
+    renderSelContextRow();
+  }
+  sel.removeAllRanges();
+  hideSelPopup();
+  // Focus input so user can type their question
+  document.getElementById('chat-input').focus();
+}
+
+function askSelectionNow() {
+  const sel = window.getSelection();
+  if (!sel || !sel.toString().trim()) return;
+  const text = sel.toString().trim();
+  sel.removeAllRanges();
+  hideSelPopup();
+  // Put the selection in the input as a question
+  const input = document.getElementById('chat-input');
+  const current = input.value.trim();
+  if (!current) {
+    // Pre-fill with a follow-up question
+    input.value = 'Explain this: ' + (text.length > 60 ? text.slice(0,60)+'…' : text);
+  } else {
+    selectedContexts.push(text);
+    renderSelContextRow();
+  }
+  input.focus();
+  autoResize(input);
+}
+
+function showSelPopup(x, y) {
+  const popup = document.getElementById('sel-popup');
+  if (!popup) return;
+  // Position above the selection
+  popup.style.left = Math.min(x, window.innerWidth - 220) + 'px';
+  popup.style.top  = (y - 90) + 'px';
+  popup.classList.add('visible');
+  clearTimeout(_selPopupTimeout);
+}
+
+function hideSelPopup() {
+  const popup = document.getElementById('sel-popup');
+  if (popup) popup.classList.remove('visible');
+}
+
+// Listen for text selection in chat
+document.getElementById('chat-messages').addEventListener('mouseup', (e) => {
+  setTimeout(() => {
+    const sel = window.getSelection();
+    if (!sel || !sel.toString().trim() || sel.toString().trim().length < 3) {
+      hideSelPopup();
+      return;
+    }
+    const range  = sel.getRangeAt(0);
+    const rect   = range.getBoundingClientRect();
+    const midX   = rect.left + rect.width / 2;
+    const topY   = rect.top + window.scrollY;
+    showSelPopup(midX - 90, topY);
+  }, 10);
+});
+
+// Touch support for mobile
+document.getElementById('chat-messages').addEventListener('touchend', (e) => {
+  setTimeout(() => {
+    const sel = window.getSelection();
+    if (!sel || !sel.toString().trim() || sel.toString().trim().length < 3) {
+      hideSelPopup();
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    const rect  = range.getBoundingClientRect();
+    showSelPopup(rect.left + rect.width/2 - 90, rect.top - 10);
+  }, 100);
+});
+
+// Hide popup when clicking elsewhere
+document.addEventListener('mousedown', (e) => {
+  const popup = document.getElementById('sel-popup');
+  if (popup && !popup.contains(e.target)) hideSelPopup();
+});
 
 async function handleGraph(text){
   const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,model:activeModel,history:chatHistory.slice(-20)})});

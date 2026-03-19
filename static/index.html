@@ -728,6 +728,16 @@ function renderStagedRow(){
   });
 }
 function removeStagedPdf(idx){ stagedPdfs.splice(idx,1); renderStagedRow(); }
+function arrayBufferToBase64(ab){
+  const bytes=new Uint8Array(ab);
+  let b64='';
+  const chunk=8192;
+  for(let i=0;i<bytes.length;i+=chunk){
+    b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+  }
+  return btoa(b64);
+}
+
 function handlePdfSelect(event){
   const files=Array.from(event.target.files); event.target.value='';
   if(!files.length) return;
@@ -736,7 +746,7 @@ function handlePdfSelect(event){
     const reader=new FileReader();
     reader.onload=async(e)=>{
       const ab=e.target.result;
-      const b64=btoa(String.fromCharCode(...new Uint8Array(ab)));
+      const b64=arrayBufferToBase64(ab);
       const sizeKb=Math.round(file.size/1024);
       let thumbDataUrl=null, pageCount=null;
       const rendered=await renderPdfFirstPage(ab.slice(0));
@@ -1287,23 +1297,125 @@ async function sendMessage(){
   if(selectedContexts.length){ text=text?`Context:\n${selectedContexts.join('\n')}\n\nQuestion: ${text}`:selectedContexts.join('\n'); selectedContexts=[]; renderContextChips(); }
   document.getElementById('chat-input').value=''; autoResize(document.getElementById('chat-input'));
 
-  // PDF mode
+  // PDF mode — detect intent first, then route to the right feature with PDF context
   if(stagedPdfs.length){
     const pdfs=[...stagedPdfs]; stagedPdfs=[]; renderStagedRow();
     if(!text) text='Please summarise this document.';
     addMsg('user',text,{pdfs});
     pushHistory('user',text);
     showTyping();
+
+    // Detect intent on the user's message so PDF can power all features
+    let pdfIntent='chat';
     try{
-      const pdf=pdfs[0];
-      const res=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,pdf_base64:pdf.base64,pdf_name:pdf.name,history:chatHistory.slice(-10),model:activeModel})});
+      const ir=await fetch(API_URL+'/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-6)})});
+      if(ir.ok){ const id=await ir.json(); pdfIntent=id.intent||'chat'; }
+    }catch(e){}
+
+    const pdf=pdfs[0];
+    const pdfBase64=pdf.base64;
+    const pdfName=pdf.name;
+
+    // Helper — extract topic from text for notes/formula/flashcard/quiz/flowchart
+    const topicFromText=(t)=>t.replace(/^(make|create|generate|give me|show me|draw|diagram|flowchart|notes|note|formula|flashcard|flash card|quiz|test me on|flashcards?|from (this|the) (pdf|document)|based on (this|the) (pdf|document))\s+/gi,'').replace(/(notes?|formula sheet?|flashcards?|quiz|flowchart|diagram)\s+(on|for|about|of)\s+/gi,'').trim()||pdfName.replace(/\.pdf$/i,'');
+
+    try{
+      // Flowchart from PDF
+      if(pdfIntent==='flowchart'){
+        const res=await fetch(API_URL+'/flowchart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text+' (based on the uploaded PDF: '+pdfName+')',history:chatHistory.slice(-10),model:activeModel})});
+        if(res.status===429){ const d=await res.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data=await res.json(); hideTyping();
+        pushHistory('assistant','[Flowchart from PDF: '+data.title+']');
+        renderFlowchartMsg(data);
+        return;
+      }
+
+      // Notes from PDF
+      if(pdfIntent==='notes'){
+        const res=await fetch(API_URL+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:topicFromText(text),history:chatHistory.slice(-10),model:activeModel,pdf_base64:pdfBase64,pdf_name:pdfName})});
+        if(res.status===429){ const d=await res.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data=await res.json(); hideTyping();
+        pushHistory('assistant','[Notes from PDF: '+data.topic+']');
+        renderNotesMsg(data.notes,data.topic);
+        return;
+      }
+
+      // Formula sheet from PDF
+      if(pdfIntent==='formula'){
+        const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:topicFromText(text),history:chatHistory.slice(-10),model:activeModel,pdf_base64:pdfBase64,pdf_name:pdfName})});
+        if(res.status===429){ const d=await res.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data=await res.json(); hideTyping();
+        pushHistory('assistant','[Formula Sheet from PDF: '+data.topic+']');
+        renderFormulaMsg(data.sheet,data.topic);
+        return;
+      }
+
+      // Flashcards from PDF — pass PDF text via /pdf-chat first then render
+      if(pdfIntent==='flashcard'||pdfIntent==='both'){
+        const topicStr=topicFromText(text);
+        // Use pdf-chat to extract content, then ask for flashcards JSON
+        const extractRes=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'List all the key concepts, terms and facts from this document that would make good flashcards. Be comprehensive.',pdf_base64:pdfBase64,pdf_name:pdfName,history:[],model:activeModel})});
+        if(extractRes.status===429){ const d=await extractRes.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
+        if(!extractRes.ok) throw new Error('HTTP '+extractRes.status);
+        const extractData=await extractRes.json();
+        const enrichedTopic=topicStr+'. Key content from document:\n'+extractData.reply.slice(0,800);
+        const fcRes=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:enrichedTopic,count:0,history:chatHistory.slice(-6),model:activeModel})});
+        if(!fcRes.ok) throw new Error('HTTP '+fcRes.status);
+        const fcData=await fcRes.json(); hideTyping();
+        pushHistory('assistant','[Flashcards from PDF: '+fcData.topic+']');
+        renderFlashcards(fcData.cards,fcData.topic);
+        if(pdfIntent==='both'){
+          showTyping();
+          const qRes=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:enrichedTopic,count:0,history:chatHistory.slice(-6),model:activeModel})});
+          if(!qRes.ok) throw new Error('HTTP '+qRes.status);
+          const qData=await qRes.json(); hideTyping();
+          pushHistory('assistant','[Quiz from PDF: '+qData.topic+']');
+          renderQuiz(qData.questions,qData.topic,qData.difficulty);
+        }
+        return;
+      }
+
+      // Quiz from PDF
+      if(pdfIntent==='quiz'){
+        const topicStr=topicFromText(text);
+        const extractRes=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'List all the key concepts, facts and important points from this document.',pdf_base64:pdfBase64,pdf_name:pdfName,history:[],model:activeModel})});
+        if(extractRes.status===429){ const d=await extractRes.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
+        if(!extractRes.ok) throw new Error('HTTP '+extractRes.status);
+        const extractData=await extractRes.json();
+        const enrichedTopic=topicStr+'. Key content:\n'+extractData.reply.slice(0,800);
+        const qRes=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:enrichedTopic,count:0,history:chatHistory.slice(-6),model:activeModel})});
+        if(!qRes.ok) throw new Error('HTTP '+qRes.status);
+        const qData=await qRes.json(); hideTyping();
+        pushHistory('assistant','[Quiz from PDF: '+qData.topic+']');
+        renderQuiz(qData.questions,qData.topic,qData.difficulty);
+        return;
+      }
+
+      // Graph from PDF — treat as chat with graph hint
+      if(pdfIntent==='graph'){
+        const res=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,pdf_base64:pdfBase64,pdf_name:pdfName,history:chatHistory.slice(-10),model:activeModel})});
+        if(res.status===429){ const d=await res.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data=await res.json(); hideTyping();
+        const reply=data.reply||'Sorry, no response.';
+        pushHistory('assistant',reply);
+        const msgDiv=addMsg('ai',reply,{pdfBadge:pdfName}); msgDiv._rawText=reply;
+        return;
+      }
+
+      // Default — plain PDF chat (summarise, explain, Q&A)
+      const res=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,pdf_base64:pdfBase64,pdf_name:pdfName,history:chatHistory.slice(-10),model:activeModel})});
       if(res.status===429){ const d=await res.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
       if(!res.ok) throw new Error('HTTP '+res.status);
       const data=await res.json(); hideTyping();
       const reply=data.reply||'Sorry, no response.';
       pushHistory('assistant',reply);
-      const msgDiv=addMsg('ai',reply,{pdfBadge:pdf.name}); msgDiv._rawText=reply;
-    }catch(err){ hideTyping(); addMsg('ai','Could not read the PDF. Please check your connection.'); console.error(err); }
+      const msgDiv=addMsg('ai',reply,{pdfBadge:pdfName}); msgDiv._rawText=reply;
+
+    }catch(err){ hideTyping(); addMsg('ai','Could not process the PDF. Please check your connection and try again.'); console.error(err); }
     return;
   }
 

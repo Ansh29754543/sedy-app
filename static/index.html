@@ -640,6 +640,166 @@ body::before{content:'';position:fixed;inset:0;
   .fc-card{height:120px;}
   .fc-text{font-size:11px;}
 }
+
+/* ── FILES BUTTON ── */
+.files-btn {
+  position: relative;
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 11px;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  font-size: 11px; color: var(--text2);
+  font-family: 'DM Mono', monospace;
+  cursor: pointer; transition: all .2s; white-space: nowrap;
+}
+.files-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,142,255,.06); }
+.files-count {
+  display: none;
+  position: absolute; top: -5px; right: -5px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent2);
+  font-size: 9px; font-weight: 700; color: white;
+  align-items: center; justify-content: center;
+  font-family: 'DM Sans', sans-serif;
+  box-shadow: 0 0 6px var(--accent2);
+}
+.files-count.visible { display: flex; }
+
+/* ── FILES PANEL (slide-in from right) ── */
+.files-overlay {
+  position: fixed; inset: 0; z-index: 400;
+  background: rgba(8,11,18,.6);
+  backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
+}
+.files-overlay.visible { opacity: 1; pointer-events: all; }
+
+.files-panel {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: 360px; max-width: 100vw;
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  z-index: 401;
+  transform: translateX(100%);
+  transition: transform .28s cubic-bezier(.4,0,.2,1);
+  box-shadow: -8px 0 40px rgba(0,0,0,.4);
+}
+.files-panel.visible { transform: translateX(0); }
+
+.files-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.files-panel-title {
+  font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800;
+  color: var(--text);
+}
+.files-panel-close {
+  background: none; border: 1px solid var(--border2); border-radius: 8px;
+  width: 30px; height: 30px; cursor: pointer; color: var(--text3);
+  font-size: 14px; display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.files-panel-close:hover { border-color: var(--danger); color: var(--danger); }
+
+/* Tab bar */
+.files-tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.files-tab {
+  flex: 1; padding: 10px 0;
+  background: none; border: none; cursor: pointer;
+  font-size: 12px; font-family: 'DM Mono', monospace;
+  color: var(--text3); transition: all .2s;
+  border-bottom: 2px solid transparent;
+}
+.files-tab:hover { color: var(--text2); }
+.files-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* File list */
+.files-list {
+  flex: 1; overflow-y: auto; padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.files-list::-webkit-scrollbar { width: 3px; }
+.files-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.file-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: border-color .2s;
+  cursor: default;
+}
+.file-card:hover { border-color: var(--border2); }
+.file-card-top { display: flex; align-items: flex-start; gap: 10px; }
+.file-card-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.file-card-icon.notes { background: rgba(0,229,192,.12); }
+.file-card-icon.formula { background: rgba(124,92,252,.12); }
+.file-card-info { flex: 1; min-width: 0; }
+.file-card-topic {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.file-card-meta {
+  font-size: 10px; color: var(--text3);
+  font-family: 'DM Mono', monospace; margin-top: 2px;
+}
+.file-card-actions { display: flex; gap: 6px; }
+.file-open-btn {
+  flex: 1; padding: 7px 0;
+  background: rgba(79,142,255,.1);
+  border: 1px solid rgba(79,142,255,.2); border-radius: 8px;
+  font-size: 11px; color: var(--accent); cursor: pointer;
+  font-family: 'DM Mono', monospace; transition: all .2s;
+}
+.file-open-btn:hover { background: rgba(79,142,255,.18); }
+.file-del-btn {
+  width: 32px; padding: 7px 0;
+  background: none; border: 1px solid var(--border2); border-radius: 8px;
+  font-size: 12px; color: var(--text3); cursor: pointer;
+  transition: all .2s; display: flex; align-items: center; justify-content: center;
+}
+.file-del-btn:hover { border-color: var(--danger); color: var(--danger); background: rgba(255,79,106,.06); }
+
+.files-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; padding: 40px 20px; text-align: center;
+}
+.files-empty-icon { font-size: 36px; opacity: .4; }
+.files-empty-text { font-size: 13px; color: var(--text3); line-height: 1.6; }
+
+/* ── SAVE BUTTON on notes/formula cards ── */
+.notes-save-btn, .formula-save-btn {
+  background: none; border: 1px solid rgba(0,229,192,.25);
+  border-radius: 8px; padding: 3px 10px;
+  font-size: 10px; color: var(--accent3); cursor: pointer;
+  font-family: 'DM Mono', monospace; transition: all .2s;
+}
+.notes-save-btn:hover { background: rgba(0,229,192,.1); }
+.formula-save-btn { border-color: rgba(124,92,252,.25); color: var(--accent2); }
+.formula-save-btn:hover { background: rgba(124,92,252,.1); }
+.notes-save-btn.saved, .formula-save-btn.saved {
+  color: var(--success); border-color: rgba(0,229,160,.3);
+}
+
+@media(max-width:640px){
+  .files-panel { width: 100vw; }
+  .files-btn span { display: none; }
+}
+
 </style>
 </head>
 <body>
@@ -659,9 +819,27 @@ body::before{content:'';position:fixed;inset:0;
         <button class="model-btn" data-model="flash" onclick="setModel('flash')" title="Sedy Flash — fastest responses">⚡ Flash</button>
         <button class="model-btn" data-model="smart" onclick="setModel('smart')" title="Sedy Smart — Qwen3-32b, multilingual &amp; reasoning">🧠 Smart</button>
       </div>
+      <button class="files-btn" onclick="openFilesPanel()" title="My saved notes &amp; formula sheets">
+        📁 <span>Files</span>
+        <div class="files-count" id="files-count">0</div>
+      </button>
       <div class="memory-badge"><div class="memory-dot"></div><span id="memory-count">0 messages</span></div>
       <button class="clear-header-btn" onclick="clearChat()">🗑 Clear</button>
     </div>
+  </div>
+
+  <!-- Files overlay + panel -->
+  <div class="files-overlay" id="files-overlay" onclick="closeFilesPanel()"></div>
+  <div class="files-panel" id="files-panel">
+    <div class="files-panel-header">
+      <div class="files-panel-title">📁 My Study Files</div>
+      <button class="files-panel-close" onclick="closeFilesPanel()">✕</button>
+    </div>
+    <div class="files-tabs">
+      <button class="files-tab active" id="ftab-notes" onclick="switchFilesTab('notes')">📝 Notes</button>
+      <button class="files-tab" id="ftab-formula" onclick="switchFilesTab('formula')">📐 Formulas</button>
+    </div>
+    <div class="files-list" id="files-list"></div>
   </div>
 
   <div class="chat-messages" id="chat-messages"></div>
@@ -1379,7 +1557,10 @@ function renderNotesCard(notesMarkdown, topic) {
         <div class="notes-card">
           <div class="notes-header">
             <div class="notes-badge"><div class="notes-badge-dot"></div>📝 Study Notes — ${_esc(topic)}</div>
-            <button class="notes-copy-btn" onclick="copyNotes('${cardId}')">⎘ Copy</button>
+            <div style="display:flex;gap:5px;align-items:center;">
+              <button class="notes-save-btn" id="save_${cardId}" onclick="saveFile('${cardId}','notes','${_esc(topic).replace(/'/g,'\\\'')}')">💾 Save</button>
+              <button class="notes-copy-btn" onclick="copyNotes('${cardId}')">⎘ Copy</button>
+            </div>
           </div>
           <div class="notes-body" id="${cardId}"></div>
         </div>
@@ -1424,7 +1605,10 @@ function renderFormulaCard(sheetMarkdown, topic) {
         <div class="formula-card">
           <div class="formula-header">
             <div class="formula-badge"><div class="formula-badge-dot"></div>📐 Formula Sheet — ${_esc(topic)}</div>
-            <button class="formula-copy-btn" onclick="copyFormula('${cardId}')">⎘ Copy</button>
+            <div style="display:flex;gap:5px;align-items:center;">
+              <button class="formula-save-btn" id="save_${cardId}" onclick="saveFile('${cardId}','formula','${_esc(topic).replace(/'/g,'\\\'')}')">💾 Save</button>
+              <button class="formula-copy-btn" onclick="copyFormula('${cardId}')">⎘ Copy</button>
+            </div>
           </div>
           <div class="formula-body" id="${cardId}"></div>
         </div>
@@ -1825,6 +2009,210 @@ function setModel(model) {
   addMsg('ai', '**' + MODEL_NAMES[model] + '** selected — ' + MODEL_DESC[model]);
 }
 
+// ── FILES SYSTEM ─────────────────────────────────────────────────────────────
+const FILES_KEY     = 'sedy_files';
+const FILES_MAX     = 20;
+let   activeFilesTab = 'notes';
+
+function loadFiles() {
+  try { return JSON.parse(localStorage.getItem(FILES_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+
+function saveFiles(files) {
+  try { localStorage.setItem(FILES_KEY, JSON.stringify(files)); }
+  catch(e) {}
+}
+
+function updateFilesBadge() {
+  const files = loadFiles();
+  const badge = document.getElementById('files-count');
+  if (!badge) return;
+  if (files.length > 0) {
+    badge.textContent = files.length;
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+function saveFile(cardId, type, topic) {
+  // Get content from the rendered card
+  const bodyEl = document.getElementById(cardId);
+  if (!bodyEl) return;
+  const content = bodyEl.innerText || '';
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
+
+  const files = loadFiles();
+
+  // Check limit
+  if (files.length >= FILES_MAX) {
+    addMsg('ai', '⚠️ Storage full (max ' + FILES_MAX + ' files). Delete a file to save new ones.');
+    return;
+  }
+
+  // Avoid duplicate topic+type
+  const existing = files.findIndex(f => f.topic === topic && f.type === type);
+  if (existing >= 0) {
+    // Update existing
+    files[existing].content = bodyEl.innerHTML;
+    files[existing].wordCount = wordCount;
+    files[existing].createdAt = Date.now();
+  } else {
+    files.unshift({
+      id:        'f_' + Date.now(),
+      type,
+      topic,
+      content:   bodyEl.innerHTML,  // store rendered HTML
+      wordCount,
+      createdAt: Date.now(),
+    });
+  }
+
+  saveFiles(files);
+  updateFilesBadge();
+
+  // Update button state
+  const btn = document.getElementById('save_' + cardId);
+  if (btn) {
+    btn.textContent = '✓ Saved';
+    btn.classList.add('saved');
+    setTimeout(() => { btn.textContent = '💾 Save'; btn.classList.remove('saved'); }, 2000);
+  }
+}
+
+function deleteFile(id) {
+  const files = loadFiles().filter(f => f.id !== id);
+  saveFiles(files);
+  updateFilesBadge();
+  renderFilesList();
+}
+
+function openFile(id) {
+  const files = loadFiles();
+  const file  = files.find(f => f.id === id);
+  if (!file) return;
+  closeFilesPanel();
+
+  // Re-render the card in chat
+  if (file.type === 'notes') {
+    const cardId = 'notes_' + Date.now();
+    const wrap   = document.getElementById('chat-messages');
+    const div    = document.createElement('div');
+    div.className = 'msg ai';
+    div.innerHTML = `
+      <div class="msg-avatar">🤖</div>
+      <div class="msg-content">
+        <div class="msg-bubble" style="padding:0;background:none;border:none;">
+          <div class="notes-card">
+            <div class="notes-header">
+              <div class="notes-badge"><div class="notes-badge-dot"></div>📝 Study Notes — ${_esc(file.topic)}</div>
+              <div style="display:flex;gap:5px;align-items:center;">
+                <button class="notes-copy-btn" onclick="copyNotes('${cardId}')">⎘ Copy</button>
+              </div>
+            </div>
+            <div class="notes-body" id="${cardId}">${file.content}</div>
+          </div>
+        </div>
+        <div class="msg-actions">
+          <button class="speak-btn">🔊 Speak</button>
+        </div>
+      </div>`;
+    wrap.appendChild(div);
+    // Re-render math
+    const body = document.getElementById(cardId);
+    if (body) renderMath(body);
+    scrollBottom();
+  } else {
+    const cardId = 'formula_' + Date.now();
+    const wrap   = document.getElementById('chat-messages');
+    const div    = document.createElement('div');
+    div.className = 'msg ai';
+    div.innerHTML = `
+      <div class="msg-avatar">🤖</div>
+      <div class="msg-content">
+        <div class="msg-bubble" style="padding:0;background:none;border:none;">
+          <div class="formula-card">
+            <div class="formula-header">
+              <div class="formula-badge"><div class="formula-badge-dot"></div>📐 Formula Sheet — ${_esc(file.topic)}</div>
+              <div style="display:flex;gap:5px;align-items:center;">
+                <button class="formula-copy-btn" onclick="copyFormula('${cardId}')">⎘ Copy</button>
+              </div>
+            </div>
+            <div class="formula-body" id="${cardId}">${file.content}</div>
+          </div>
+        </div>
+        <div class="msg-actions">
+          <button class="speak-btn">🔊 Speak</button>
+        </div>
+      </div>`;
+    wrap.appendChild(div);
+    const body = document.getElementById(cardId);
+    if (body) renderMath(body);
+    scrollBottom();
+  }
+}
+
+function formatFileDate(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 60000)    return 'Just now';
+  if (diff < 3600000)  return Math.floor(diff/60000) + 'm ago';
+  if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+  return d.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+}
+
+function renderFilesList() {
+  const listEl = document.getElementById('files-list');
+  if (!listEl) return;
+  const files  = loadFiles().filter(f => f.type === activeFilesTab);
+
+  if (!files.length) {
+    listEl.innerHTML = `
+      <div class="files-empty">
+        <div class="files-empty-icon">${activeFilesTab === 'notes' ? '📝' : '📐'}</div>
+        <div class="files-empty-text">No ${activeFilesTab === 'notes' ? 'notes' : 'formula sheets'} saved yet.<br>Generate one and tap 💾 Save to store it here.</div>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = files.map(f => `
+    <div class="file-card">
+      <div class="file-card-top">
+        <div class="file-card-icon ${f.type}">${f.type === 'notes' ? '📝' : '📐'}</div>
+        <div class="file-card-info">
+          <div class="file-card-topic" title="${_esc(f.topic)}">${_esc(f.topic)}</div>
+          <div class="file-card-meta">${formatFileDate(f.createdAt)} &bull; ${f.wordCount} words</div>
+        </div>
+      </div>
+      <div class="file-card-actions">
+        <button class="file-open-btn" onclick="openFile('${f.id}')">↗ Open</button>
+        <button class="file-del-btn" onclick="deleteFile('${f.id}')" title="Delete">🗑</button>
+      </div>
+    </div>`
+  ).join('');
+}
+
+function switchFilesTab(tab) {
+  activeFilesTab = tab;
+  document.querySelectorAll('.files-tab').forEach(t => t.classList.remove('active'));
+  const tabEl = document.getElementById('ftab-' + tab);
+  if (tabEl) tabEl.classList.add('active');
+  renderFilesList();
+}
+
+function openFilesPanel() {
+  renderFilesList();
+  document.getElementById('files-overlay').classList.add('visible');
+  document.getElementById('files-panel').classList.add('visible');
+}
+
+function closeFilesPanel() {
+  document.getElementById('files-overlay').classList.remove('visible');
+  document.getElementById('files-panel').classList.remove('visible');
+}
+
 // ── RENDER KEEP-ALIVE — ping every 13 min so the free dyno stays warm ───────
 // Render free tier spins down after 15 min inactivity, causing the first
 // request after idle to take 30-60s and often return empty/wrong answers.
@@ -1836,6 +2224,7 @@ function setModel(model) {
 
 initVoice();
 initSession();
+updateFilesBadge();
 
 if(window.visualViewport){
   let last=window.visualViewport.height;

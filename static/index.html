@@ -1433,11 +1433,11 @@ async function sendMessage(){
 
     // Notes / Formula from PDF — pass PDF data directly
     if (intent === 'notes') {
-      try { await handleNotes(text); } catch(err) { hideTyping(); addMsg('ai','⚠️ '+err.message); }
+      try { await handleNotes(text, pdfsToSend[0]); } catch(err) { hideTyping(); addMsg('ai','⚠️ '+err.message); }
       return;
     }
     if (intent === 'formula') {
-      try { await handleFormula(text); } catch(err) { hideTyping(); addMsg('ai','⚠️ '+err.message); }
+      try { await handleFormula(text, pdfsToSend[0]); } catch(err) { hideTyping(); addMsg('ai','⚠️ '+err.message); }
       return;
     }
 
@@ -1640,9 +1640,26 @@ function copyFormula(cardId) {
 }
 
 // ── NOTES + FORMULA HANDLERS ──────────────────────────────────────────────────
-async function handleNotes(text) {
-  const topic = resolveTopic(text) || text;
-  const pdfData = stagedPdfs.length ? stagedPdfs[0] : null;
+async function handleNotes(text, pdfOverride) {
+  // pdfOverride is passed when coming from PDF mode (pdfsToSend array item)
+  const pdfData = pdfOverride || (stagedPdfs.length ? stagedPdfs[0] : null);
+
+  // Extract topic: use PDF name if from PDF, else extract from text
+  let topic = '';
+  if (pdfData) {
+    topic = pdfData.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ').trim();
+  } else {
+    topic = resolveTopic(text) || text;
+    // If topic is still the raw message, clean it up
+    if (topic === text) {
+      topic = text.replace(/make\s*(me\s*)?notes\s*(on|for|about)?/i,'')
+                  .replace(/study\s*(notes|guide|sheet)\s*(on|for|about)?/i,'')
+                  .replace(/i\s+need\s+to\s+study/i,'')
+                  .replace(/notes\s*(on|for|about)/i,'').trim();
+    }
+    if (!topic || topic.length < 2) topic = text;
+  }
+
   const body = {
     topic, model: activeModel, history: chatHistory.slice(-20),
     ...(pdfData ? { pdf_base64: pdfData.base64, pdf_name: pdfData.name } : {})
@@ -1660,9 +1677,23 @@ async function handleNotes(text) {
   renderNotesCard(data.notes, data.topic);
 }
 
-async function handleFormula(text) {
-  const topic = resolveTopic(text) || text;
-  const pdfData = stagedPdfs.length ? stagedPdfs[0] : null;
+async function handleFormula(text, pdfOverride) {
+  const pdfData = pdfOverride || (stagedPdfs.length ? stagedPdfs[0] : null);
+
+  let topic = '';
+  if (pdfData) {
+    topic = pdfData.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ').trim();
+  } else {
+    topic = resolveTopic(text) || text;
+    if (topic === text) {
+      topic = text.replace(/formula\s*(sheet)?\s*(for|on|about)?/i,'')
+                  .replace(/key\s*terms\s*(in|for|of|on|about)?/i,'')
+                  .replace(/cheat\s*sheet\s*(for|on|about)?/i,'')
+                  .replace(/all\s*(the\s*)?formulas?\s*(for|on|about)?/i,'').trim();
+    }
+    if (!topic || topic.length < 2) topic = text;
+  }
+
   const body = {
     topic, model: activeModel, history: chatHistory.slice(-20),
     ...(pdfData ? { pdf_base64: pdfData.base64, pdf_name: pdfData.name } : {})

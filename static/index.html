@@ -328,6 +328,44 @@ body::before{content:'';position:fixed;inset:0;
   transition: all .2s;
 }
 .rl-dismiss-btn:hover { border-color: var(--text2); color: var(--text2); }
+.rl-freemode-btn {
+  width: 100%; padding: 11px 20px;
+  background: rgba(79,142,255,.1);
+  border: 1px solid rgba(79,142,255,.3); border-radius: 12px;
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+  color: var(--accent); cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.rl-freemode-btn:hover { background: rgba(79,142,255,.18); border-color: var(--accent); }
+.rl-freemode-btn:active { transform: scale(.97); }
+
+/* ── FREE MODE BANNER (shown below header when active) ── */
+.freemode-banner {
+  display: none;
+  align-items: center; justify-content: space-between; gap: 8px;
+  padding: 6px 16px;
+  background: rgba(79,142,255,.08);
+  border-bottom: 1px solid rgba(79,142,255,.2);
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  flex-shrink: 0;
+}
+.freemode-banner.visible { display: flex; }
+.freemode-badge {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--accent);
+}
+.freemode-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 6px var(--accent);
+  animation: pdfDotPulse 1.6s infinite;
+}
+.freemode-label { color: var(--text3); font-size: 10px; }
+.freemode-exit {
+  background: none; border: 1px solid var(--border2); border-radius: 8px;
+  padding: 2px 9px; font-size: 10px; color: var(--text3); cursor: pointer;
+  font-family: 'DM Mono', monospace; transition: all .2s;
+}
+.freemode-exit:hover { border-color: var(--danger); color: var(--danger); }
 
 /* ── NOTES CARD ── */
 .notes-card {
@@ -842,6 +880,16 @@ body::before{content:'';position:fixed;inset:0;
     <div class="files-list" id="files-list"></div>
   </div>
 
+  <!-- Free Mode banner — shown when user enables free mode after rate limit -->
+  <div class="freemode-banner" id="freemode-banner">
+    <div class="freemode-badge">
+      <div class="freemode-dot"></div>
+      ⚡ Free Mode Active
+    </div>
+    <div class="freemode-label">Flash model only &bull; Code/Pro/Smart disabled</div>
+    <button class="freemode-exit" onclick="disableFreeMode()">Exit Free Mode ✕</button>
+  </div>
+
   <div class="chat-messages" id="chat-messages"></div>
 
   <!-- Text selection follow-up popup -->
@@ -869,6 +917,9 @@ body::before{content:'';position:fixed;inset:0;
         <div class="rl-premium-label">Want unlimited access?</div>
         <button class="rl-premium-btn" onclick="window.open('https://console.groq.com/settings/billing','_blank')">
           ⚡ Upgrade to Premium
+        </button>
+        <button class="rl-freemode-btn" onclick="enableFreeMode()">
+          ⚡ Continue in Free Mode
         </button>
         <button class="rl-dismiss-btn" onclick="closeRateLimit()">I'll wait — dismiss</button>
       </div>
@@ -1183,844 +1234,62 @@ function handlePdfSelect(event) {
 
   files.forEach(file => {
     if (file.type !== 'application/pdf') {
-      addMsg('ai', '⚠️ "' + _esc(file.name) + '" is not a PDF, skipping.'); return;
-    }
-    if (file.size > 25 * 1024 * 1024) {
-      addMsg('ai', '⚠️ "' + _esc(file.name) + '" is too large (max 25 MB), skipping.'); return;
-    }
+      addMsg('ai', '** Free Mode ON** — Flash model only.
 
-    const sizeKb = Math.round(file.size / 1024);
-    const entry  = { name: file.name, base64: null, sizeKb, pageCount: null, thumbDataUrl: null };
+**Available:** Chat, Flashcards, Quiz, Notes, Formula, Graphs, PDF
+**Disabled:** Code, Pro model, Smart model
 
-    // Push placeholder immediately so the chip appears right away
-    stagedPdfs.push(entry);
-    renderStagedRow();
+Tap Exit Free Mode in the banner when your quota resets.');
+}
 
-    // Read as DataURL for backend base64
-    const r1 = new FileReader();
-    r1.onload = () => {
-      const dataUrl = r1.result;
-      entry.base64  = dataUrl.includes(',') ? dataUrl.split(',', 2)[1] : dataUrl;
-    };
-    r1.readAsDataURL(file);
+function disableFreeMode() {
+  isFreeMode = false;
+  try { localStorage.removeItem(FREEMODE_KEY); } catch(e) {}
+  applyFreeMode();
+  addMsg('ai', '✅ **Free Mode disabled.** All models and features restored.');
+}
 
-    // Read as ArrayBuffer for PDF.js thumbnail (parallel)
-    const r2 = new FileReader();
-    r2.onload = async () => {
-      const result = await renderPdfFirstPage(r2.result);
-      if (result) {
-        entry.pageCount   = result.pageCount;
-        entry.thumbDataUrl = makeThumb(result.canvas);
-        renderStagedRow(); // re-render chips with actual thumbnail
+function applyFreeMode() {
+  const banner = document.getElementById('freemode-banner');
+  const switcher = document.getElementById('model-switcher');
+
+  if (isFreeMode) {
+    // Show banner
+    if (banner) banner.classList.add('visible');
+    // Force model to flash, disable Pro/Smart buttons
+    activeModel = 'flash';
+    document.querySelectorAll('.model-btn').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.model === 'flash') {
+        btn.classList.add('active');
       }
-    };
-    r2.readAsArrayBuffer(file);
-  });
-}
-
-// Build the user-side attachment thumbnails HTML
-function buildPdfAttachmentsHtml(pdfs) {
-  if (!pdfs.length) return '';
-  const thumbs = pdfs.map(pdf => {
-    const img = pdf.thumbDataUrl
-      ? `<img class="pdf-user-thumb-img" src="${pdf.thumbDataUrl}" alt="page 1">`
-      : `<div class="pdf-user-thumb-icon">📄</div>`;
-    return `<div class="pdf-user-thumb">
-      ${img}
-      <div class="pdf-user-thumb-info">
-        <div class="pdf-user-thumb-name">${_esc(pdf.name)}</div>
-        <div class="pdf-user-thumb-sub">${pdf.sizeKb} KB${pdf.pageCount ? ' · ' + pdf.pageCount + ' pages' : ''}</div>
-      </div>
-    </div>`;
-  }).join('');
-  return `<div class="pdf-user-attachments">${thumbs}</div>`;
-}
-
-function removePdf() {
-  stagedPdfs = [];
-  renderStagedRow();
-}
-
-// ── HELPERS ───────────────────────────────────────────────────────────────────
-function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
-function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
-function scrollBottom(){const el=document.getElementById('chat-messages');setTimeout(()=>el.scrollTop=el.scrollHeight,80);}
-const _esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-// ── MARKDOWN ──────────────────────────────────────────────────────────────────
-function renderMarkdown(text){
-  let html=text; const codeBlocks=[],mathBlocks=[];
-  html=html.replace(/```(\w+)?\n?([\s\S]*?)```/g,(_,lang,code)=>{const i=codeBlocks.length;codeBlocks.push({lang:lang||'plaintext',code:code.trim()});return '%%CODE_'+i+'%%';});
-  html=html.replace(/\$\$([\s\S]+?)\$\$/g,(_,inner)=>{const i=mathBlocks.length;mathBlocks.push({display:true,inner});return '%%MATH_'+i+'%%';});
-  html=html.replace(/\$([^$\n]+?)\$/g,(_,inner)=>{const i=mathBlocks.length;mathBlocks.push({display:false,inner});return '%%MATH_'+i+'%%';});
-  html=html.replace(/\\\((.+?)\\\)/g,(_,inner)=>{const i=mathBlocks.length;mathBlocks.push({display:false,inner});return '%%MATH_'+i+'%%';});
-  html=html.replace(/\\\[([\s\S]+?)\\\]/g,(_,inner)=>{const i=mathBlocks.length;mathBlocks.push({display:true,inner});return '%%MATH_'+i+'%%';});
-  html=html.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  html=html.replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^# (.+)$/gm,'<h1>$1</h1>');
-  html=html.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>');
-  html=html.replace(/`([^`]+)`/g,'<code>$1</code>');
-  html=html.replace(/\[!NOTE\]\s*(.+)/g,'<div class="highlight-box">$1</div>').replace(/\[!WARNING\]\s*(.+)/g,'<div class="warning-box">$1</div>').replace(/\[!SUCCESS\]\s*(.+)/g,'<div class="success-box">$1</div>');
-  html=html.replace(/^---$/gm,'<hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">');
-  html=html.replace(/(\|.+\|\n)((\|[-| :]+)+\|)\n((?:\|.+\|\n?)+)/g,match=>{
-    const lines=match.trim().split('\n');const headers=lines[0].split('|').filter(c=>c.trim());const rows=lines.slice(2).map(r=>r.split('|').filter(c=>c.trim()));
-    let t='<table><thead><tr>';headers.forEach(h=>t+='<th>'+h.trim()+'</th>');t+='</tr></thead><tbody>';
-    rows.forEach(row=>{t+='<tr>';row.forEach(cell=>t+='<td>'+cell.trim()+'</td>');t+='</tr>';});return t+'</tbody></table>';
-  });
-  html=html.replace(/((?:^[-*] .+\n?)+)/gm,m=>'<ul>'+m.trim().split('\n').map(i=>'<li>'+i.replace(/^[-*] /,'')+'</li>').join('')+'</ul>');
-  html=html.replace(/((?:^\d+\. .+\n?)+)/gm,m=>'<ol>'+m.trim().split('\n').map(i=>'<li>'+i.replace(/^\d+\. /,'')+'</li>').join('')+'</ol>');
-  html=html.replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
-  codeBlocks.forEach(({lang,code},i)=>{
-    const safe=code.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
-    let hi;try{hi=hljs.highlight(safe,{language:lang,ignoreIllegals:true}).value;}catch(e){hi=hljs.highlightAuto(safe).value;}
-    html=html.replace('%%CODE_'+i+'%%','<div class="code-block-wrap"><div class="code-block-header"><span class="code-lang">'+lang+'</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code class="hljs">'+hi+'</code></pre></div>');
-  });
-  mathBlocks.forEach(({display,inner},i)=>{html=html.replace('%%MATH_'+i+'%%',display?'$$'+inner+'$$':'$'+inner+'$');});
-  return html;
-}
-function copyCode(btn){navigator.clipboard.writeText(btn.closest('.code-block-wrap').querySelector('code').innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
-function renderMath(el){try{renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}catch(e){}}
-
-// ── ADD MESSAGE ───────────────────────────────────────────────────────────────
-function addMsg(role, content, isHtml=false){
-  const wrap=document.getElementById('chat-messages');
-  const div=document.createElement('div'); div.className='msg '+role;
-  let bubbleContent=isHtml?content:(role==='ai'?renderMarkdown(content):_esc(content).replace(/\n/g,'<br>'));
-  const spkId='spk'+Date.now()+Math.random().toString(36).slice(2,5);
-  const actionsHtml=(role==='ai')
-    ?`<div class="msg-actions"><button class="speak-btn" id="${spkId}" onclick="speakMsg('${spkId}')">🔊 Speak</button></div>`:'';
-  div.innerHTML=`<div class="msg-avatar">${role==='ai'?'🤖':'👤'}</div><div class="msg-content"><div class="msg-bubble">${bubbleContent}</div>${actionsHtml}</div>`;
-  if(role==='ai') div._rawText=content;
-  wrap.appendChild(div);
-  if(role==='ai'){const bubble=div.querySelector('.msg-bubble');if(bubble){renderMath(bubble);bubble.querySelectorAll('pre code').forEach(el=>hljs.highlightElement(el));}}
-  scrollBottom();
-  return div;
-}
-function showTyping(){if(document.getElementById('typing'))return;const wrap=document.getElementById('chat-messages');const div=document.createElement('div');div.className='msg ai';div.id='typing';div.innerHTML='<div class="msg-avatar">🤖</div><div class="msg-content"><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>';wrap.appendChild(div);scrollBottom();}
-function hideTyping(){const t=document.getElementById('typing');if(t)t.remove();}
-
-// ── GRAPH ENGINE ──────────────────────────────────────────────────────────────
-const PALETTE=['#4f8eff','#00e5c0','#ff4f6a','#ffb547','#7c5cfc','#00e5a0'];
-function renderGraph(g){
-  if(!g.series||!g.series.length)return;
-  g.series.forEach((s,i)=>s._c=PALETTE[i%PALETTE.length]);
-  const ct=(g.chart_type||'line').toLowerCase();
-  const uid='g'+Date.now()+Math.random().toString(36).slice(2,5);
-  const legend=ct==='pie'?g.series[0].data.map((pt,i)=>`<div class="graph-legend-item"><div class="graph-legend-dot" style="background:${PALETTE[i%PALETTE.length]}"></div>${_esc(String(pt.x))}</div>`).join(''):g.series.map(s=>`<div class="graph-legend-item"><div class="graph-legend-line" style="background:${s._c}"></div>${_esc(s.label)}</div>`).join('');
-  const srcBadge=g.data_source==='live'?`<span class="graph-source-badge live">● LIVE</span>`:`<span class="graph-source-badge estimated">~ estimated</span>`;
-  const zoomPanTools=(ct!=='pie')?`<button class="graph-tool-btn" id="zoom_${uid}" onclick="setMode('${uid}','zoom',this)">🔍 Zoom</button><button class="graph-tool-btn" id="pan_${uid}" onclick="setMode('${uid}','pan',this)">✋ Pan</button><button class="graph-tool-btn" id="reset_${uid}" onclick="resetView('${uid}')">↺ Reset</button>`:'';
-  const html=`<div class="graph-wrap"><div class="graph-header"><div class="graph-header-left"><div class="graph-title">${_esc(g.title)}</div>${g.unit?`<div class="graph-unit-label">${_esc(g.unit)}</div>`:''}</div><div class="graph-legend">${legend}</div></div><div class="graph-meta">${srcBadge}${g.caption?`<span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">${_esc(g.caption)}</span>`:''}</div><div class="graph-toolbar" style="margin-top:10px;">${zoomPanTools}<button class="graph-tool-btn" style="margin-left:${ct!=='pie'?'0':'auto'}" onclick="downloadChart('${uid}')">⬇ Download</button>${ct!=='pie'?`<span class="graph-zoom-hint">scroll=zoom &bull; drag=pan</span>`:''}</div><div class="graph-canvas-wrap" id="cw_${uid}"><canvas id="cv_${uid}"></canvas><div class="graph-tooltip" id="tt_${uid}"></div></div></div>`;
-  addMsg('ai',html,true);
-  requestAnimationFrame(()=>{const wrap=document.getElementById('cw_'+uid),canvas=document.getElementById('cv_'+uid),tip=document.getElementById('tt_'+uid);if(!wrap||!canvas)return;if(ct==='pie')mountPie(canvas,tip,wrap,g);else mountLineBar(canvas,tip,wrap,g,ct);});
-}
-const _modes={},_views={},_redraws={};
-function setMode(uid,mode,btn){_modes[uid]=mode;const wrap=document.getElementById('cw_'+uid);if(wrap)wrap.className='graph-canvas-wrap '+(mode==='zoom'?'zoom-mode':mode==='pan'?'pan-mode':'');['zoom','pan'].forEach(m=>{const b=document.getElementById(m+'_'+uid);if(b)b.classList.toggle('active',m===mode);});}
-function resetView(uid){if(_views[uid]){_views[uid].offsetX=0;_views[uid].offsetY=0;_views[uid].scale=1;}setMode(uid,'crosshair',null);const wrap=document.getElementById('cw_'+uid);if(wrap)wrap.className='graph-canvas-wrap';['zoom','pan'].forEach(m=>{const b=document.getElementById(m+'_'+uid);if(b)b.classList.remove('active');});if(_redraws[uid])_redraws[uid]();}
-function downloadChart(uid){const canvas=document.getElementById('cv_'+uid);if(!canvas)return;const off=document.createElement('canvas');off.width=canvas.width;off.height=canvas.height;const ctx=off.getContext('2d');ctx.fillStyle='#080b12';ctx.fillRect(0,0,off.width,off.height);ctx.drawImage(canvas,0,0);const a=document.createElement('a');a.download='sedy-chart-'+Date.now()+'.png';a.href=off.toDataURL('image/png');a.click();}
-function fmtVal(v){if(Math.abs(v)>=1e9)return(v/1e9).toFixed(1)+'B';if(Math.abs(v)>=1e6)return(v/1e6).toFixed(1)+'M';if(Math.abs(v)>=1e3)return(v/1e3).toFixed(1)+'k';return v%1===0?v.toString():v.toFixed(1);}
-function niceTicks(lo,hi,n=5){const range=hi-lo,rough=range/n,mag=Math.pow(10,Math.floor(Math.log10(rough||1))),norm=rough/mag,step=(norm<1.5?1:norm<3?2:norm<7?5:10)*mag,ticks=[];for(let v=Math.ceil(lo/step)*step;v<=hi+step*0.01;v+=step)ticks.push(Math.round(v*1e9)/1e9);return ticks;}
-
-function mountLineBar(canvas,tip,wrap,g,ct){
-  const PAD={t:18,r:20,b:44,l:60},H=250,DPR=window.devicePixelRatio||1;
-  const allX=[...new Set(g.series.flatMap(s=>s.data.map(d=>d.x)))].sort((a,b)=>Number(a)-Number(b));
-  const allY=g.series.flatMap(s=>s.data.map(d=>+d.y));
-  const minY=Math.min(...allY),maxY=Math.max(...allY),yPad=(maxY-minY)*0.13||1;
-  const yLoBase=minY-yPad,yHiBase=maxY+yPad;
-  const uid=canvas.id.replace('cv_','');
-  _views[uid]={scale:1,offsetX:0,offsetY:0};
-  const getView=()=>_views[uid]||{scale:1,offsetX:0,offsetY:0};
-  const plotW=W=>W-PAD.l-PAD.r,plotH=()=>H-PAD.t-PAD.b;
-  function xToPixel(xi,W,v){const{scale,offsetX}=v,base=allX.length<2?PAD.l+plotW(W)/2:PAD.l+(xi/(allX.length-1))*plotW(W);return(base-PAD.l)*scale+PAD.l+offsetX;}
-  function yToPixel(y,v){const{scale,offsetY}=v,base=PAD.t+(1-(y-yLoBase)/(yHiBase-yLoBase))*plotH();return(base-PAD.t)*scale+PAD.t+offsetY;}
-  let prog=0,raf=null;
-  function draw(p,v){const W=canvas.width/DPR;v=v||getView();const ctx=canvas.getContext('2d');ctx.save();ctx.scale(DPR,DPR);ctx.clearRect(0,0,W,H);ctx.save();ctx.beginPath();ctx.rect(PAD.l,PAD.t,plotW(W),plotH());ctx.clip();if(ct==='bar')drawBars(ctx,W,p,v);else drawLines(ctx,W,p,v);ctx.restore();drawAxes(ctx,W,v);ctx.restore();}
-  function drawAxes(ctx,W,v){niceTicks(yLoBase,yHiBase).forEach(t=>{const py=yToPixel(t,v);if(py<PAD.t-2||py>H-PAD.b+2)return;ctx.strokeStyle='rgba(30,45,69,0.7)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PAD.l,py);ctx.lineTo(W-PAD.r,py);ctx.stroke();ctx.fillStyle='rgba(74,90,122,0.9)';ctx.font=`10px 'DM Mono',monospace`;ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(fmtVal(t),PAD.l-7,py);});const maxTicks=Math.max(2,Math.floor(plotW(W)/52)),xStep=Math.ceil(allX.length/maxTicks);allX.forEach((x,i)=>{if(i%xStep!==0&&i!==allX.length-1)return;const px=xToPixel(i,W,v);if(px<PAD.l||px>W-PAD.r)return;ctx.strokeStyle='rgba(30,45,69,0.35)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(px,PAD.t);ctx.lineTo(px,H-PAD.b);ctx.stroke();ctx.fillStyle='rgba(74,90,122,0.9)';ctx.font=`10px 'DM Mono',monospace`;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(String(x),px,H-PAD.b+8);});if(g.unit){ctx.save();ctx.translate(13,PAD.t+plotH()/2);ctx.rotate(-Math.PI/2);ctx.fillStyle='rgba(74,90,122,0.7)';ctx.font=`9px 'DM Mono',monospace`;ctx.textAlign='center';ctx.fillText(g.unit,0,0);ctx.restore();}ctx.strokeStyle='rgba(36,51,80,1)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(PAD.l,PAD.t);ctx.lineTo(PAD.l,H-PAD.b);ctx.lineTo(W-PAD.r,H-PAD.b);ctx.stroke();}
-  function drawLines(ctx,W,p,v){g.series.forEach(s=>{const pts=allX.map((x,i)=>{const pt=s.data.find(d=>String(d.x)===String(x));return pt?{xi:i,y:+pt.y}:null;}).filter(Boolean);if(!pts.length)return;const vis=pts.slice(0,Math.max(1,Math.floor(pts.length*p)));const grd=ctx.createLinearGradient(0,PAD.t,0,H-PAD.b);grd.addColorStop(0,s._c+'2a');grd.addColorStop(1,s._c+'00');ctx.beginPath();vis.forEach((pt,i)=>{const x=xToPixel(pt.xi,W,v),y=yToPixel(pt.y,v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.lineTo(xToPixel(vis[vis.length-1].xi,W,v),H-PAD.b);ctx.lineTo(xToPixel(vis[0].xi,W,v),H-PAD.b);ctx.closePath();ctx.fillStyle=grd;ctx.fill();ctx.beginPath();ctx.strokeStyle=s._c;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';vis.forEach((pt,i)=>{const x=xToPixel(pt.xi,W,v),y=yToPixel(pt.y,v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.stroke();(p>=1?vis:[vis[vis.length-1]]).forEach(pt=>{const x=xToPixel(pt.xi,W,v),y=yToPixel(pt.y,v);ctx.beginPath();ctx.arc(x,y,p>=1?3.5:4.5,0,Math.PI*2);ctx.fillStyle=s._c;ctx.fill();ctx.strokeStyle='#080b12';ctx.lineWidth=1.5;ctx.stroke();});});}
-  function drawBars(ctx,W,p,v){const n=g.series.length,groupW=allX.length>1?(xToPixel(1,W,v)-xToPixel(0,W,v))*0.7:40,barW=Math.max(4,(groupW/n)-2);allX.forEach((x,xi)=>{g.series.forEach((s,si)=>{const pt=s.data.find(d=>String(d.x)===String(x));if(!pt)return;const val=+pt.y*p,cx=xToPixel(xi,W,v),barX=cx-groupW/2+si*(barW+2),yBottom=yToPixel(Math.max(yLoBase,0),v),yTop=yToPixel(val,v),h=Math.abs(yBottom-yTop);if(h<1)return;const grd=ctx.createLinearGradient(0,yTop,0,yBottom);grd.addColorStop(0,s._c);grd.addColorStop(1,s._c+'88');ctx.fillStyle=grd;ctx.beginPath();ctx.roundRect?ctx.roundRect(barX,Math.min(yTop,yBottom),barW,h,3):ctx.rect(barX,Math.min(yTop,yBottom),barW,h);ctx.fill();});});}
-  function animate(){prog+=0.035;if(prog>=1){prog=1;draw(1);return;}draw(prog);raf=requestAnimationFrame(animate);}
-  function resize(){const W=wrap.clientWidth||300;canvas.width=W*DPR;canvas.height=H*DPR;canvas.style.height=H+'px';if(prog>=1)draw(1);else if(!raf)animate();}
-  _redraws[uid]=()=>draw(1);
-  function xIndexAt(mx){const W=wrap.clientWidth,v=getView();let best=0,bestD=Infinity;allX.forEach((_,i)=>{const d=Math.abs(mx-xToPixel(i,W,v));if(d<bestD){bestD=d;best=i;}});return best;}
-  function showTip(mx,my){const W=wrap.clientWidth,v=getView();if(mx<PAD.l-8||mx>W-PAD.r+8){hideTip();return;}const xi=xIndexAt(mx),xVal=allX[xi],cx=xToPixel(xi,W,v);draw(1,v);const ctx=canvas.getContext('2d');ctx.save();ctx.scale(DPR,DPR);ctx.strokeStyle='rgba(232,237,245,0.18)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(cx,PAD.t);ctx.lineTo(cx,H-PAD.b);ctx.stroke();ctx.setLineDash([]);g.series.forEach(s=>{const pt=s.data.find(d=>String(d.x)===String(xVal));if(!pt)return;const cy=yToPixel(+pt.y,v);ctx.beginPath();ctx.arc(cx,cy,9,0,Math.PI*2);const halo=ctx.createRadialGradient(cx,cy,2,cx,cy,9);halo.addColorStop(0,s._c+'55');halo.addColorStop(1,s._c+'00');ctx.fillStyle=halo;ctx.fill();ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fillStyle=s._c;ctx.fill();ctx.strokeStyle='#080b12';ctx.lineWidth=2;ctx.stroke();});ctx.restore();const rows=g.series.map(s=>{const pt=s.data.find(d=>String(d.x)===String(xVal));const val=pt?fmtVal(+pt.y)+(g.unit?' '+g.unit:''):'—';return`<div class="graph-tooltip-row"><div class="graph-tooltip-swatch" style="background:${s._c}"></div><span class="graph-tooltip-label">${_esc(s.label)}</span><span class="graph-tooltip-val">${_esc(val)}</span></div>`;}).join('');tip.innerHTML=`<div class="graph-tooltip-x">${_esc(String(xVal))}</div>${rows}`;tip.classList.add('visible');const tipW=tip.offsetWidth||180,wW=wrap.clientWidth;let left=cx+16;if(left+tipW>wW-8)left=cx-tipW-16;tip.style.left=Math.max(2,left)+'px';tip.style.top=Math.max(PAD.t,my-24)+'px';}
-  function hideTip(){tip.classList.remove('visible');if(prog>=1)draw(1);}
-  canvas.addEventListener('wheel',e=>{e.preventDefault();const v=getView(),rect=canvas.getBoundingClientRect(),mx=e.clientX-rect.left,delta=e.deltaY>0?0.85:1.18,newScale=Math.max(0.5,Math.min(10,v.scale*delta));v.offsetX=(v.offsetX-mx)*(newScale/v.scale)+mx;v.scale=newScale;draw(1,v);},{passive:false});
-  let isDragging=false,dragStart={x:0,y:0},dragBase={x:0,y:0};
-  canvas.addEventListener('mousedown',e=>{if(_modes[uid]!=='pan')return;isDragging=true;canvas.classList.add('dragging');const rect=canvas.getBoundingClientRect();dragStart={x:e.clientX-rect.left,y:e.clientY-rect.top};const v=getView();dragBase={x:v.offsetX,y:v.offsetY};});
-  window.addEventListener('mousemove',e=>{if(!isDragging)return;const rect=canvas.getBoundingClientRect(),mx=e.clientX-rect.left,my=e.clientY-rect.top,v=getView();v.offsetX=dragBase.x+(mx-dragStart.x);draw(1,v);});
-  window.addEventListener('mouseup',()=>{isDragging=false;canvas.classList.remove('dragging');});
-  canvas.addEventListener('mousemove',e=>{if(isDragging||_modes[uid]==='pan')return;const r=canvas.getBoundingClientRect();showTip(e.clientX-r.left,e.clientY-r.top);});
-  canvas.addEventListener('mouseleave',()=>{if(!isDragging)hideTip();});
-  canvas.addEventListener('touchmove',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();showTip(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);},{passive:false});
-  canvas.addEventListener('touchend',()=>hideTip());
-  const ro=new ResizeObserver(()=>{if(prog>=1)resize();});ro.observe(wrap);resize();animate();
-}
-
-function mountPie(canvas,tip,wrap,g){
-  const H=280,DPR=window.devicePixelRatio||1;
-  const slices=g.series[0].data.map((pt,i)=>({label:String(pt.x),value:+pt.y,color:PALETTE[i%PALETTE.length]}));
-  const total=slices.reduce((a,s)=>a+s.value,0);
-  let prog=0,raf=null,hoveredIdx=-1;
-  function draw(p){const W=canvas.width/DPR,ctx=canvas.getContext('2d');ctx.save();ctx.scale(DPR,DPR);ctx.clearRect(0,0,W,H);const cx=W/2,cy=H/2-10,r=Math.min(W,H)*0.36;let angle=-Math.PI/2;slices.forEach((s,i)=>{const sweep=(s.value/total)*Math.PI*2*p,isHov=i===hoveredIdx,push=isHov?8:0,midA=angle+sweep/2,ox=Math.cos(midA)*push,oy=Math.sin(midA)*push;ctx.beginPath();ctx.moveTo(cx+ox,cy+oy);ctx.arc(cx+ox,cy+oy,r+(isHov?6:0),angle,angle+sweep);ctx.closePath();ctx.fillStyle=s.color;ctx.fill();ctx.strokeStyle='#080b12';ctx.lineWidth=2;ctx.stroke();if(sweep>0.3&&p>=1){const lx=cx+ox+Math.cos(midA)*(r*0.65),ly=cy+oy+Math.sin(midA)*(r*0.65),pct=Math.round(s.value/total*100);ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font=`bold 11px 'DM Sans',sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(pct+'%',lx,ly);}angle+=sweep;});ctx.beginPath();ctx.arc(cx,cy,r*0.42,0,Math.PI*2);ctx.fillStyle='#121828';ctx.fill();if(p>=1&&hoveredIdx>=0){const s=slices[hoveredIdx];ctx.fillStyle=s.color;ctx.font=`bold 13px 'Syne',sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(fmtVal(s.value)+(g.unit?' '+g.unit:''),cx,cy-8);ctx.fillStyle='rgba(136,153,187,0.8)';ctx.font=`10px 'DM Mono',monospace`;ctx.fillText(s.label,cx,cy+10);}ctx.restore();}
-  function animate(){prog+=0.04;if(prog>=1){prog=1;draw(1);return;}draw(prog);raf=requestAnimationFrame(animate);}
-  function resize(){const W=wrap.clientWidth||300;canvas.width=W*DPR;canvas.height=H*DPR;canvas.style.height=H+'px';if(prog>=1)draw(1);else if(!raf)animate();}
-  function getSliceAt(mx,my){const W=canvas.width/DPR,cx=W/2,cy=H/2-10,r=Math.min(W,H)*0.36,dx=mx-cx,dy=my-cy,dist=Math.sqrt(dx*dx+dy*dy);if(dist>r+8||dist<r*0.38)return -1;let angle=Math.atan2(dy,dx);if(angle<-Math.PI/2)angle+=Math.PI*2;angle+=Math.PI/2;if(angle<0)angle+=Math.PI*2;let a=0;for(let i=0;i<slices.length;i++){const sweep=(slices[i].value/total)*Math.PI*2;if(angle>=a&&angle<a+sweep)return i;a+=sweep;}return -1;}
-  canvas.style.cursor='default';
-  canvas.addEventListener('mousemove',e=>{if(prog<1)return;const r2=canvas.getBoundingClientRect(),mx=e.clientX-r2.left,my=e.clientY-r2.top,idx=getSliceAt(mx,my);if(idx!==hoveredIdx){hoveredIdx=idx;draw(1);}if(idx>=0){const s=slices[idx];tip.innerHTML=`<div class="graph-tooltip-x">${_esc(s.label)}</div><div class="graph-tooltip-row"><div class="graph-tooltip-swatch circle" style="background:${s.color}"></div><span class="graph-tooltip-label">${_esc(s.label)}</span><span class="graph-tooltip-val">${_esc(fmtVal(s.value)+(g.unit?' '+g.unit:''))}</span></div>`;tip.classList.add('visible');const wW=wrap.clientWidth,tipW=tip.offsetWidth||150;let lx=mx+14;if(lx+tipW>wW-8)lx=mx-tipW-14;tip.style.left=Math.max(0,lx)+'px';tip.style.top=Math.max(0,my-20)+'px';canvas.style.cursor='pointer';}else{tip.classList.remove('visible');canvas.style.cursor='default';}});
-  canvas.addEventListener('mouseleave',()=>{hoveredIdx=-1;tip.classList.remove('visible');if(prog>=1)draw(1);});
-  const ro=new ResizeObserver(()=>{if(prog>=1)resize();});ro.observe(wrap);resize();animate();
-}
-
-// ── INTENT ────────────────────────────────────────────────────────────────────
-const OBVIOUS_CHAT=[/^(hi|hey|hello|hii|helo|hiya|yo|sup|howdy|greetings)[\s!?.]*$/i,/^(thanks|thank you|thx|ty|ok|okay|k|sure|got it|cool|nice|great|awesome|perfect)[\s!.]*$/i,/^(bye|goodbye|see you|cya|good night|gn)[\s!.]*$/i,/^what\s+is\s+(a|an|the)\s+/i,/^(explain|define|describe|tell me about|what does|what are)\s+/i,/^(how\s+does|how\s+do)\s+/i,/^(why\s+is|why\s+are|why\s+does|why\s+do)\s+/i,/^(can\s+you\s+(explain|help|tell|write|solve|give))/i,/^(solve|calculate|find|compute|derive|integrate|differentiate)\s+/i,/^(write\s+(a|an|the|me)\s+)/i,/^(help\s+me\s+)/i,/^\w{1,12}[?!.]*$/,/^write\s+answer/i,/^(answer|solution|prove|proof|show)\s+/i,/\b(conjecture|theorem|problem|question)\b/i,/^(is\s+it|will\s+you|does\s+it|can\s+it|would\s+it)\s+/i];
-const OBVIOUS_FLASHCARD=/(flashcard|flashcards|flash card|flash cards|study cards|make cards|create cards)/i;
-const OBVIOUS_NOTES=/(make\s+(me\s+)?(study\s+)?notes|study\s+notes|revision\s+notes|notes\s+(on|for|about)|note(s)?\s+(on|for|about)|summaris[e|ing].*(revision|study|notes)|i\s+need\s+to\s+study|help\s+me\s+study|study\s+guide|study\s+sheet|give\s+me\s+notes|create\s+notes|generate\s+notes)/i;
-const OBVIOUS_FORMULA=/(formula\s+sheet|key\s+terms|cheat\s+sheet|all\s+(the\s+)?formulas?|important\s+formulas?|list\s+(of\s+)?formulas?|definitions?\s+(list|sheet|of)|terminology|all\s+definitions?|extract\s+(all\s+)?formulas?|reference\s+sheet)/i;
-const OBVIOUS_QUIZ=/(quiz me|test me|give me a quiz|start a quiz|mcq|multiple choice)/i;
-const OBVIOUS_BOTH=/(flashcard|flashcards).{0,40}(quiz|test)|(quiz|test).{0,40}(flashcard|flashcards)/i;
-const OBVIOUS_GRAPH=/(show|make|create|generate|draw|plot|give me|want|need|display).{0,30}(bar chart|pie chart|line graph|bar graph|line chart|donut chart)|(bar chart|pie chart|line graph|bar graph|line chart|donut chart).{0,20}(of|for|on|about)/i;
-
-async function detectIntent(text){
-  const t=text.trim();
-  if(OBVIOUS_BOTH.test(t))return'both';
-  if(OBVIOUS_FLASHCARD.test(t))return'flashcard';
-  if(OBVIOUS_QUIZ.test(t))return'quiz';
-  if(OBVIOUS_GRAPH.test(t))return'graph';
-  if(OBVIOUS_NOTES.test(t))return'notes';
-  if(OBVIOUS_FORMULA.test(t))return'formula';
-  if(OBVIOUS_CHAT.some(p=>p.test(t)))return'chat';
-  try{const res=await fetch(API_URL+'/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,history:chatHistory.slice(-10)})});if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();return data.intent||'chat';}
-  catch(e){console.warn('Intent API failed:',e);return'chat';}
-}
-
-function extractTopic(text){const patterns=[/(?:flashcards?|cards?)\s+(?:about|on|for|regarding)\s+(.+)/i,/(?:generate|make|create)\s+(?:\d+\s+)?(?:flashcards?|cards?)\s+(?:about|on|for)?\s*(.+)/i,/(?:quiz me on|test me on|quiz on|quiz about|a quiz on)\s+(.+)/i,/(?:flashcards?|cards?)\s+(.+)/i];for(const p of patterns){const m=text.match(p);if(m&&m[1])return m[1].trim().replace(/[?.!]$/,'').replace(/\s+and\s+(a\s+)?quiz.*$/i,'').trim();}const stripped=text.replace(/flashcards?|flash\s*cards?|quiz(zes)?|make|create|generate|about|on|me|test|cards?|and|a\b/gi,'').trim();return stripped.length>1?stripped:'';}
-const CTX_PATS=[/^(it|this|that|them|same|the same)$/i,/^(the topic|same topic|this topic|that topic)$/i,/\b(at this basis|based on (this|that|above|it)|on (this|that))\b/i,/\b(as (discussed|mentioned|above|explained)|what (we|i) (just )?(discussed|talked|said|covered))\b/i,/\b(previous(ly)?|last (topic|subject|thing))\b/i];
-function isVague(t){return CTX_PATS.some(p=>p.test(t.trim()));}
-function getLastTopic(){const rev=[...chatHistory].reverse();for(const h of rev){if(h.role==='assistant'){const m=h.content.match(/(?:flashcards?|quiz)\s+(?:about|on)\s+(.+)/i);if(m)return m[1].trim();}}for(const h of rev){if(h.role==='user'){const e=extractTopic(h.content);if(e&&!isVague(e)&&e.length>1)return e;}}for(const h of rev){if(h.role==='assistant'){const m=h.content.match(/(?:^|\n)#{1,3}\s+(?:introduction to\s+)?([A-Za-z][^\n]{2,40})/i);if(m)return m[1].trim();}}return null;}
-function resolveTopic(msg){let t=extractTopic(msg);if(!t||isVague(t)||t.length<=2){const l=getLastTopic();if(l)return l;}return t;}
-
-// ── SEND ──────────────────────────────────────────────────────────────────────
-async function sendMessage(){
-  const input = document.getElementById('chat-input');
-  const text  = input.value.trim();
-  if (!text) return;
-  input.value = ''; input.style.height = 'auto';
-  stopSpeaking();
-  document.querySelectorAll('.suggestions-wrap').forEach(el => el.remove());
-
-  // Snapshot staged PDFs at send-time, then clear the staging row
-  const pdfsToSend = [...stagedPdfs];
-  if (pdfsToSend.length) {
-    stagedPdfs = [];
-    renderStagedRow();
-  }
-
-  // Build the user message — with PDF thumbs if any are attached
-  if (pdfsToSend.length) {
-    addMsgWithAttachments(text, pdfsToSend);
-  } else {
-    addMsg('user', text);
-  }
-
-  // No PDFs → normal routing
-  if (!pdfsToSend.length) {
-    if (isCodeRequest(text)) { showCodeContextForm(text); return; }
-  }
-
-  showTyping();
-
-  // PDF mode — process each staged PDF
-  if (pdfsToSend.length) {
-    const intent = await detectIntent(text);
-
-    // Notes / Formula from PDF — pass PDF data directly
-    if (intent === 'notes') {
-      try { await handleNotes(text, pdfsToSend[0]); } catch(err) { hideTyping(); addMsg('ai','⚠️ '+err.message); }
-      return;
-    }
-    if (intent === 'formula') {
-      try { await handleFormula(text, pdfsToSend[0]); } catch(err) { hideTyping(); addMsg('ai','⚠️ '+err.message); }
-      return;
-    }
-
-    // Flashcard / quiz intent — use first PDF's name as topic
-    if (intent === 'flashcard' || intent === 'both' || intent === 'quiz') {
-      const pdf   = pdfsToSend[0];
-      let topic   = resolveTopic(text);
-      if (isVague(topic) || topic.length <= 2)
-        topic = pdf.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ').trim();
-      try {
-        if (intent === 'both') {
-          pushHistory('user', text);
-          await handleFlashcards(topic, text, false);
-          showTyping();
-          await handleQuiz(topic, text, false);
-          pushHistory('assistant', 'Generated flashcards and a quiz about ' + topic);
-        } else if (intent === 'flashcard') {
-          await handleFlashcards(topic, text, true);
-        } else {
-          await handleQuiz(topic, text, true);
-        }
-      } catch(err) { hideTyping(); addMsg('ai','⚠️ Could not generate: '+err.message); }
-      return;
-    }
-
-    // Chat with each PDF in sequence
-    for (let i = 0; i < pdfsToSend.length; i++) {
-      const pdf = pdfsToSend[i];
-      if (i > 0) showTyping(); // re-show typing between PDFs
-      try { await handlePdfChat(text, pdf); }
-      catch(err) {
-        hideTyping();
-        const m = err.message || '';
-        if (m.includes('pypdf') || m.includes('No PDF library'))
-          addMsg('ai','⚠️ **PDF engine missing on server.** Add `pypdf` to requirements.txt and redeploy.');
-        else if (m.includes('image-only') || m.includes('scanned'))
-          addMsg('ai','⚠️ "' + _esc(pdf.name) + '" is scanned/image-only — no extractable text.');
-        else
-          addMsg('ai','⚠️ Error with "' + _esc(pdf.name) + '": ' + m);
+      if (['pro','smart','auto'].includes(btn.dataset.model)) {
+        btn.disabled = true;
+        btn.style.opacity = '0.35';
+        btn.style.cursor = 'not-allowed';
+        btn.title = 'Not available in Free Mode';
       }
-    }
-    return;
-  }
-
-  // Normal chat routing — include selected text context if any
-  const fullText = buildTextWithContext(text);
-  const intent = await detectIntent(fullText);
-  const topic  = resolveTopic(fullText);
-  // Clear selections after sending
-  clearSelectionContext();
-  try{
-    if(intent==='graph')          await handleGraph(fullText);
-    else if(intent==='notes')     await handleNotes(fullText);
-    else if(intent==='formula')   await handleFormula(fullText);
-    else if(intent==='both') { pushHistory('user',fullText); await handleFlashcards(topic,fullText,false); showTyping(); await handleQuiz(topic,fullText,false); pushHistory('assistant','Generated flashcards and a quiz about '+topic); }
-    else if(intent==='flashcard') await handleFlashcards(topic,fullText,true);
-    else if(intent==='quiz')      await handleQuiz(topic,fullText,true);
-    else await handleChat(fullText);
-  } catch(err) { hideTyping(); addMsg('ai','⚠️ Could not reach Sedy. Please check your connection.'); console.error(err); }
-}
-
-// Build a user message bubble with PDF attachment thumbnails above the text
-function addMsgWithAttachments(text, pdfs) {
-  const wrap = document.getElementById('chat-messages');
-  const div  = document.createElement('div');
-  div.className = 'msg user';
-  const attachHtml = buildPdfAttachmentsHtml(pdfs);
-  div.innerHTML = `
-    <div class="msg-avatar">👤</div>
-    <div class="msg-content" style="align-items:flex-end;">
-      <div class="msg-bubble">
-        ${attachHtml}
-        ${_esc(text).replace(/\n/g,'<br>')}
-      </div>
-    </div>`;
-  wrap.appendChild(div);
-  scrollBottom();
-  return div;
-}
-
-async function handlePdfChat(text, pdf) {
-  const res = await fetch(API_URL + '/pdf-chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message:    text,
-      pdf_base64: pdf.base64,
-      pdf_name:   pdf.name,
-      model:      activeModel,
-      history:    chatHistory.slice(-20)
-    })
-  });
-  if (!res.ok) {
-    if (res.status === 429) { const d=await res.json().catch(()=>({})); hideTyping(); showRateLimit(typeof d.detail==='object'?d.detail:{wait_seconds:900}); return; }
-    const e = await res.json().catch(() => ({}));
-    throw new Error(typeof e.detail==='string'?e.detail:(e.detail?.message||'HTTP '+res.status));
-  }
-  const data  = await res.json();
-  hideTyping();
-  const reply = data.reply || 'Could not process the PDF.';
-  const msgDiv = addMsg('ai', '<div class="pdf-reply-badge">📄 ' + _esc(pdf.name) + '</div>' + renderMarkdown(reply), true);
-  msgDiv._rawText = reply;
-  pushHistory('user', '[PDF: ' + pdf.name + '] ' + text);
-  pushHistory('assistant', reply);
-}
-
-// ── NOTES RENDERER ───────────────────────────────────────────────────────────
-function renderNotesCard(notesMarkdown, topic) {
-  const cardId = 'notes_' + Date.now();
-  const wrap = document.getElementById('chat-messages');
-  const div  = document.createElement('div');
-  div.className = 'msg ai';
-  div.innerHTML = `
-    <div class="msg-avatar">🤖</div>
-    <div class="msg-content">
-      <div class="msg-bubble" style="padding:0;background:none;border:none;">
-        <div class="notes-card">
-          <div class="notes-header">
-            <div class="notes-badge"><div class="notes-badge-dot"></div>📝 Study Notes — ${_esc(topic)}</div>
-            <div style="display:flex;gap:5px;align-items:center;">
-              <button class="notes-save-btn" id="save_${cardId}" onclick="saveFile('${cardId}','notes','${_esc(topic).replace(/'/g,'\\\'')}')">💾 Save</button>
-              <button class="notes-copy-btn" onclick="copyNotes('${cardId}')">⎘ Copy</button>
-            </div>
-          </div>
-          <div class="notes-body" id="${cardId}"></div>
-        </div>
-      </div>
-      <div class="msg-actions">
-        <button class="speak-btn" onclick="speakMsg('spk${cardId}')">🔊 Speak</button>
-      </div>
-    </div>`;
-  div._rawText = notesMarkdown;
-  wrap.appendChild(div);
-
-  // Render markdown into notes body
-  const body = document.getElementById(cardId);
-  if (body) {
-    body.innerHTML = renderMarkdown(notesMarkdown);
-    renderMath(body);
-    body.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
-  }
-  scrollBottom();
-  return div;
-}
-
-function copyNotes(cardId) {
-  const el = document.getElementById(cardId);
-  if (!el) return;
-  navigator.clipboard.writeText(el.innerText).then(() => {
-    const btn = el.closest('.notes-card').querySelector('.notes-copy-btn');
-    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = '⎘ Copy', 2000); }
-  });
-}
-
-// ── FORMULA RENDERER ──────────────────────────────────────────────────────────
-function renderFormulaCard(sheetMarkdown, topic) {
-  const cardId = 'formula_' + Date.now();
-  const wrap = document.getElementById('chat-messages');
-  const div  = document.createElement('div');
-  div.className = 'msg ai';
-  div.innerHTML = `
-    <div class="msg-avatar">🤖</div>
-    <div class="msg-content">
-      <div class="msg-bubble" style="padding:0;background:none;border:none;">
-        <div class="formula-card">
-          <div class="formula-header">
-            <div class="formula-badge"><div class="formula-badge-dot"></div>📐 Formula Sheet — ${_esc(topic)}</div>
-            <div style="display:flex;gap:5px;align-items:center;">
-              <button class="formula-save-btn" id="save_${cardId}" onclick="saveFile('${cardId}','formula','${_esc(topic).replace(/'/g,'\\\'')}')">💾 Save</button>
-              <button class="formula-copy-btn" onclick="copyFormula('${cardId}')">⎘ Copy</button>
-            </div>
-          </div>
-          <div class="formula-body" id="${cardId}"></div>
-        </div>
-      </div>
-      <div class="msg-actions">
-        <button class="speak-btn" onclick="speakMsg('spk${cardId}')">🔊 Speak</button>
-      </div>
-    </div>`;
-  div._rawText = sheetMarkdown;
-  wrap.appendChild(div);
-
-  const body = document.getElementById(cardId);
-  if (body) {
-    body.innerHTML = renderMarkdown(sheetMarkdown);
-    renderMath(body);
-    body.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
-  }
-  scrollBottom();
-  return div;
-}
-
-function copyFormula(cardId) {
-  const el = document.getElementById(cardId);
-  if (!el) return;
-  navigator.clipboard.writeText(el.innerText).then(() => {
-    const btn = el.closest('.formula-card').querySelector('.formula-copy-btn');
-    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = '⎘ Copy', 2000); }
-  });
-}
-
-// ── NOTES + FORMULA HANDLERS ──────────────────────────────────────────────────
-async function handleNotes(text, pdfOverride) {
-  // pdfOverride is passed when coming from PDF mode (pdfsToSend array item)
-  const pdfData = pdfOverride || (stagedPdfs.length ? stagedPdfs[0] : null);
-
-  // Extract topic: use PDF name if from PDF, else extract from text
-  let topic = '';
-  if (pdfData) {
-    topic = pdfData.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ').trim();
+    });
+    // Update placeholder
+    document.getElementById('chat-input').placeholder =
+      'Free Mode — Flash only. Ask anything except code…';
   } else {
-    topic = resolveTopic(text) || text;
-    // If topic is still the raw message, clean it up
-    if (topic === text) {
-      topic = text.replace(/make\s*(me\s*)?notes\s*(on|for|about)?/i,'')
-                  .replace(/study\s*(notes|guide|sheet)\s*(on|for|about)?/i,'')
-                  .replace(/i\s+need\s+to\s+study/i,'')
-                  .replace(/notes\s*(on|for|about)/i,'').trim();
-    }
-    if (!topic || topic.length < 2) topic = text;
+    // Hide banner, restore all buttons
+    if (banner) banner.classList.remove('visible');
+    activeModel = 'auto';
+    document.querySelectorAll('.model-btn').forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '';
+      btn.style.cursor = '';
+      btn.title = btn.dataset.model === 'auto' ? 'Auto — picks best model for each task'
+                : btn.dataset.model === 'pro'   ? 'Sedy Pro — best quality, complex tasks'
+                : btn.dataset.model === 'flash' ? 'Sedy Flash — fastest responses'
+                : 'Sedy Smart — Qwen3-32b, multilingual & reasoning';
+      btn.classList.toggle('active', btn.dataset.model === 'auto');
+    });
+    document.getElementById('chat-input').placeholder =
+      'Ask anything, graphs, flashcards, quiz, images… or attach a PDF';
   }
-
-  const body = {
-    topic, model: activeModel, history: chatHistory.slice(-20),
-    ...(pdfData ? { pdf_base64: pdfData.base64, pdf_name: pdfData.name } : {})
-  };
-  const res = await fetch(API_URL + '/notes', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (res.status === 429) { const d=await res.json().catch(()=>({})); hideTyping(); showRateLimit(typeof d.detail==='object'?d.detail:{wait_seconds:900}); return; }
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const data = await res.json();
-  hideTyping();
-  pushHistory('user', text);
-  pushHistory('assistant', '[Notes generated on: ' + data.topic + ']');
-  renderNotesCard(data.notes, data.topic);
-}
-
-async function handleFormula(text, pdfOverride) {
-  const pdfData = pdfOverride || (stagedPdfs.length ? stagedPdfs[0] : null);
-
-  let topic = '';
-  if (pdfData) {
-    topic = pdfData.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ').trim();
-  } else {
-    topic = resolveTopic(text) || text;
-    if (topic === text) {
-      topic = text.replace(/formula\s*(sheet)?\s*(for|on|about)?/i,'')
-                  .replace(/key\s*terms\s*(in|for|of|on|about)?/i,'')
-                  .replace(/cheat\s*sheet\s*(for|on|about)?/i,'')
-                  .replace(/all\s*(the\s*)?formulas?\s*(for|on|about)?/i,'').trim();
-    }
-    if (!topic || topic.length < 2) topic = text;
-  }
-
-  const body = {
-    topic, model: activeModel, history: chatHistory.slice(-20),
-    ...(pdfData ? { pdf_base64: pdfData.base64, pdf_name: pdfData.name } : {})
-  };
-  const res = await fetch(API_URL + '/formula-sheet', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (res.status === 429) { const d=await res.json().catch(()=>({})); hideTyping(); showRateLimit(typeof d.detail==='object'?d.detail:{wait_seconds:900}); return; }
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const data = await res.json();
-  hideTyping();
-  pushHistory('user', text);
-  pushHistory('assistant', '[Formula sheet generated on: ' + data.topic + ']');
-  renderFormulaCard(data.sheet, data.topic);
-}
-
-// ── TEXT SELECTION FOLLOW-UP SYSTEM ──────────────────────────────────────────
-let selectedContexts = []; // array of selected text strings
-let _selPopupTimeout = null;
-
-function renderSelContextRow() {
-  const row = document.getElementById('sel-context-row');
-  if (!row) return;
-  row.innerHTML = '';
-  if (!selectedContexts.length) { row.classList.remove('visible'); return; }
-  row.classList.add('visible');
-  selectedContexts.forEach((ctx, i) => {
-    const chip = document.createElement('div');
-    chip.className = 'sel-ctx-chip';
-    chip.innerHTML = `<span class="sel-ctx-text" title="${_esc(ctx)}">"${_esc(ctx.length > 40 ? ctx.slice(0,40)+'…' : ctx)}"</span>
-      <button class="sel-ctx-remove" onclick="removeSelCtx(${i})">✕</button>`;
-    row.appendChild(chip);
-  });
-}
-
-function removeSelCtx(i) {
-  selectedContexts.splice(i, 1);
-  renderSelContextRow();
-}
-
-function clearSelectionContext() {
-  selectedContexts = [];
-  renderSelContextRow();
-}
-
-function buildTextWithContext(userText) {
-  if (!selectedContexts.length) return userText;
-  const ctxBlock = selectedContexts.map(c => `"${c}"`).join('\n');
-  return `${userText}\n\n[Context from conversation:\n${ctxBlock}]`;
-}
-
-function addSelectionToContext() {
-  const sel = window.getSelection();
-  if (!sel || !sel.toString().trim()) return;
-  const text = sel.toString().trim();
-  if (!selectedContexts.includes(text)) {
-    selectedContexts.push(text);
-    renderSelContextRow();
-  }
-  sel.removeAllRanges();
-  hideSelPopup();
-  // Focus input so user can type their question
-  document.getElementById('chat-input').focus();
-}
-
-function askSelectionNow() {
-  const sel = window.getSelection();
-  if (!sel || !sel.toString().trim()) return;
-  const text = sel.toString().trim();
-  sel.removeAllRanges();
-  hideSelPopup();
-  // Put the selection in the input as a question
-  const input = document.getElementById('chat-input');
-  const current = input.value.trim();
-  if (!current) {
-    // Pre-fill with a follow-up question
-    input.value = 'Explain this: ' + (text.length > 60 ? text.slice(0,60)+'…' : text);
-  } else {
-    selectedContexts.push(text);
-    renderSelContextRow();
-  }
-  input.focus();
-  autoResize(input);
-}
-
-function showSelPopup(x, y) {
-  const popup = document.getElementById('sel-popup');
-  if (!popup) return;
-  // Position above the selection
-  popup.style.left = Math.min(x, window.innerWidth - 220) + 'px';
-  popup.style.top  = (y - 90) + 'px';
-  popup.classList.add('visible');
-  clearTimeout(_selPopupTimeout);
-}
-
-function hideSelPopup() {
-  const popup = document.getElementById('sel-popup');
-  if (popup) popup.classList.remove('visible');
-}
-
-// Listen for text selection in chat
-document.getElementById('chat-messages').addEventListener('mouseup', (e) => {
-  setTimeout(() => {
-    const sel = window.getSelection();
-    if (!sel || !sel.toString().trim() || sel.toString().trim().length < 3) {
-      hideSelPopup();
-      return;
-    }
-    const range  = sel.getRangeAt(0);
-    const rect   = range.getBoundingClientRect();
-    const midX   = rect.left + rect.width / 2;
-    const topY   = rect.top + window.scrollY;
-    showSelPopup(midX - 90, topY);
-  }, 10);
-});
-
-// Touch support for mobile
-document.getElementById('chat-messages').addEventListener('touchend', (e) => {
-  setTimeout(() => {
-    const sel = window.getSelection();
-    if (!sel || !sel.toString().trim() || sel.toString().trim().length < 3) {
-      hideSelPopup();
-      return;
-    }
-    const range = sel.getRangeAt(0);
-    const rect  = range.getBoundingClientRect();
-    showSelPopup(rect.left + rect.width/2 - 90, rect.top - 10);
-  }, 100);
-});
-
-// Hide popup when clicking elsewhere
-document.addEventListener('mousedown', (e) => {
-  const popup = document.getElementById('sel-popup');
-  if (popup && !popup.contains(e.target)) hideSelPopup();
-});
-
-async function handleGraph(text){
-  const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,model:activeModel,history:chatHistory.slice(-20)})});
-  if(!res.ok)throw new Error('HTTP '+res.status);
-  if(await handleApiError(res,'graph')) return;
-  const data=await res.json();hideTyping();
-  if(!data.series||!data.series.length){addMsg('ai','Could not generate graph data for that request.');return;}
-  pushHistory('user',text);pushHistory('assistant','Generated a '+(data.chart_type||'line')+' chart: '+data.title);
-  renderGraph(data);
-}
-
-async function handleChat(text){
-  const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,model:activeModel,history:chatHistory.slice(-20)})});
-  if(!res.ok){ if(await handleApiError(res,'chat')) return; throw new Error('HTTP '+res.status); }
-  const data=await res.json();hideTyping();
-  const reply=data.reply||'Sorry, no response.';
-  pushHistory('user',text);pushHistory('assistant',reply);
-  const msgDiv=addMsg('ai',reply);msgDiv._rawText=reply;
-}
-
-async function parseRequestedCount(text) {
-  // Match patterns like "10 cards", "20 flashcards", "15 questions", "make 8", "give me 12"
-  const m = text.match(/\b(\d+)\s*(?:cards?|flashcards?|questions?|mcqs?|q(?:uestions?)?)?\b/i)
-           || text.match(/\b(?:make|create|generate|give me|show me|want)\s+(\d+)\b/i);
-  if (m) {
-    const n = parseInt(m[1] || m[2], 10);
-    if (n >= 1 && n <= 50) return n;
-  }
-  return null; // null = auto (let backend decide)
-}
-
-async function handleFlashcards(topic,originalText,saveHistory=true){
-  topic=isVague(topic)?(getLastTopic()||topic):topic;
-  const requestedCount = await parseRequestedCount(originalText);
-  const count = requestedCount ?? 0; // 0 = let AI decide
-  const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,count,model:activeModel,history:chatHistory.slice(-20)})});
-  if(!res.ok){ if(await handleApiError(res,'flashcards')) return; throw new Error('HTTP '+res.status); }
-  const data=await res.json();hideTyping();
-  const rt=data.topic||topic,cards=data.cards||[];
-  if(!cards.length){addMsg('ai','Could not generate flashcards for "'+rt+'".');return;}
-  if(saveHistory){pushHistory('user',originalText);pushHistory('assistant','Generated '+cards.length+' flashcards about '+rt);}
-  let html='<strong>🃏 '+cards.length+' Flashcards — '+_esc(rt)+'</strong><br><small style="color:var(--text3);font-size:11px;">Tap each card to reveal the answer</small><div class="fc-grid">';
-  cards.forEach(c=>{html+='<div class="fc-card" onclick="this.classList.toggle(\'flipped\')"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Question</div><div class="fc-text">'+_esc(c.question||c.front||'')+'</div><div class="fc-hint">tap to flip</div></div><div class="fc-back"><div class="fc-tag">Answer</div><div class="fc-text">'+_esc(c.answer||c.back||'')+'</div><div class="fc-hint">tap back</div></div></div></div>';});
-  addMsg('ai',html+'</div>',true);
-}
-
-async function handleQuiz(topic,originalText,saveHistory=true){
-  topic=isVague(topic)?(getLastTopic()||topic):topic;
-  let diff='medium';if(/easy|simple|basic/i.test(originalText))diff='easy';if(/hard|difficult|advanced/i.test(originalText))diff='hard';
-  const requestedCount = await parseRequestedCount(originalText);
-  const count = requestedCount ?? 0; // 0 = let AI decide
-  const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,difficulty:diff,count,model:activeModel,history:chatHistory.slice(-20)})});
-  if(!res.ok){ if(await handleApiError(res,'quiz')) return; throw new Error('HTTP '+res.status); }
-  const data=await res.json();hideTyping();
-  const rt=data.topic||topic,qs=data.questions||[];
-  if(!qs.length){addMsg('ai','Could not generate a quiz for "'+rt+'".');return;}
-  if(saveHistory){pushHistory('user',originalText);pushHistory('assistant','Started a '+diff+' quiz about '+rt);}
-  activeQuiz={questions:qs,idx:0,score:0,topic:rt,answered:false};
-  addMsg('ai','<strong>📝 Quiz — '+_esc(rt)+'</strong> · '+diff+' · '+qs.length+' questions<br><small style="color:var(--text3);font-size:11px;">Select an answer for each question</small>',true);
-  renderQuizQ();
-}
-function renderQuizQ(){
-  if(!activeQuiz)return;
-  const{questions:qs,idx}=activeQuiz,q=qs[idx],tot=qs.length,L=['A','B','C','D'];
-  let opts='';q.options.forEach((o,i)=>opts+='<div class="quiz-opt" id="qo-'+i+'" onclick="answerQ('+i+')"><div class="opt-l">'+L[i]+'</div>'+_esc(o)+'</div>');
-  addMsg('ai','<div class="quiz-wrap" id="quiz-wrap"><div class="quiz-prog"><div class="quiz-fill" style="width:'+(idx/tot*100)+'%"></div></div><div class="quiz-qnum">Question '+(idx+1)+' of '+tot+'</div><div class="quiz-q">'+_esc(q.question)+'</div><div class="quiz-opts">'+opts+'</div><div class="quiz-exp" id="quiz-exp"></div><button class="quiz-next" id="quiz-next" onclick="nextQ()">Next</button></div>',true);
-  activeQuiz.answered=false;
-}
-function answerQ(idx){
-  if(!activeQuiz||activeQuiz.answered)return;activeQuiz.answered=true;
-  const q=activeQuiz.questions[activeQuiz.idx];
-  document.querySelectorAll('.quiz-opt').forEach((el,i)=>{el.classList.add('disabled');if(i===q.answer)el.classList.add('correct');else if(i===idx&&idx!==q.answer)el.classList.add('wrong');});
-  if(idx===q.answer)activeQuiz.score++;
-  if(q.explanation){const exp=document.getElementById('quiz-exp');if(exp){exp.textContent='💡 '+q.explanation;exp.style.display='block';}}
-  const btn=document.getElementById('quiz-next');if(btn){btn.style.display='block';btn.textContent=activeQuiz.idx+1<activeQuiz.questions.length?'Next →':'See Results 🎉';}
-}
-function nextQ(){
-  if(!activeQuiz)return;activeQuiz.idx++;activeQuiz.answered=false;
-  const old=document.getElementById('quiz-wrap');if(old)old.closest('.msg').remove();
-  if(activeQuiz.idx<activeQuiz.questions.length)renderQuizQ();else showQuizResult();
-}
-function showQuizResult(){
-  const{score,questions,topic}=activeQuiz,tot=questions.length,pct=Math.round(score/tot*100);
-  const labels=['Keep practicing!','Good effort!','Well done!','Excellent!','Perfect!'];
-  const label=pct<40?labels[0]:pct<60?labels[1]:pct<80?labels[2]:pct<100?labels[3]:labels[4];
-  addMsg('ai','<div class="quiz-result"><div class="qr-pct">'+pct+'%</div><div class="qr-lbl">'+label+'</div><div class="qr-stats"><div class="qr-stat"><div class="qr-n g">'+score+'</div><div class="qr-sl">Correct</div></div><div class="qr-stat"><div class="qr-n r">'+(tot-score)+'</div><div class="qr-sl">Wrong</div></div><div class="qr-stat"><div class="qr-n" style="color:var(--accent)">'+tot+'</div><div class="qr-sl">Total</div></div></div></div>',true);
-  pushHistory('assistant','Quiz on '+topic+' completed. Score: '+score+'/'+tot+' ('+pct+'%)');
-  addMsg('ai','Great job on the **'+topic+'** quiz! Want to try again or explore another topic?');
-  activeQuiz=null;
-}
-
-// ── INIT ──────────────────────────────────────────────────────────────────────
-function initSession(){
-  if(chatHistory.length===0){
-    addMsg('ai','Hey! I\'m **Sedy**, your AI study companion made by Ansh Verma\n\nMemory saved across page refreshes!\n\n**🎤 Voice input** — tap the mic and speak your question\n**🔊 Text-to-speech** — click Speak on any AI reply to hear it\n**📎 Upload a PDF** — tap 📎, then use the quick buttons to summarise, get flashcards or a quiz\n**📈 Graphs** — "show onion prices 2000-2020" or "plot GDP of India vs China"\n**🎨 Images** — "generate an image of a sunset over mountains"\n**🃏 Flashcards** — "flashcards about X"\n**📝 Quiz** — "quiz me on X"\n**🔢 Math** — KaTeX rendering \\(E=mc^2\\)\n**💻 Code** — syntax highlighted');
-  } else {
-    const uc=chatHistory.filter(h=>h.role==='user').length;
-    addMsg('ai','Welcome back! I remember our previous conversation ('+uc+' message'+(uc!==1?'s':'')+').\n\nUpload a PDF with the 📎 button, or just type to continue!');
-    updateMemoryBadge();
-  }
-}
-
-// ── RATE LIMIT MODAL ─────────────────────────────────────────────────────────
-let _rlTimerInterval = null;
-
-function showRateLimit(detail) {
-  // detail = { wait_seconds, wait_display, limit_type, used, limit }
-  const overlay  = document.getElementById('rl-overlay');
-  const subtitle = document.getElementById('rl-subtitle');
-  const timerEl  = document.getElementById('rl-timer');
-  const barEl    = document.getElementById('rl-bar');
-  const infoEl   = document.getElementById('rl-limit-info');
-  if (!overlay) return;
-
-  const waitSec   = detail.wait_seconds || 0;
-  const limitType = detail.limit_type   || 'tokens';
-  const used      = detail.used         || 0;
-  const limit     = detail.limit        || 0;
-
-  // Subtitle
-  const typeLabel = limitType === 'TPD' ? 'daily token'
-                  : limitType === 'TPM' ? 'per-minute token'
-                  : limitType === 'RPM' ? 'per-minute request'
-                  : 'free usage';
-  subtitle.textContent = `You've reached the ${typeLabel} limit for the free AI tier.`;
-
-  // Usage info
-  if (used && limit) {
-    infoEl.innerHTML = `
-      <span><b>${fmtNum(used)}</b>tokens used</span>
-      <span><b>${fmtNum(limit)}</b>daily limit</span>
-      <span><b>${fmtNum(Math.max(0, limit - used))}</b>remaining</span>`;
-  } else {
-    infoEl.innerHTML = '';
-  }
-
-  // Countdown
-  clearInterval(_rlTimerInterval);
-  const totalSec = waitSec;
-  let remaining  = waitSec;
-
-  function tick() {
-    if (remaining <= 0) {
-      timerEl.textContent = 'Ready!';
-      barEl.style.width   = '0%';
-      clearInterval(_rlTimerInterval);
-      // Auto-dismiss after 2s when timer hits 0
-      setTimeout(() => closeRateLimit(), 2000);
-      return;
-    }
-    const h = Math.floor(remaining / 3600);
-    const m = Math.floor((remaining % 3600) / 60);
-    const s = remaining % 60;
-    timerEl.textContent = h > 0
-      ? `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`
-      : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    barEl.style.width = totalSec > 0 ? (remaining / totalSec * 100) + '%' : '0%';
-    remaining--;
-  }
-
-  tick();
-  _rlTimerInterval = setInterval(tick, 1000);
-
-  overlay.style.display = 'flex';
-}
-
-function closeRateLimit() {
-  clearInterval(_rlTimerInterval);
-  const overlay = document.getElementById('rl-overlay');
-  if (overlay) {
-    overlay.style.opacity = '0';
-    overlay.style.transition = 'opacity .2s ease';
-    setTimeout(() => { overlay.style.display = 'none'; overlay.style.opacity = '1'; }, 220);
-  }
-}
-
-function fmtNum(n) {
-  if (n >= 1000) return (n/1000).toFixed(1) + 'k ';
-  return n + ' ';
-}
-
-// Central error handler — call this for all Groq API responses
-async function handleApiError(res, fallbackMsg) {
-  if (res.status === 429) {
-    const data = await res.json().catch(() => ({}));
-    const detail = data.detail || {};
-    hideTyping();
-    showRateLimit(typeof detail === 'object' ? detail : { wait_seconds: 900, limit_type: 'tokens', used: 0, limit: 0 });
-    return true; // handled
-  }
-  return false; // not a rate limit, let caller handle
 }
 
 // ── MODEL SWITCHER ───────────────────────────────────────────────────────────
@@ -2033,6 +1302,10 @@ const MODEL_DESC  = {
 };
 
 function setModel(model) {
+  if (isFreeMode && model !== 'flash') {
+    addMsg('ai', '⚠️ Only **Sedy Flash** is available in Free Mode. Exit Free Mode to switch models.');
+    return;
+  }
   activeModel = model;
   document.querySelectorAll('.model-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.model === model);
@@ -2256,6 +1529,7 @@ function closeFilesPanel() {
 initVoice();
 initSession();
 updateFilesBadge();
+applyFreeMode();
 
 if(window.visualViewport){
   let last=window.visualViewport.height;

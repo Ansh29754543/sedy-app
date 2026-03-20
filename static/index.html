@@ -340,11 +340,30 @@ body::before{content:'';position:fixed;inset:0;
 .attach-menu-item .ami-label{font-weight:500;}
 .attach-menu-item .ami-sub{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;}
 .attach-menu-sep{height:1px;background:var(--border);margin:3px 0;}
-.attach-menu-item.img-opt:hover{background:rgba(255,159,67,.1);color:var(--vision);}
-.attach-menu-item.pdf-opt:hover{background:rgba(124,92,252,.1);color:var(--accent2);}
+.attach-menu-item.file-opt:hover{background:rgba(0,229,192,.08);color:var(--accent3);}
+.attach-menu-item.shot-opt:hover{background:rgba(255,181,71,.08);color:var(--warning);}
+
+/* ── SCREENSHOT CROP OVERLAY ── */
+.crop-overlay{position:fixed;inset:0;z-index:800;cursor:crosshair;display:none;}
+.crop-overlay.active{display:block;}
+.crop-dim{position:absolute;inset:0;background:rgba(8,11,18,.55);}
+.crop-selection{position:absolute;border:2px solid var(--accent);box-shadow:0 0 0 9999px rgba(8,11,18,.55);display:none;pointer-events:none;}
+.crop-selection.visible{display:block;}
+.crop-handle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none;}
+.crop-toolbar{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:801;background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:8px 10px;box-shadow:0 8px 32px rgba(0,0,0,.6);}
+.crop-toolbar.hidden{display:none;}
+.crop-tb-btn{padding:8px 18px;border-radius:9px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.crop-tb-confirm{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;}
+.crop-tb-confirm:hover{opacity:.88;}
+.crop-tb-cancel{background:var(--card2);border:1px solid var(--border2);color:var(--text3);}
+.crop-tb-cancel:hover{border-color:var(--danger);color:var(--danger);}
+.crop-tb-full{background:var(--card2);border:1px solid var(--border2);color:var(--text2);}
+.crop-tb-full:hover{border-color:var(--accent3);color:var(--accent3);}
+.crop-instructions{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:10px 18px;font-size:13px;color:var(--text2);font-family:'DM Mono',monospace;z-index:801;white-space:nowrap;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.4);}
 
 #pdf-input{display:none;}
 #img-input{display:none;}
+#file-input{display:none;}
 .input-area{padding:12px 20px;padding-bottom:calc(12px + var(--safe-b));border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
 .input-wrap{display:flex;align-items:flex-end;gap:8px;background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:8px 10px;transition:border-color .2s;}
 .input-wrap:focus-within{border-color:var(--accent);box-shadow:var(--glow);}
@@ -538,29 +557,54 @@ body::before{content:'';position:fixed;inset:0;
     <div class="img-staged-row" id="img-staged-row"></div>
     <!-- Staged PDFs row -->
     <div class="pdf-staged-row" id="pdf-staged-row"></div>
+    <!-- Hidden file inputs -->
     <input type="file" id="pdf-input" accept=".pdf" multiple onchange="handlePdfSelect(event)">
     <input type="file" id="img-input" accept="image/jpeg,image/png,image/gif,image/webp" multiple onchange="handleImgSelect(event)">
+    <!-- Universal file input — any file type -->
+    <input type="file" id="file-input" multiple onchange="handleAnyFile(event)">
+
+    <!-- Screenshot crop overlay -->
+    <div class="crop-overlay" id="crop-overlay">
+      <div class="crop-instructions" id="crop-instructions">Drag to select an area — or click "Full Screen" to capture everything</div>
+      <canvas id="crop-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+      <div class="crop-selection" id="crop-selection"></div>
+      <div class="crop-toolbar" id="crop-toolbar">
+        <button class="crop-tb-btn crop-tb-full"    onclick="captureFullScreen()">🖥 Full Screen</button>
+        <button class="crop-tb-btn crop-tb-confirm" id="crop-confirm" onclick="cropAndSend()" style="display:none">✓ Use Selection</button>
+        <button class="crop-tb-btn crop-tb-cancel"  onclick="cancelCrop()">✕ Cancel</button>
+      </div>
+    </div>
+
     <div class="input-wrap" id="input-wrap">
       <!-- Single combined attach button -->
       <div class="attach-wrap" id="attach-wrap">
-        <button class="attach-btn" id="attach-btn" onclick="toggleAttachMenu(event)" title="Attach PDF or Image">📎</button>
+        <button class="attach-btn" id="attach-btn" onclick="toggleAttachMenu(event)" title="Attach file or take screenshot">📎</button>
         <div class="attach-menu" id="attach-menu">
-          <div class="attach-menu-item img-opt" onclick="pickImage()">
-            <span class="ami-icon">🖼️</span>
-            <div><div class="ami-label">Image</div><div class="ami-sub">JPG, PNG, WebP · logo, diagram, notes</div></div>
+          <!-- Row 1: Upload any file -->
+          <div class="attach-menu-item file-opt" onclick="pickAnyFile()">
+            <span class="ami-icon">📁</span>
+            <div>
+              <div class="ami-label">Upload File</div>
+              <div class="ami-sub">PDF, JPG, PNG, TXT, DOCX…</div>
+            </div>
           </div>
+          <!-- Divider -->
           <div class="attach-menu-sep"></div>
-          <div class="attach-menu-item pdf-opt" onclick="pickPdf()">
-            <span class="ami-icon">📄</span>
-            <div><div class="ami-label">PDF</div><div class="ami-sub">Ask questions about a document</div></div>
+          <!-- Row 2: Screenshot -->
+          <div class="attach-menu-item shot-opt" onclick="startScreenshot()">
+            <span class="ami-icon">📸</span>
+            <div>
+              <div class="ami-label">Take Screenshot</div>
+              <div class="ami-sub">Capture screen · AI will explain it</div>
+            </div>
           </div>
         </div>
       </div>
-      <textarea id="chat-input" rows="1" placeholder="Ask anything, graphs, flowcharts, flashcards, quiz… or attach a PDF / image" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <textarea id="chat-input" rows="1" placeholder="Ask anything — attach files, take a screenshot, or just type…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
       <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="Voice input">🎤</button>
       <button class="send-btn" onclick="sendMessage()">➤</button>
     </div>
-    <div class="input-hint">🎤 voice &bull; 📎 attach pdf or image &bull; 📈 graphs &bull; 🔀 flowcharts &bull; 🔊 speak</div>
+    <div class="input-hint">🎤 voice &bull; 📎 upload any file &bull; 📸 screenshot &bull; 📈 graphs &bull; 🔀 flowcharts &bull; 🔊 speak</div>
   </div>
 </div>
 
@@ -1385,7 +1429,21 @@ async function sendMessage(){
     return;
   }
 
-  // PDF mode
+  // ── TEXT FILE MODE — plain text / code / CSV / JSON files ──
+  if(stagedTextFiles.length && !stagedImages.length && !stagedPdfs.length){
+    const files=[...stagedTextFiles]; stagedTextFiles=[]; renderTextStagedRow();
+    if(!text) text='Please analyse this file and explain what it contains.';
+    addMsg('user', text, {pdfs: files.map(f=>({name:f.name, sizeKb:f.sizeKb, pageCount:null, thumbDataUrl:null}))});
+    pushHistory('user', text);
+    showTyping();
+    // Build a combined text block
+    const blocks = files.map(f=>`\n\n=== FILE: ${f.name} ===\n${f.content.slice(0,20000)}${f.content.length>20000?'\n[...truncated]':''}`).join('');
+    const augmented = `${text}\n\nThe student has uploaded the following file(s):\n${blocks}`;
+    await _sendChat(augmented);
+    return;
+  }
+
+  // ── PDF mode
   if(stagedPdfs.length){
     const pdfs=[...stagedPdfs]; stagedPdfs=[]; renderStagedRow();
     if(!text) text='Please summarise this document.';
@@ -1630,21 +1688,332 @@ function closeAttachMenu(){
   const m = document.getElementById('attach-menu');
   if(m) m.classList.remove('open');
 }
-function pickImage(){
+function pickAnyFile(){
   closeAttachMenu();
-  document.getElementById('img-input').click();
+  document.getElementById('file-input').click();
 }
-function pickPdf(){
-  closeAttachMenu();
-  document.getElementById('pdf-input').click();
-}
+// Legacy pickers kept for internal calls
+function pickImage(){ closeAttachMenu(); document.getElementById('img-input').click(); }
+function pickPdf(){   closeAttachMenu(); document.getElementById('pdf-input').click(); }
 document.addEventListener('click', (e)=>{
   if(!e.target.closest('#attach-wrap')) closeAttachMenu();
 });
 
+// ── UNIVERSAL FILE HANDLER ────────────────────────────────────────────────────
+const IMAGE_EXTS   = ['jpg','jpeg','png','gif','webp','bmp','svg'];
+const TEXT_EXTS    = ['txt','md','csv','json','js','py','html','css','xml','yaml','yml','log','ts','jsx','tsx','c','cpp','h','java','rb','go','rs','php','sh','bat','ini','toml','sql'];
+const OFFICE_EXTS  = ['docx','doc','pptx','ppt','xlsx','xls'];
+
+async function handleAnyFile(event){
+  const files = Array.from(event.target.files); event.target.value = '';
+  if(!files.length) return;
+
+  for(const file of files){
+    const ext = file.name.split('.').pop().toLowerCase();
+    const sizeMB = file.size / 1024 / 1024;
+
+    // ── PDF ──
+    if(ext === 'pdf' || file.type === 'application/pdf'){
+      // reuse existing PDF handler via synthetic event-like call
+      await _stagePdfFile(file); continue;
+    }
+
+    // ── IMAGE ──
+    if(IMAGE_EXTS.includes(ext) || file.type.startsWith('image/')){
+      if(sizeMB > 8){ addMsg('ai',`⚠️ Image "${file.name}" is too large (${sizeMB.toFixed(1)} MB). Max 8 MB.`); continue; }
+      await _stageImageFile(file); continue;
+    }
+
+    // ── PLAIN TEXT / CODE / CSV / JSON ──
+    if(TEXT_EXTS.includes(ext) || file.type.startsWith('text/')){
+      if(sizeMB > 2){ addMsg('ai',`⚠️ File "${file.name}" is too large (${sizeMB.toFixed(1)} MB) for text processing. Max 2 MB.`); continue; }
+      await _stageTextFile(file); continue;
+    }
+
+    // ── OFFICE docs (no parser — inform user) ──
+    if(OFFICE_EXTS.includes(ext)){
+      addMsg('ai',`ℹ️ **${file.name}** — Office files (.docx, .pptx, .xlsx) cannot be read directly.\n\n**What you can do:**\n- Save/export it as a **PDF** and upload that\n- Copy-paste the text content here`);
+      continue;
+    }
+
+    // ── Unknown ──
+    addMsg('ai',`⚠️ File type ".${ext}" is not supported yet. Try PDF, JPG, PNG, or TXT.`);
+  }
+}
+
+async function _stagePdfFile(file){
+  const reader = new FileReader();
+  reader.onload = async(e)=>{
+    const ab = e.target.result;
+    const b64 = arrayBufferToBase64(ab);
+    const sizeKb = Math.round(file.size/1024);
+    let thumbDataUrl=null, pageCount=null;
+    const rendered = await renderPdfFirstPage(ab.slice(0));
+    if(rendered){ thumbDataUrl=makeThumb(rendered.canvas); pageCount=rendered.pageCount; }
+    stagedPdfs.push({name:file.name, base64:b64, sizeKb, pageCount, thumbDataUrl});
+    renderStagedRow();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function _stageImageFile(file){
+  return new Promise(resolve=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const dataUrl = e.target.result;
+      const base64 = dataUrl.split(',')[1];
+      stagedImages.push({ dataUrl, base64, name: file.name, sizeMB: (file.size/1024/1024).toFixed(1) });
+      renderImgStagedRow();
+      resolve();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function _stageTextFile(file){
+  return new Promise(resolve=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const text = e.target.result;
+      const ext  = file.name.split('.').pop().toLowerCase();
+      const sizeKb = Math.round(file.size/1024);
+      // Store as a special staged text file
+      stagedTextFiles.push({ name: file.name, content: text, ext, sizeKb });
+      renderTextStagedRow();
+      resolve();
+    };
+    reader.readAsText(file, 'UTF-8');
+  });
+}
+
+// ── STAGED TEXT FILES ──────────────────────────────────────────────────────────
+let stagedTextFiles = [];
+
+function renderTextStagedRow(){
+  // Reuse the pdf-staged-row visually for text files too
+  const row = document.getElementById('pdf-staged-row');
+  if(!row) return;
+  // Rebuild the row to show both PDFs and text files
+  row.innerHTML = '';
+  const hasAny = stagedPdfs.length || stagedTextFiles.length;
+  if(!hasAny){ row.classList.remove('visible'); document.getElementById('attach-btn').classList.remove('active'); if(!stagedImages.length) document.getElementById('input-wrap').classList.remove('pdf-mode'); return; }
+  row.classList.add('visible');
+  document.getElementById('attach-btn').classList.add('active');
+  document.getElementById('input-wrap').classList.add('pdf-mode');
+
+  stagedPdfs.forEach((pdf,idx)=>{
+    const chip=document.createElement('div'); chip.className='pdf-staged-chip';
+    const thumbHtml=pdf.thumbDataUrl?`<img class="pdf-staged-thumb" src="${pdf.thumbDataUrl}" alt="">`:`<div class="pdf-staged-thumb-icon">📄</div>`;
+    chip.innerHTML=`${thumbHtml}<div class="pdf-staged-info"><div class="pdf-staged-name">${_esc(pdf.name)}</div><div class="pdf-staged-meta">${pdf.sizeKb} KB${pdf.pageCount?' · '+pdf.pageCount+'p':''}</div></div><button class="pdf-staged-remove" onclick="removeStagedPdf(${idx})" title="Remove">✕</button>`;
+    row.appendChild(chip);
+  });
+
+  stagedTextFiles.forEach((tf,idx)=>{
+    const chip=document.createElement('div'); chip.className='pdf-staged-chip';
+    const icon = tf.ext==='csv'?'📊':tf.ext==='json'?'{}':tf.ext==='md'?'📝':'📃';
+    chip.innerHTML=`<div class="pdf-staged-thumb-icon">${icon}</div><div class="pdf-staged-info"><div class="pdf-staged-name">${_esc(tf.name)}</div><div class="pdf-staged-meta">${tf.sizeKb} KB · text</div></div><button class="pdf-staged-remove" onclick="removeStagedText(${idx})" title="Remove">✕</button>`;
+    row.appendChild(chip);
+  });
+
+  if(!stagedImages.length) document.getElementById('chat-input').placeholder = 'Ask anything about these files…';
+}
+
+function removeStagedText(idx){ stagedTextFiles.splice(idx,1); renderTextStagedRow(); }
+
+// Override renderStagedRow so it also shows text files
+const _origRenderStagedRow = renderStagedRow;
+function renderStagedRow(){
+  if(stagedTextFiles.length){ renderTextStagedRow(); return; }
+  const row=document.getElementById('pdf-staged-row');
+  if(!row) return;
+  row.innerHTML='';
+  if(!stagedPdfs.length){ row.classList.remove('visible'); document.getElementById('attach-btn').classList.remove('active'); if(!stagedImages.length) document.getElementById('input-wrap').classList.remove('pdf-mode'); return; }
+  row.classList.add('visible'); document.getElementById('attach-btn').classList.add('active'); document.getElementById('input-wrap').classList.add('pdf-mode');
+  if(!stagedImages.length) document.getElementById('chat-input').placeholder=stagedPdfs.length===1?'Ask anything about "'+stagedPdfs[0].name.slice(0,30)+'"…':'Ask anything about these '+stagedPdfs.length+' files…';
+  stagedPdfs.forEach((pdf,idx)=>{
+    const chip=document.createElement('div'); chip.className='pdf-staged-chip';
+    const thumbHtml=pdf.thumbDataUrl?`<img class="pdf-staged-thumb" src="${pdf.thumbDataUrl}" alt="">`:`<div class="pdf-staged-thumb-icon">📄</div>`;
+    chip.innerHTML=`${thumbHtml}<div class="pdf-staged-info"><div class="pdf-staged-name">${_esc(pdf.name)}</div><div class="pdf-staged-meta">${pdf.sizeKb} KB${pdf.pageCount?' · '+pdf.pageCount+'p':''}</div></div><button class="pdf-staged-remove" onclick="removeStagedPdf(${idx})" title="Remove">✕</button>`;
+    row.appendChild(chip);
+  });
+}
+
+// ── SCREENSHOT FEATURE ─────────────────────────────────────────────────────────
+let screenshotStream = null;
+let screenshotVideoEl = null;
+let screenshotFull = null;   // full captured frame as ImageData / canvas
+let cropStart = null;
+let cropRect  = null;
+let isDragging = false;
+
+async function startScreenshot(){
+  closeAttachMenu();
+  // Ask for screen share
+  try{
+    screenshotStream = await navigator.mediaDevices.getDisplayMedia({
+      video:{ mediaSource:'screen', cursor:'always' },
+      audio:false
+    });
+  }catch(err){
+    if(err.name==='NotAllowedError') addMsg('ai','Screenshot cancelled — screen share permission was denied.');
+    else addMsg('ai','⚠️ Could not start screen capture: '+err.message);
+    return;
+  }
+
+  // Capture a single frame from the stream into a hidden video
+  screenshotVideoEl = document.createElement('video');
+  screenshotVideoEl.srcObject = screenshotStream;
+  screenshotVideoEl.muted = true;
+  await screenshotVideoEl.play();
+
+  // Give video a moment to render first frame
+  await new Promise(r=>setTimeout(r, 300));
+
+  // Draw frame onto the crop canvas (which fills the overlay)
+  const overlay = document.getElementById('crop-overlay');
+  const canvas  = document.getElementById('crop-canvas');
+  const vw = window.innerWidth, vh = window.innerHeight;
+  canvas.width  = screenshotVideoEl.videoWidth  || vw;
+  canvas.height = screenshotVideoEl.videoHeight || vh;
+  canvas.style.width  = vw+'px';
+  canvas.style.height = vh+'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(screenshotVideoEl, 0, 0, canvas.width, canvas.height);
+
+  // Stop the stream immediately — we have our frame
+  screenshotStream.getTracks().forEach(t=>t.stop());
+  screenshotStream = null;
+
+  // Store the full screenshot
+  screenshotFull = canvas;
+
+  // Show overlay in crop mode
+  overlay.classList.add('active');
+  document.getElementById('crop-selection').classList.remove('visible');
+  document.getElementById('crop-confirm').style.display = 'none';
+  cropRect = null; cropStart = null;
+
+  // Bind crop drag events
+  canvas.addEventListener('mousedown',  onCropStart);
+  canvas.addEventListener('mousemove',  onCropMove);
+  canvas.addEventListener('mouseup',    onCropEnd);
+  canvas.addEventListener('touchstart', onCropTouchStart, {passive:false});
+  canvas.addEventListener('touchmove',  onCropTouchMove,  {passive:false});
+  canvas.addEventListener('touchend',   onCropTouchEnd);
+}
+
+function onCropStart(e){
+  e.preventDefault();
+  const r = document.getElementById('crop-canvas').getBoundingClientRect();
+  cropStart = { x: e.clientX - r.left, y: e.clientY - r.top };
+  isDragging = true;
+  document.getElementById('crop-confirm').style.display = 'none';
+  document.getElementById('crop-selection').classList.remove('visible');
+}
+function onCropMove(e){
+  if(!isDragging || !cropStart) return;
+  const r = document.getElementById('crop-canvas').getBoundingClientRect();
+  const cur = { x: e.clientX - r.left, y: e.clientY - r.top };
+  updateCropBox(cropStart, cur);
+}
+function onCropEnd(e){
+  if(!isDragging) return;
+  isDragging = false;
+  const r = document.getElementById('crop-canvas').getBoundingClientRect();
+  const cur = { x: e.clientX - r.left, y: e.clientY - r.top };
+  const w = Math.abs(cur.x - cropStart.x), h = Math.abs(cur.y - cropStart.y);
+  if(w > 20 && h > 20){
+    cropRect = {
+      x: Math.min(cropStart.x, cur.x), y: Math.min(cropStart.y, cur.y), w, h,
+      scaleX: screenshotFull.width  / r.width,
+      scaleY: screenshotFull.height / r.height
+    };
+    document.getElementById('crop-confirm').style.display = 'block';
+    document.getElementById('crop-instructions').textContent = 'Selection ready — click "Use Selection" or drag again';
+  }
+}
+
+// Touch equivalents
+function onCropTouchStart(e){ e.preventDefault(); onCropStart(e.touches[0]); }
+function onCropTouchMove(e){  e.preventDefault(); onCropMove(e.touches[0]);  }
+function onCropTouchEnd(e){   onCropEnd(e.changedTouches[0]); }
+
+function updateCropBox(start, cur){
+  const sel = document.getElementById('crop-selection');
+  const can = document.getElementById('crop-canvas').getBoundingClientRect();
+  const x = Math.min(start.x, cur.x) + can.left;
+  const y = Math.min(start.y, cur.y) + can.top;
+  const w = Math.abs(cur.x - start.x);
+  const h = Math.abs(cur.y - start.y);
+  sel.style.left   = x+'px';
+  sel.style.top    = y+'px';
+  sel.style.width  = w+'px';
+  sel.style.height = h+'px';
+  sel.classList.add('visible');
+}
+
+function captureFullScreen(){
+  // Use the entire screenshot as-is
+  cropRect = null;
+  _sendScreenshot(screenshotFull);
+  closeCrop();
+}
+
+function cropAndSend(){
+  if(!cropRect || !screenshotFull) return;
+  // Crop the canvas
+  const tmp = document.createElement('canvas');
+  tmp.width  = Math.round(cropRect.w * cropRect.scaleX);
+  tmp.height = Math.round(cropRect.h * cropRect.scaleY);
+  const ctx  = tmp.getContext('2d');
+  ctx.drawImage(
+    screenshotFull,
+    Math.round(cropRect.x * cropRect.scaleX),
+    Math.round(cropRect.y * cropRect.scaleY),
+    tmp.width, tmp.height,
+    0, 0, tmp.width, tmp.height
+  );
+  _sendScreenshot(tmp);
+  closeCrop();
+}
+
+function _sendScreenshot(canvas){
+  const dataUrl = canvas.toDataURL('image/png');
+  const base64  = dataUrl.split(',')[1];
+  stagedImages.push({ dataUrl, base64, name: 'screenshot.png', sizeMB: '~' });
+  renderImgStagedRow();
+  // Auto-focus input
+  const inp = document.getElementById('chat-input');
+  inp.placeholder = 'Ask about this screenshot… (or just press ➤ to describe it)';
+  inp.focus();
+}
+
+function cancelCrop(){ closeCrop(); }
+
+function closeCrop(){
+  const overlay = document.getElementById('crop-overlay');
+  const canvas  = document.getElementById('crop-canvas');
+  overlay.classList.remove('active');
+  document.getElementById('crop-selection').classList.remove('visible');
+  document.getElementById('crop-instructions').textContent = 'Drag to select an area — or click "Full Screen" to capture everything';
+  document.getElementById('crop-confirm').style.display = 'none';
+  canvas.removeEventListener('mousedown',  onCropStart);
+  canvas.removeEventListener('mousemove',  onCropMove);
+  canvas.removeEventListener('mouseup',    onCropEnd);
+  canvas.removeEventListener('touchstart', onCropTouchStart);
+  canvas.removeEventListener('touchmove',  onCropTouchMove);
+  canvas.removeEventListener('touchend',   onCropTouchEnd);
+  // Clear canvas
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  screenshotFull = null; cropRect = null; cropStart = null; isDragging = false;
+  if(screenshotStream){ screenshotStream.getTracks().forEach(t=>t.stop()); screenshotStream=null; }
+}
+
 // ── SESSION INIT ──────────────────────────────────────────────────────────────
 function initSession(){
-  addMsg('ai','**Hey! I\'m Sedy ✦**\n\nYour AI study companion. Ask me anything:\n- Explain a concept or solve a problem\n- **Flashcards** or **Quiz** on any topic\n- **Graph** any data\n- **Flowchart** any process — click to reveal each step\n- **Notes** or **Formula sheet** on any subject\n- 📎 Tap the **attach button** to upload a **PDF** or **Image**\n- 🖼️ **Images** — I can read handwritten notes, diagrams, question papers, logos (KVS, CBSE, NCERT...), and answer in any Indian language (Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi...)\n\nWhat would you like to learn today?');
+  addMsg('ai','**Hey! I\'m Sedy ✦**\n\nYour AI study companion. Ask me anything:\n- Explain concepts, solve math, help with code\n- **Flashcards**, **Quiz**, **Notes**, **Formula sheet**\n- **Graph** any data · **Flowchart** any process\n- 📎 **Upload any file** — PDF, image (JPG/PNG), text, code, CSV, JSON\n- 📸 **Take a screenshot** — capture any part of your screen and I\'ll explain it\n- 🌍 Supports all Indian languages — Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi and more\n\nWhat would you like to learn today?');
 }
 
 // ── KEEP-ALIVE ────────────────────────────────────────────────────────────────

@@ -3300,8 +3300,12 @@ async function _sendChat(text){
   const reply=wsResult.reply;
   pushHistory('assistant',reply);
 
+  const isFast=wsResult.fast===true;
+  const badge=isFast
+    ? `<div class="ws-badge">⚡ Instant Answer</div>`
+    : `<div class="ws-badge">🔍 Web Search</div>`;
   const sourcesHtml=buildWsSourcesHtml(wsResult.sources);
-  const fullHtml=`<div class="ws-badge">🔍 Web Search</div>${parseMarkdown(reply)}${sourcesHtml}`;
+  const fullHtml=`${badge}${parseMarkdown(reply)}${sourcesHtml}`;
 
   const wrap=document.getElementById('chat-messages');
   const div=document.createElement('div'); div.className='msg ai';

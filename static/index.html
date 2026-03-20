@@ -3228,13 +3228,15 @@ function parseMarkdown(text){
 // ══════════════════════════════════════════════════════════
 // ── WEB SEARCH AUTO-DETECT ─────────────────────────────────
 // ══════════════════════════════════════════════════════════
-const WEB_SEARCH_TRIGGERS=/\b(today|current|latest|recent|now|2024|2025|2026|news|price of|cost of|weather|who is|who won|score|result|election|live|update|this year|this month|last week|last month|currently|at present|right now|as of|stock|share price|match|ipl|world cup|exam date|admit card|result out|cutoff|official|trending|breaking)\b/i;
+// Only trigger web search for clearly real-time / news queries.
+// Deliberately narrow — study questions must NEVER hit this.
+const WEB_SEARCH_TRIGGERS=/\b(stock price|share price|market cap|nse|bse|sensex|nifty|petrol price|diesel price|gold price|silver price|today'?s? (price|rate|score|result|news|weather)|current price|live score|ipl score|cricket score|match score|who won (the )?(match|game|election|ipl|world cup)|latest news|breaking news|news today|weather (in|today|tomorrow)|temperature (in|today)|election result|exam result|board result|cbse result|admit card|answer key|cutoff (list|marks)|todays? (news|weather|match|score|rate))\b/i;
 
 async function maybeWebSearch(message){
   if(!WEB_SEARCH_TRIGGERS.test(message)) return null;
   const controller = new AbortController();
   // Hard 7-second timeout — if backend is cold-starting, give up and use normal chat
-  const timer = setTimeout(()=>controller.abort(), 7000);
+  const timer = setTimeout(()=>controller.abort(), 5000);
   try{
     const res=await fetch(API_URL+'/web-search',{
       method:'POST',

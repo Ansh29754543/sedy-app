@@ -443,8 +443,92 @@ body::before{content:'';position:fixed;inset:0;
 .files-empty-icon{font-size:36px;opacity:.4;}
 .files-empty-text{font-size:13px;color:var(--text3);line-height:1.6;}
 
+/* ── SEDY SCOPE BUTTON (header) ── */
+.scope-btn{display:flex;align-items:center;gap:6px;padding:5px 12px;background:linear-gradient(135deg,rgba(0,229,192,.12),rgba(79,142,255,.1));border:1px solid rgba(0,229,192,.3);border-radius:20px;font-size:11px;font-weight:700;color:var(--accent3);font-family:'Syne',sans-serif;cursor:pointer;transition:all .22s;white-space:nowrap;letter-spacing:.3px;}
+.scope-btn:hover{background:linear-gradient(135deg,rgba(0,229,192,.22),rgba(79,142,255,.18));border-color:rgba(0,229,192,.55);box-shadow:0 0 18px rgba(0,229,192,.2);}
+.scope-btn .scope-dot{width:7px;height:7px;border-radius:50%;background:var(--accent3);box-shadow:0 0 7px var(--accent3);animation:scopePulse 2s infinite;}
+@keyframes scopePulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(0.8);}}
+
+/* ── SEDY SCOPE FULL-SCREEN OVERLAY ── */
+.scope-overlay{position:fixed;inset:0;z-index:900;background:#000;display:none;flex-direction:column;}
+.scope-overlay.active{display:flex;}
+
+/* Top bar */
+.scope-topbar{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;padding-top:calc(14px + var(--safe-t));background:linear-gradient(180deg,rgba(0,0,0,.85) 0%,transparent 100%);}
+.scope-logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--accent3),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:flex;align-items:center;gap:8px;}
+.scope-logo-icon{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent3),var(--accent));display:flex;align-items:center;justify-content:center;font-size:14px;-webkit-text-fill-color:initial;}
+.scope-topbar-right{display:flex;align-items:center;gap:8px;}
+.scope-flip-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;backdrop-filter:blur(8px);}
+.scope-flip-btn:hover{background:rgba(255,255,255,.22);}
+.scope-close-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;backdrop-filter:blur(8px);}
+.scope-close-btn:hover{background:rgba(255,79,106,.3);border-color:rgba(255,79,106,.5);}
+
+/* Video feed */
+.scope-video-wrap{position:relative;flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#000;}
+#scope-video{width:100%;height:100%;object-fit:cover;display:block;}
+#scope-video.mirrored{transform:scaleX(-1);}
+
+/* Scan line animation when "thinking" */
+.scope-scanline{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent3),transparent);opacity:0;pointer-events:none;animation:scanMove 1.8s linear infinite;}
+@keyframes scanMove{0%{top:0%;opacity:0;}5%{opacity:1;}95%{opacity:1;}100%{top:100%;opacity:0;}}
+.scope-video-wrap.scanning .scope-scanline{opacity:1;}
+
+/* Corner frame decorations */
+.scope-frame{position:absolute;inset:20px;pointer-events:none;}
+.scope-frame::before,.scope-frame::after{content:'';position:absolute;width:24px;height:24px;border-color:var(--accent3);border-style:solid;opacity:.7;}
+.scope-frame::before{top:0;left:0;border-width:2px 0 0 2px;border-radius:3px 0 0 0;}
+.scope-frame::after{top:0;right:0;border-width:2px 2px 0 0;border-radius:0 3px 0 0;}
+.scope-frame-b{position:absolute;inset:20px;pointer-events:none;}
+.scope-frame-b::before,.scope-frame-b::after{content:'';position:absolute;width:24px;height:24px;border-color:var(--accent3);border-style:solid;opacity:.7;}
+.scope-frame-b::before{bottom:0;left:0;border-width:0 0 2px 2px;border-radius:0 0 0 3px;}
+.scope-frame-b::after{bottom:0;right:0;border-width:0 2px 2px 0;border-radius:0 0 3px 0;}
+
+/* AI response card */
+.scope-answer-card{position:absolute;bottom:140px;left:14px;right:14px;background:rgba(8,11,18,.92);backdrop-filter:blur(20px);border:1px solid rgba(0,229,192,.25);border-radius:18px;padding:16px 18px;max-height:40vh;overflow-y:auto;display:none;animation:slideUp .25s ease;}
+.scope-answer-card.visible{display:block;}
+.scope-answer-card::-webkit-scrollbar{width:3px;}
+.scope-answer-card::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.scope-answer-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.scope-answer-badge{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;color:var(--accent3);letter-spacing:.8px;text-transform:uppercase;}
+.scope-answer-dot{width:6px;height:6px;border-radius:50%;background:var(--accent3);box-shadow:0 0 5px var(--accent3);}
+.scope-answer-close{background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:0;line-height:1;}
+.scope-answer-close:hover{color:var(--text);}
+.scope-answer-body{font-size:14px;color:var(--text);line-height:1.7;}
+.scope-answer-body strong{color:var(--accent3);}
+.scope-answer-body em{color:var(--accent);font-style:italic;}
+.scope-answer-body h2,.scope-answer-body h3{font-family:'Syne',sans-serif;color:var(--accent3);margin:6px 0 3px;}
+.scope-answer-body ul{padding-left:16px;margin:4px 0;}
+.scope-answer-body li{margin:2px 0;}
+.scope-answer-body code{background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3);}
+.scope-speak-btn{margin-top:10px;background:none;border:1px solid rgba(0,229,192,.2);border-radius:8px;padding:4px 12px;font-size:11px;color:var(--accent3);cursor:pointer;font-family:'DM Mono',monospace;transition:all .2s;}
+.scope-speak-btn:hover{background:rgba(0,229,192,.08);}
+.scope-speak-btn.speaking{animation:speakPulse 1.4s infinite;}
+
+/* Bottom input bar */
+.scope-bar{position:absolute;bottom:0;left:0;right:0;padding:12px 14px;padding-bottom:calc(12px + var(--safe-b));background:linear-gradient(0deg,rgba(0,0,0,.9) 0%,transparent 100%);display:flex;align-items:center;gap:10px;}
+.scope-input-wrap{flex:1;display:flex;align-items:center;background:rgba(255,255,255,.1);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.18);border-radius:28px;padding:8px 14px;gap:8px;transition:border-color .2s;}
+.scope-input-wrap:focus-within{border-color:rgba(0,229,192,.5);}
+#scope-text-input{flex:1;background:none;border:none;outline:none;color:white;font-size:15px;font-family:'DM Sans',sans-serif;line-height:1.4;}
+#scope-text-input::placeholder{color:rgba(255,255,255,.45);}
+.scope-voice-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:white;font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.scope-voice-btn:hover{background:rgba(255,79,106,.25);border-color:rgba(255,79,106,.5);}
+.scope-voice-btn.listening{background:rgba(255,79,106,.25);border-color:var(--danger);animation:micPulse 1s infinite;}
+.scope-capture-btn{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent));border:3px solid rgba(255,255,255,.3);color:white;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;box-shadow:0 0 24px rgba(0,229,192,.35);}
+.scope-capture-btn:hover{transform:scale(1.06);box-shadow:0 0 36px rgba(0,229,192,.55);}
+.scope-capture-btn:active{transform:scale(.94);}
+.scope-capture-btn.loading{animation:scopeCapturePulse .8s infinite;}
+@keyframes scopeCapturePulse{0%,100%{box-shadow:0 0 24px rgba(0,229,192,.35);}50%{box-shadow:0 0 48px rgba(0,229,192,.7);}}
+
+/* Status pill */
+.scope-status{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:rgba(8,11,18,.8);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;white-space:nowrap;pointer-events:none;transition:all .3s;display:none;}
+.scope-status.visible{display:block;}
+.scope-status.listening{border-color:rgba(255,79,106,.4);color:var(--danger);}
+.scope-status.thinking{border-color:rgba(0,229,192,.4);color:var(--accent3);}
+
 @media(max-width:640px){
-  .header{padding:0 14px;padding-top:var(--safe-t);}
+  .scope-btn span{display:none;}
+  .scope-capture-btn{width:56px;height:56px;font-size:20px;}
+}
   .header-sub{display:none;}
   .memory-badge{padding:4px 8px;font-size:10px;}
   .clear-header-btn{padding:4px 9px;font-size:10px;}
@@ -486,6 +570,11 @@ body::before{content:'';position:fixed;inset:0;
       <div class="header-sub">Ask anything &bull; Voice &bull; PDF &bull; Image &bull; Code &bull; Math &bull; Flashcards &bull; Quizzes &bull; Graphs &bull; Flowcharts</div>
     </div>
     <div class="header-right">
+      <!-- Sedy Scope button -->
+      <button class="scope-btn" onclick="openScope()" title="Sedy Scope — point camera at anything and ask">
+        <div class="scope-dot"></div>
+        🔭 <span>Sedy Scope</span>
+      </button>
       <div class="model-switcher" id="model-switcher">
         <button class="model-btn active" data-model="auto" onclick="setModel('auto')" title="Auto — picks best model for each task">✦ Auto</button>
         <button class="model-btn" data-model="pro"   onclick="setModel('pro')"   title="Sedy Pro — best quality, complex tasks">🚀 Pro</button>
@@ -498,6 +587,51 @@ body::before{content:'';position:fixed;inset:0;
       </button>
       <div class="memory-badge"><div class="memory-dot"></div><span id="memory-count">0 messages</span></div>
       <button class="clear-header-btn" onclick="clearChat()">🗑 Clear</button>
+    </div>
+  </div>
+
+  <!-- ── SEDY SCOPE OVERLAY ─────────────────────────────────────────────────── -->
+  <div class="scope-overlay" id="scope-overlay">
+    <!-- Top bar -->
+    <div class="scope-topbar">
+      <div class="scope-logo">
+        <div class="scope-logo-icon">🔭</div>
+        Sedy Scope
+      </div>
+      <div class="scope-topbar-right">
+        <button class="scope-flip-btn" onclick="scopeFlipCamera()" title="Flip camera">🔄</button>
+        <button class="scope-close-btn" onclick="closeScope()" title="Close">✕</button>
+      </div>
+    </div>
+
+    <!-- Status pill -->
+    <div class="scope-status" id="scope-status"></div>
+
+    <!-- Video feed -->
+    <div class="scope-video-wrap" id="scope-video-wrap">
+      <video id="scope-video" autoplay playsinline muted></video>
+      <div class="scope-frame"></div>
+      <div class="scope-frame-b"></div>
+      <div class="scope-scanline"></div>
+    </div>
+
+    <!-- AI answer card (appears above input bar) -->
+    <div class="scope-answer-card" id="scope-answer-card">
+      <div class="scope-answer-header">
+        <div class="scope-answer-badge"><div class="scope-answer-dot"></div>Sedy Scope · AI Answer</div>
+        <button class="scope-answer-close" onclick="closeScopeAnswer()">✕</button>
+      </div>
+      <div class="scope-answer-body" id="scope-answer-body"></div>
+      <button class="scope-speak-btn" id="scope-speak-btn" onclick="speakScopeAnswer()">🔊 Speak answer</button>
+    </div>
+
+    <!-- Bottom bar: text input + voice btn + capture btn -->
+    <div class="scope-bar">
+      <div class="scope-input-wrap">
+        <input type="text" id="scope-text-input" placeholder="Ask about what you see… (or tap 🎤)" onkeydown="if(event.key==='Enter')scopeSend()">
+        <button class="scope-voice-btn" id="scope-voice-btn" onclick="toggleScopeVoice()" title="Speak your question">🎤</button>
+      </div>
+      <button class="scope-capture-btn" id="scope-capture-btn" onclick="scopeCapture()" title="Capture & Ask">📸</button>
     </div>
   </div>
 
@@ -2011,7 +2145,279 @@ function closeCrop(){
   if(screenshotStream){ screenshotStream.getTracks().forEach(t=>t.stop()); screenshotStream=null; }
 }
 
-// ── SESSION INIT ──────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// ── SEDY SCOPE ────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+let scopeStream       = null;
+let scopeFacingMode   = 'environment';   // back camera by default (front on desktop fallback)
+let scopeRecognition  = null;
+let scopeListening    = false;
+let scopeLastAnswer   = '';
+let scopeSpeaking     = false;
+let scopeUtterance    = null;
+
+// ── Open / close ──────────────────────────────────────────────────────────────
+async function openScope(){
+  const overlay = document.getElementById('scope-overlay');
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  await startScopeCamera();
+}
+
+function closeScope(){
+  stopScopeCamera();
+  stopScopeVoice();
+  stopScopeSpeak();
+  document.getElementById('scope-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+  closeScopeAnswer();
+  setScopeStatus('');
+}
+
+// ── Camera ─────────────────────────────────────────────────────────────────────
+async function startScopeCamera(){
+  stopScopeCamera();
+  const video = document.getElementById('scope-video');
+  try{
+    // Try requested facing mode, fall back to any camera
+    let stream;
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({
+        video:{ facingMode: scopeFacingMode, width:{ideal:1280}, height:{ideal:720} },
+        audio: false
+      });
+    }catch(e){
+      stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
+    }
+    scopeStream = stream;
+    video.srcObject = stream;
+    // Mirror front camera
+    video.classList.toggle('mirrored', scopeFacingMode === 'user');
+    await video.play();
+    setScopeStatus('');
+  }catch(err){
+    setScopeStatus('Camera unavailable — ' + err.message, 'error');
+    showScopeAnswer('⚠️ Could not access camera.\n\n**Possible reasons:**\n- Camera permission denied — check browser settings\n- No camera found on this device\n- Another app is using the camera');
+  }
+}
+
+function stopScopeCamera(){
+  if(scopeStream){ scopeStream.getTracks().forEach(t=>t.stop()); scopeStream=null; }
+  const video = document.getElementById('scope-video');
+  video.srcObject = null;
+}
+
+function scopeFlipCamera(){
+  scopeFacingMode = scopeFacingMode === 'environment' ? 'user' : 'environment';
+  startScopeCamera();
+}
+
+// ── Capture frame ──────────────────────────────────────────────────────────────
+function captureFrame(){
+  const video  = document.getElementById('scope-video');
+  const canvas = document.createElement('canvas');
+  canvas.width  = video.videoWidth  || 1280;
+  canvas.height = video.videoHeight || 720;
+  const ctx = canvas.getContext('2d');
+  // Flip back if mirrored so the image sent to AI is correct
+  if(video.classList.contains('mirrored')){
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.85).split(',')[1]; // base64
+}
+
+// ── Send to AI ────────────────────────────────────────────────────────────────
+async function scopeSend(){
+  const question = (document.getElementById('scope-text-input').value||'').trim();
+  await _scopeAsk(question);
+}
+
+async function scopeCapture(){
+  const question = (document.getElementById('scope-text-input').value||'').trim() || '';
+  await _scopeAsk(question);
+}
+
+async function _scopeAsk(question){
+  if(!scopeStream){
+    showScopeAnswer('Camera is not active. Please reopen Sedy Scope.');
+    return;
+  }
+  // Capture
+  let base64;
+  try{ base64 = captureFrame(); }
+  catch(e){ showScopeAnswer('⚠️ Could not capture frame: ' + e.message); return; }
+
+  // UI feedback
+  const btn = document.getElementById('scope-capture-btn');
+  btn.classList.add('loading');
+  document.getElementById('scope-video-wrap').classList.add('scanning');
+  setScopeStatus('🔭 Sedy Scope is thinking…', 'thinking');
+  closeScopeAnswer();
+  stopScopeSpeak();
+
+  const prompt = question || 'Look at this image carefully. Describe what you see and explain anything educational — text, diagrams, equations, objects, or anything that might be useful for a student.';
+
+  try{
+    const res = await fetch(API_URL + '/image-chat', {
+      method:  'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        message:  prompt,
+        images:   [base64],
+        image_names: ['scope_frame.jpg'],
+        history:  chatHistory.slice(-6),
+      })
+    });
+
+    if(res.status === 429){
+      const d = await res.json();
+      showScopeAnswer('⏳ Rate limit reached. Please wait a moment and try again.');
+      showRateLimit(d.detail || {});
+    } else if(!res.ok){
+      throw new Error('HTTP ' + res.status);
+    } else {
+      const data = await res.json();
+      const reply = data.reply || 'No response.';
+      scopeLastAnswer = reply;
+      showScopeAnswer(reply);
+      // Also log to main chat history
+      pushHistory('user', '[Sedy Scope] ' + (question||'(frame captured)'));
+      pushHistory('assistant', reply);
+      // Clear input
+      document.getElementById('scope-text-input').value = '';
+    }
+  }catch(err){
+    showScopeAnswer('⚠️ Could not reach Sedy. Check your connection.');
+    console.error(err);
+  }finally{
+    btn.classList.remove('loading');
+    document.getElementById('scope-video-wrap').classList.remove('scanning');
+    setScopeStatus('');
+  }
+}
+
+// ── Answer card ────────────────────────────────────────────────────────────────
+function showScopeAnswer(text){
+  const card = document.getElementById('scope-answer-card');
+  const body = document.getElementById('scope-answer-body');
+  // Parse basic markdown for the overlay
+  body.innerHTML = parseScopeMarkdown(text);
+  if(window.renderMathInElement) renderMathInElement(body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+  card.classList.add('visible');
+}
+
+function closeScopeAnswer(){
+  document.getElementById('scope-answer-card').classList.remove('visible');
+}
+
+function parseScopeMarkdown(text){
+  return text
+    .replace(/```[\s\S]*?```/g, m => {
+      const code = m.replace(/```\w*\n?/,'').replace(/```$/,'');
+      return `<pre style="background:rgba(0,0,0,.4);border:1px solid var(--border2);border-radius:8px;padding:10px;font-family:'DM Mono',monospace;font-size:12px;overflow-x:auto;margin:6px 0;">${_esc(code.trim())}</pre>`;
+    })
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g,'<em>$1</em>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/^- (.+)$/gm,'<li style="margin:2px 0">$1</li>')
+    .replace(/(<li[\s\S]*?<\/li>\n?)+/g, m=>'<ul style="padding-left:16px;margin:5px 0">'+m+'</ul>')
+    .replace(/\n\n/g,'<br><br>')
+    .replace(/\n/g,'<br>');
+}
+
+// ── TTS for scope ──────────────────────────────────────────────────────────────
+function speakScopeAnswer(){
+  const btn = document.getElementById('scope-speak-btn');
+  if(scopeSpeaking){ stopScopeSpeak(); return; }
+  if(!scopeLastAnswer || !window.speechSynthesis) return;
+  const clean = scopeLastAnswer.replace(/<[^>]+>/g,' ').replace(/#{1,3}\s+/g,'').replace(/\*{1,3}([^*]+)\*{1,3}/g,'$1').replace(/\$\$?[^$]+\$\$?/g,' math expression ').replace(/\s+/g,' ').trim();
+  scopeUtterance = new SpeechSynthesisUtterance(clean);
+  scopeUtterance.rate = 0.95; scopeUtterance.pitch = 1;
+  scopeSpeaking = true;
+  btn.classList.add('speaking'); btn.textContent = '⏹ Stop speaking';
+  scopeUtterance.onend = scopeUtterance.onerror = ()=>{
+    scopeSpeaking = false;
+    btn.classList.remove('speaking'); btn.textContent = '🔊 Speak answer';
+    scopeUtterance = null;
+  };
+  window.speechSynthesis.speak(scopeUtterance);
+}
+function stopScopeSpeak(){
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  scopeSpeaking = false; scopeUtterance = null;
+  const btn = document.getElementById('scope-speak-btn');
+  if(btn){ btn.classList.remove('speaking'); btn.textContent = '🔊 Speak answer'; }
+}
+
+// ── Voice input for scope ──────────────────────────────────────────────────────
+function toggleScopeVoice(){
+  if(scopeListening){ stopScopeVoice(); return; }
+  startScopeVoice();
+}
+
+function startScopeVoice(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ showScopeAnswer('🎤 Voice input is not supported in this browser. Try Chrome.'); return; }
+
+  scopeRecognition = new SR();
+  scopeRecognition.continuous      = false;
+  scopeRecognition.interimResults  = true;
+  scopeRecognition.lang            = 'en-IN';   // Indian English default; browser picks language
+
+  const btn   = document.getElementById('scope-voice-btn');
+  const input = document.getElementById('scope-text-input');
+
+  scopeRecognition.onstart = ()=>{
+    scopeListening = true;
+    btn.classList.add('listening'); btn.textContent = '⏹';
+    setScopeStatus('🎤 Listening — speak your question…', 'listening');
+    input.placeholder = '🎤 Listening…';
+  };
+
+  scopeRecognition.onresult = (e)=>{
+    const transcript = Array.from(e.results).map(r=>r[0].transcript).join('');
+    input.value = transcript;
+  };
+
+  scopeRecognition.onend = ()=>{
+    scopeListening = false;
+    btn.classList.remove('listening'); btn.textContent = '🎤';
+    setScopeStatus('');
+    input.placeholder = 'Ask about what you see… (or tap 🎤)';
+    const text = input.value.trim();
+    if(text) _scopeAsk(text);   // auto-send after speech
+  };
+
+  scopeRecognition.onerror = (e)=>{
+    scopeListening = false;
+    btn.classList.remove('listening'); btn.textContent = '🎤';
+    setScopeStatus('');
+    if(e.error !== 'no-speech') showScopeAnswer('🎤 Microphone error: ' + e.error);
+  };
+
+  try{ scopeRecognition.start(); }catch(e){}
+}
+
+function stopScopeVoice(){
+  if(scopeRecognition){ try{ scopeRecognition.stop(); }catch(e){} scopeRecognition=null; }
+  scopeListening = false;
+  const btn = document.getElementById('scope-voice-btn');
+  if(btn){ btn.classList.remove('listening'); btn.textContent='🎤'; }
+  setScopeStatus('');
+}
+
+// ── Status pill ───────────────────────────────────────────────────────────────
+function setScopeStatus(msg, type=''){
+  const el = document.getElementById('scope-status');
+  if(!el) return;
+  if(!msg){ el.classList.remove('visible','listening','thinking'); el.textContent=''; return; }
+  el.textContent = msg;
+  el.className   = 'scope-status visible ' + (type||'');
+}
 function initSession(){
   addMsg('ai','**Hey! I\'m Sedy ✦**\n\nYour AI study companion. Ask me anything:\n- Explain concepts, solve math, help with code\n- **Flashcards**, **Quiz**, **Notes**, **Formula sheet**\n- **Graph** any data · **Flowchart** any process\n- 📎 **Upload any file** — PDF, image (JPG/PNG), text, code, CSV, JSON\n- 📸 **Take a screenshot** — capture any part of your screen and I\'ll explain it\n- 🌍 Supports all Indian languages — Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi and more\n\nWhat would you like to learn today?');
 }

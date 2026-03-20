@@ -342,6 +342,7 @@ body::before{content:'';position:fixed;inset:0;
 .attach-menu-sep{height:1px;background:var(--border);margin:3px 0;}
 .attach-menu-item.file-opt:hover{background:rgba(0,229,192,.08);color:var(--accent3);}
 .attach-menu-item.shot-opt:hover{background:rgba(255,181,71,.08);color:var(--warning);}
+.attach-menu-item.scope-opt:hover{background:rgba(0,229,192,.1);color:var(--accent3);}
 
 /* ── SCREENSHOT CROP OVERLAY ── */
 .crop-overlay{position:fixed;inset:0;z-index:800;cursor:crosshair;display:none;}
@@ -442,12 +443,6 @@ body::before{content:'';position:fixed;inset:0;
 .files-empty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px 20px;text-align:center;}
 .files-empty-icon{font-size:36px;opacity:.4;}
 .files-empty-text{font-size:13px;color:var(--text3);line-height:1.6;}
-
-/* ── SEDY SCOPE BUTTON (header) ── */
-.scope-btn{display:flex;align-items:center;gap:6px;padding:5px 12px;background:linear-gradient(135deg,rgba(0,229,192,.12),rgba(79,142,255,.1));border:1px solid rgba(0,229,192,.3);border-radius:20px;font-size:11px;font-weight:700;color:var(--accent3);font-family:'Syne',sans-serif;cursor:pointer;transition:all .22s;white-space:nowrap;letter-spacing:.3px;}
-.scope-btn:hover{background:linear-gradient(135deg,rgba(0,229,192,.22),rgba(79,142,255,.18));border-color:rgba(0,229,192,.55);box-shadow:0 0 18px rgba(0,229,192,.2);}
-.scope-btn .scope-dot{width:7px;height:7px;border-radius:50%;background:var(--accent3);box-shadow:0 0 7px var(--accent3);animation:scopePulse 2s infinite;}
-@keyframes scopePulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(0.8);}}
 
 /* ── SEDY SCOPE FULL-SCREEN OVERLAY ── */
 .scope-overlay{position:fixed;inset:0;z-index:900;background:#000;display:none;flex-direction:column;}
@@ -570,11 +565,6 @@ body::before{content:'';position:fixed;inset:0;
       <div class="header-sub">Ask anything &bull; Voice &bull; PDF &bull; Image &bull; Code &bull; Math &bull; Flashcards &bull; Quizzes &bull; Graphs &bull; Flowcharts</div>
     </div>
     <div class="header-right">
-      <!-- Sedy Scope button -->
-      <button class="scope-btn" onclick="openScope()" title="Sedy Scope — point camera at anything and ask">
-        <div class="scope-dot"></div>
-        🔭 <span>Sedy Scope</span>
-      </button>
       <div class="model-switcher" id="model-switcher">
         <button class="model-btn active" data-model="auto" onclick="setModel('auto')" title="Auto — picks best model for each task">✦ Auto</button>
         <button class="model-btn" data-model="pro"   onclick="setModel('pro')"   title="Sedy Pro — best quality, complex tasks">🚀 Pro</button>
@@ -730,6 +720,16 @@ body::before{content:'';position:fixed;inset:0;
             <div>
               <div class="ami-label">Take Screenshot</div>
               <div class="ami-sub">Capture screen · AI will explain it</div>
+            </div>
+          </div>
+          <!-- Divider -->
+          <div class="attach-menu-sep"></div>
+          <!-- Row 3: Sedy Scope (live camera) -->
+          <div class="attach-menu-item scope-opt" onclick="openScopeFromMenu()">
+            <span class="ami-icon">🔭</span>
+            <div>
+              <div class="ami-label">Sedy Scope</div>
+              <div class="ami-sub">Live camera · point &amp; ask</div>
             </div>
           </div>
         </div>
@@ -1829,6 +1829,10 @@ function pickAnyFile(){
 // Legacy pickers kept for internal calls
 function pickImage(){ closeAttachMenu(); document.getElementById('img-input').click(); }
 function pickPdf(){   closeAttachMenu(); document.getElementById('pdf-input').click(); }
+function openScopeFromMenu(){
+  closeAttachMenu();
+  openScope();
+}
 document.addEventListener('click', (e)=>{
   if(!e.target.closest('#attach-wrap')) closeAttachMenu();
 });

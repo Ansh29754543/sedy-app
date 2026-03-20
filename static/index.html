@@ -325,14 +325,23 @@ body::before{content:'';position:fixed;inset:0;
 .graph-tooltip-val{color:var(--text);font-weight:500;margin-left:auto;padding-left:14px;}
 
 /* ── INPUT AREA ── */
-.upload-btn{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;flex-shrink:0;}
-.upload-btn:hover,.upload-btn.active{border-color:var(--accent2);background:rgba(124,92,252,.15);}
-.upload-btn:active{transform:scale(.93);}
-
-/* ── NEW: Image upload button ─────────────────────────────────────────────── */
-.img-upload-btn{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;flex-shrink:0;}
-.img-upload-btn:hover,.img-upload-btn.active{border-color:var(--vision);background:rgba(255,159,67,.15);}
-.img-upload-btn:active{transform:scale(.93);}
+/* Combined attach button */
+.attach-wrap{position:relative;flex-shrink:0;}
+.attach-btn{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;}
+.attach-btn:hover{border-color:var(--accent);background:rgba(79,142,255,.12);}
+.attach-btn.active{border-color:var(--accent2);background:rgba(124,92,252,.15);}
+.attach-btn:active{transform:scale(.93);}
+/* Attach popup menu */
+.attach-menu{position:absolute;bottom:calc(100% + 8px);left:0;background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:6px;display:flex;flex-direction:column;gap:3px;box-shadow:0 8px 32px rgba(0,0,0,.5);opacity:0;pointer-events:none;transform:translateY(6px);transition:opacity .18s,transform .18s;z-index:200;min-width:160px;}
+.attach-menu.open{opacity:1;pointer-events:all;transform:translateY(0);}
+.attach-menu-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;}
+.attach-menu-item:hover{background:var(--card2);color:var(--text);}
+.attach-menu-item .ami-icon{font-size:18px;width:24px;text-align:center;}
+.attach-menu-item .ami-label{font-weight:500;}
+.attach-menu-item .ami-sub{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;}
+.attach-menu-sep{height:1px;background:var(--border);margin:3px 0;}
+.attach-menu-item.img-opt:hover{background:rgba(255,159,67,.1);color:var(--vision);}
+.attach-menu-item.pdf-opt:hover{background:rgba(124,92,252,.1);color:var(--accent2);}
 
 #pdf-input{display:none;}
 #img-input{display:none;}
@@ -530,17 +539,28 @@ body::before{content:'';position:fixed;inset:0;
     <!-- Staged PDFs row -->
     <div class="pdf-staged-row" id="pdf-staged-row"></div>
     <input type="file" id="pdf-input" accept=".pdf" multiple onchange="handlePdfSelect(event)">
-    <!-- NEW: image file input — multiple, up to 5 -->
     <input type="file" id="img-input" accept="image/jpeg,image/png,image/gif,image/webp" multiple onchange="handleImgSelect(event)">
     <div class="input-wrap" id="input-wrap">
-      <button class="upload-btn" id="upload-btn" onclick="document.getElementById('pdf-input').click()" title="Attach PDF(s)">📎</button>
-      <!-- NEW: image upload button -->
-      <button class="img-upload-btn" id="img-upload-btn" onclick="document.getElementById('img-input').click()" title="Attach image(s) — ask in any Indian language">🖼️</button>
+      <!-- Single combined attach button -->
+      <div class="attach-wrap" id="attach-wrap">
+        <button class="attach-btn" id="attach-btn" onclick="toggleAttachMenu(event)" title="Attach PDF or Image">📎</button>
+        <div class="attach-menu" id="attach-menu">
+          <div class="attach-menu-item img-opt" onclick="pickImage()">
+            <span class="ami-icon">🖼️</span>
+            <div><div class="ami-label">Image</div><div class="ami-sub">JPG, PNG, WebP · logo, diagram, notes</div></div>
+          </div>
+          <div class="attach-menu-sep"></div>
+          <div class="attach-menu-item pdf-opt" onclick="pickPdf()">
+            <span class="ami-icon">📄</span>
+            <div><div class="ami-label">PDF</div><div class="ami-sub">Ask questions about a document</div></div>
+          </div>
+        </div>
+      </div>
       <textarea id="chat-input" rows="1" placeholder="Ask anything, graphs, flowcharts, flashcards, quiz… or attach a PDF / image" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
       <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="Voice input">🎤</button>
       <button class="send-btn" onclick="sendMessage()">➤</button>
     </div>
-    <div class="input-hint">🎤 voice &bull; 📎 pdf &bull; 🖼️ image (any Indian language) &bull; 📈 graphs &bull; 🔀 flowcharts &bull; 🔊 speak</div>
+    <div class="input-hint">🎤 voice &bull; 📎 attach pdf or image &bull; 📈 graphs &bull; 🔀 flowcharts &bull; 🔊 speak</div>
   </div>
 </div>
 
@@ -803,20 +823,20 @@ function handleImgSelect(event){
 function renderImgStagedRow(){
   const row = document.getElementById('img-staged-row');
   const inputWrap = document.getElementById('input-wrap');
-  const imgBtn = document.getElementById('img-upload-btn');
+  const attachBtn = document.getElementById('attach-btn');
   const input = document.getElementById('chat-input');
   if(!row) return;
   row.innerHTML='';
   if(!stagedImages.length){
     row.classList.remove('visible');
     inputWrap.classList.remove('img-mode');
-    imgBtn.classList.remove('active');
+    attachBtn.classList.remove('active');
     if(!stagedPdfs.length) input.placeholder='Ask anything, graphs, flowcharts, flashcards, quiz… or attach a PDF / image';
     return;
   }
   row.classList.add('visible');
   inputWrap.classList.add('img-mode');
-  imgBtn.classList.add('active');
+  attachBtn.classList.add('active');
   input.placeholder = stagedImages.length===1
     ? 'Ask about this image (any language: Hindi, Bengali, Tamil…)'
     : `Ask about these ${stagedImages.length} images (any language)`;
@@ -858,8 +878,8 @@ function renderStagedRow(){
   const row=document.getElementById('pdf-staged-row');
   if(!row) return;
   row.innerHTML='';
-  if(!stagedPdfs.length){ row.classList.remove('visible'); document.getElementById('upload-btn').classList.remove('active'); if(!stagedImages.length) document.getElementById('input-wrap').classList.remove('pdf-mode'); return; }
-  row.classList.add('visible'); document.getElementById('upload-btn').classList.add('active'); document.getElementById('input-wrap').classList.add('pdf-mode');
+  if(!stagedPdfs.length){ row.classList.remove('visible'); document.getElementById('attach-btn').classList.remove('active'); if(!stagedImages.length) document.getElementById('input-wrap').classList.remove('pdf-mode'); return; }
+  row.classList.add('visible'); document.getElementById('attach-btn').classList.add('active'); document.getElementById('input-wrap').classList.add('pdf-mode');
   if(!stagedImages.length) document.getElementById('chat-input').placeholder=stagedPdfs.length===1?'Ask anything about "'+stagedPdfs[0].name.slice(0,30)+'"…':'Ask anything about these '+stagedPdfs.length+' PDFs…';
   stagedPdfs.forEach((pdf,idx)=>{
     const chip=document.createElement('div'); chip.className='pdf-staged-chip';
@@ -1598,9 +1618,33 @@ function switchFilesTab(tab){ activeFilesTab=tab; document.querySelectorAll('.fi
 function openFilesPanel(){ renderFilesList(); document.getElementById('files-overlay').classList.add('visible'); document.getElementById('files-panel').classList.add('visible'); }
 function closeFilesPanel(){ document.getElementById('files-overlay').classList.remove('visible'); document.getElementById('files-panel').classList.remove('visible'); }
 
+// ── ATTACH MENU ───────────────────────────────────────────────────────────────
+let attachMenuOpen = false;
+function toggleAttachMenu(e){
+  e.stopPropagation();
+  attachMenuOpen = !attachMenuOpen;
+  document.getElementById('attach-menu').classList.toggle('open', attachMenuOpen);
+}
+function closeAttachMenu(){
+  attachMenuOpen = false;
+  const m = document.getElementById('attach-menu');
+  if(m) m.classList.remove('open');
+}
+function pickImage(){
+  closeAttachMenu();
+  document.getElementById('img-input').click();
+}
+function pickPdf(){
+  closeAttachMenu();
+  document.getElementById('pdf-input').click();
+}
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('#attach-wrap')) closeAttachMenu();
+});
+
 // ── SESSION INIT ──────────────────────────────────────────────────────────────
 function initSession(){
-  addMsg('ai','**Hey! I\'m Sedy ✦**\n\nYour AI study companion. Ask me anything:\n- Explain a concept or solve a problem\n- **Flashcards** or **Quiz** on any topic\n- **Graph** any data\n- **Flowchart** any process — click to reveal each step\n- **Notes** or **Formula sheet** on any subject\n- Upload a **PDF** to ask questions about it\n- 🖼️ **Upload an image** — I can read handwritten notes, diagrams, question papers, and answer in any Indian language (Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi...)\n\nWhat would you like to learn today?');
+  addMsg('ai','**Hey! I\'m Sedy ✦**\n\nYour AI study companion. Ask me anything:\n- Explain a concept or solve a problem\n- **Flashcards** or **Quiz** on any topic\n- **Graph** any data\n- **Flowchart** any process — click to reveal each step\n- **Notes** or **Formula sheet** on any subject\n- 📎 Tap the **attach button** to upload a **PDF** or **Image**\n- 🖼️ **Images** — I can read handwritten notes, diagrams, question papers, logos (KVS, CBSE, NCERT...), and answer in any Indian language (Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi...)\n\nWhat would you like to learn today?');
 }
 
 // ── KEEP-ALIVE ────────────────────────────────────────────────────────────────

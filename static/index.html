@@ -635,18 +635,30 @@ body::before{content:'';position:fixed;inset:0;
 .wb-size-slider{width:80px;accent-color:#a78bfa;cursor:pointer;}
 .wb-canvas-wrap{flex:1;position:relative;overflow:hidden;cursor:crosshair;}
 #wb-canvas{display:block;width:100%;height:100%;touch-action:none;}
-.wb-ask-btn{position:absolute;bottom:24px;right:20px;padding:13px 24px;background:linear-gradient(135deg,#a78bfa,#60a5fa);border:none;border-radius:14px;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;box-shadow:0 4px 24px rgba(167,139,250,.4);transition:all .2s;display:flex;align-items:center;gap:8px;}
+.wb-ask-btn{position:absolute;bottom:24px;right:20px;padding:13px 24px;background:linear-gradient(135deg,#a78bfa,#60a5fa);border:none;border-radius:14px;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;box-shadow:0 4px 24px rgba(167,139,250,.4);transition:all .28s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;gap:8px;z-index:5;}
 .wb-ask-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(167,139,250,.55);}
 .wb-ask-btn:active{transform:scale(.96);}
 .wb-ask-btn.loading{animation:wbPulse .8s infinite;}
+/* When panel is visible, push Ask AI button up */
+.wb-canvas-wrap.panel-open .wb-ask-btn{bottom:calc(50vh + 28px);}
 @keyframes wbPulse{0%,100%{box-shadow:0 4px 24px rgba(167,139,250,.4);}50%{box-shadow:0 4px 40px rgba(167,139,250,.75);}}
-.wb-answer-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(20,25,40,.97);backdrop-filter:blur(20px);border-top:1px solid rgba(167,139,250,.25);padding:16px 18px 18px;max-height:45vh;overflow-y:auto;display:none;animation:slideUp .22s ease;}
-.wb-answer-panel.visible{display:block;}
+.wb-answer-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(20,25,40,.97);backdrop-filter:blur(20px);border-top:1px solid rgba(167,139,250,.25);max-height:50vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+.wb-answer-panel.visible{transform:translateY(0);pointer-events:all;}
 .wb-answer-panel::-webkit-scrollbar{width:3px;}
 .wb-answer-panel::-webkit-scrollbar-thumb{background:var(--border2);}
-.wb-ans-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+/* Drag handle / collapse strip at top of panel */
+.wb-panel-handle{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 6px;border-bottom:1px solid rgba(167,139,250,.12);flex-shrink:0;cursor:pointer;user-select:none;}
+.wb-panel-handle:hover{background:rgba(167,139,250,.05);}
 .wb-ans-badge{font-family:'DM Mono',monospace;font-size:10px;color:#a78bfa;letter-spacing:.8px;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
 .wb-ans-badge-dot{width:6px;height:6px;border-radius:50%;background:#a78bfa;box-shadow:0 0 6px #a78bfa;}
+.wb-panel-handle-right{display:flex;align-items:center;gap:8px;}
+.wb-back-btn{display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);border-radius:8px;font-size:11px;color:#a78bfa;cursor:pointer;font-family:'DM Mono',monospace;transition:all .18s;white-space:nowrap;}
+.wb-back-btn:hover{background:rgba(167,139,250,.22);border-color:#a78bfa;}
+.wb-collapse-chevron{font-size:14px;color:var(--text3);transition:transform .2s;}
+.wb-ans-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.wb-panel-body{padding:12px 18px 16px;overflow-y:auto;flex:1;}
+.wb-panel-body::-webkit-scrollbar{width:3px;}
+.wb-panel-body::-webkit-scrollbar-thumb{background:var(--border2);}
 .wb-ans-close{background:none;border:none;color:var(--text3);font-size:15px;cursor:pointer;}
 .wb-ans-close:hover{color:var(--danger);}
 .wb-ans-body{font-size:14px;color:var(--text);line-height:1.75;}
@@ -895,19 +907,26 @@ body::before{content:'';position:fixed;inset:0;
       <button class="wb-ask-btn" id="wb-ask-btn" onclick="wbAsk()">✦ Ask AI about this</button>
     </div>
     <div class="wb-answer-panel" id="wb-answer-panel">
-      <div class="wb-ans-header">
+      <!-- Drag/collapse strip — tap to go back to drawing -->
+      <div class="wb-panel-handle" onclick="collapseWbPanel()">
         <div class="wb-ans-badge"><div class="wb-ans-badge-dot"></div>Whiteboard AI</div>
-        <button class="wb-ans-close" onclick="document.getElementById('wb-answer-panel').classList.remove('visible')">✕</button>
+        <div class="wb-panel-handle-right">
+          <button class="wb-back-btn" onclick="event.stopPropagation();collapseWbPanel()">✏ Back to drawing</button>
+          <span class="wb-collapse-chevron">⌄</span>
+        </div>
       </div>
-      <div class="wb-ans-body" id="wb-ans-body"></div>
-      <div class="wb-ans-actions">
-        <button class="wb-act-btn" onclick="wbSendToChat()">↗ Send to chat</button>
-        <button class="wb-act-btn" onclick="wbCopyAnswer()">⎘ Copy</button>
-        <button class="wb-act-btn" onclick="wbSpeakAnswer()">🔊 Speak</button>
-      </div>
-      <div class="wb-prompt-row">
-        <input class="wb-prompt-input" id="wb-prompt-input" placeholder="Ask a follow-up about the drawing…" onkeydown="if(event.key==='Enter')wbAskPrompt()">
-        <button class="wb-prompt-send" onclick="wbAskPrompt()">➤</button>
+      <!-- Scrollable body -->
+      <div class="wb-panel-body">
+        <div class="wb-ans-body" id="wb-ans-body"></div>
+        <div class="wb-ans-actions">
+          <button class="wb-act-btn" onclick="wbSendToChat()">↗ Send to chat</button>
+          <button class="wb-act-btn" onclick="wbCopyAnswer()">⎘ Copy</button>
+          <button class="wb-act-btn" onclick="wbSpeakAnswer()">🔊 Speak</button>
+        </div>
+        <div class="wb-prompt-row">
+          <input class="wb-prompt-input" id="wb-prompt-input" placeholder="Ask a follow-up about the drawing…" onkeydown="if(event.key==='Enter')wbAskPrompt()">
+          <button class="wb-prompt-send" onclick="wbAskPrompt()">➤</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2875,6 +2894,14 @@ function setScopeStatus(msg,type=''){
 let wbCanvas, wbCtx, wbDrawing=false, wbColor='#e8edf5', wbSize=4, wbErasing=false;
 let wbHistory=[], wbLastAnswer='';
 
+function collapseWbPanel(){
+  const panel=document.getElementById('wb-answer-panel');
+  panel.classList.remove('visible');
+  document.getElementById('wb-canvas-wrap').classList.remove('panel-open');
+  const ch=panel.querySelector('.wb-collapse-chevron');
+  if(ch) ch.style.transform='';
+}
+
 function openWhiteboardFromMenu(){ closeAttachMenu(); openWhiteboard(); }
 function openWhiteboard(){
   document.getElementById('wb-overlay').classList.add('active');
@@ -2963,6 +2990,7 @@ async function _wbSend(prompt){
     body.innerHTML=parseScopeMarkdown(wbLastAnswer);
     if(window.renderMathInElement)renderMathInElement(body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
     panel.classList.add('visible');
+    document.getElementById('wb-canvas-wrap').classList.add('panel-open');
     document.getElementById('wb-prompt-input').value='';
     pushHistory('user','[Whiteboard] '+prompt);
     pushHistory('assistant',wbLastAnswer);

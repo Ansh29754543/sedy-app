@@ -26,6 +26,7 @@
   --accent:#4f8eff;--accent2:#7c5cfc;--accent3:#00e5c0;
   --text:#e8edf5;--text2:#8899bb;--text3:#4a5a7a;
   --danger:#ff4f6a;--success:#00e5a0;--warning:#ffb547;
+  --vision:#ff9f43; /* orange accent for image/vision feature */
   --glow:0 0 40px rgba(79,142,255,0.15);
   --safe-b:env(safe-area-inset-bottom,0px);
   --safe-t:env(safe-area-inset-top,0px);
@@ -103,6 +104,34 @@ body::before{content:'';position:fixed;inset:0;
 .speak-btn:hover{border-color:var(--accent3);color:var(--accent3);}
 .speak-btn.speaking{border-color:var(--accent3);color:var(--accent3);background:rgba(0,229,192,.07);animation:speakPulse 1.4s infinite;}
 @keyframes speakPulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+
+/* ── IMAGE ATTACHMENTS in user bubble ────────────────────────────────────── */
+.img-user-attachments{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px;}
+.img-user-thumb{position:relative;width:90px;height:90px;border-radius:10px;overflow:hidden;border:2px solid rgba(255,255,255,.2);flex-shrink:0;cursor:pointer;}
+.img-user-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.img-user-count{display:flex;align-items:center;justify-content:center;width:90px;height:90px;border-radius:10px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.2);font-size:18px;font-weight:800;color:white;font-family:'Syne',sans-serif;flex-shrink:0;}
+
+/* ── IMAGE BADGE on AI reply ─────────────────────────────────────────────── */
+.img-reply-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;margin-bottom:7px;background:rgba(255,159,67,.12);border:1px solid rgba(255,159,67,.25);border-radius:12px;font-size:9px;color:var(--vision);font-family:'DM Mono',monospace;letter-spacing:.4px;text-transform:uppercase;}
+
+/* ── STAGED IMAGE ROW (above input) ─────────────────────────────────────── */
+.img-staged-row{display:none;flex-wrap:wrap;gap:7px;padding:6px 0 4px;}
+.img-staged-row.visible{display:flex;}
+.img-staged-chip{position:relative;width:60px;height:60px;border-radius:10px;overflow:hidden;border:2px solid rgba(255,159,67,.45);flex-shrink:0;animation:msgIn .18s ease;cursor:pointer;background:var(--card2);}
+.img-staged-chip img{width:100%;height:100%;object-fit:cover;display:block;}
+.img-staged-remove{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(8,11,18,.85);border:1px solid rgba(255,79,106,.5);color:var(--danger);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;line-height:1;transition:background .15s;}
+.img-staged-remove:hover{background:rgba(255,79,106,.3);}
+.img-staged-add{width:60px;height:60px;border-radius:10px;border:2px dashed rgba(255,159,67,.35);background:rgba(255,159,67,.05);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:20px;transition:all .2s;gap:2px;}
+.img-staged-add:hover{border-color:var(--vision);background:rgba(255,159,67,.12);}
+.img-staged-add span{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;}
+
+/* ── LIGHTBOX ─────────────────────────────────────────────────────────────── */
+.lightbox-overlay{position:fixed;inset:0;z-index:600;background:rgba(8,11,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;}
+.lightbox-overlay.visible{display:flex;}
+.lightbox-overlay img{max-width:92vw;max-height:88vh;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.7);object-fit:contain;cursor:default;}
+.lightbox-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:var(--text2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.lightbox-close:hover{background:rgba(255,79,106,.3);color:var(--danger);}
+
 .pdf-staged-row{display:none;flex-wrap:wrap;gap:6px;padding:6px 0 4px;}
 .pdf-staged-row.visible{display:flex;}
 .pdf-staged-chip{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid rgba(124,92,252,.35);border-radius:10px;padding:5px 8px 5px 6px;cursor:default;animation:msgIn .18s ease;max-width:200px;}
@@ -299,11 +328,19 @@ body::before{content:'';position:fixed;inset:0;
 .upload-btn{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;flex-shrink:0;}
 .upload-btn:hover,.upload-btn.active{border-color:var(--accent2);background:rgba(124,92,252,.15);}
 .upload-btn:active{transform:scale(.93);}
+
+/* ── NEW: Image upload button ─────────────────────────────────────────────── */
+.img-upload-btn{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;flex-shrink:0;}
+.img-upload-btn:hover,.img-upload-btn.active{border-color:var(--vision);background:rgba(255,159,67,.15);}
+.img-upload-btn:active{transform:scale(.93);}
+
 #pdf-input{display:none;}
+#img-input{display:none;}
 .input-area{padding:12px 20px;padding-bottom:calc(12px + var(--safe-b));border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
 .input-wrap{display:flex;align-items:flex-end;gap:8px;background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:8px 10px;transition:border-color .2s;}
 .input-wrap:focus-within{border-color:var(--accent);box-shadow:var(--glow);}
 .input-wrap.pdf-mode{border-color:rgba(124,92,252,.4);}
+.input-wrap.img-mode{border-color:rgba(255,159,67,.5);box-shadow:0 0 20px rgba(255,159,67,.1);}
 .input-wrap.recording{border-color:var(--danger);box-shadow:0 0 18px rgba(255,79,106,.18);}
 #chat-input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:16px;font-family:'DM Sans',sans-serif;resize:none;max-height:120px;line-height:1.5;}
 #chat-input::placeholder{color:var(--text3);}
@@ -408,11 +445,17 @@ body::before{content:'';position:fixed;inset:0;
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
 
+<!-- Lightbox for full-size image view -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+</div>
+
 <div class="app">
   <div class="header">
     <div class="header-brand">
       <div class="logo-text">Sedy</div>
-      <div class="header-sub">Ask anything &bull; Voice &bull; PDF &bull; Code &bull; Math &bull; Flashcards &bull; Quizzes &bull; Graphs &bull; Flowcharts</div>
+      <div class="header-sub">Ask anything &bull; Voice &bull; PDF &bull; Image &bull; Code &bull; Math &bull; Flashcards &bull; Quizzes &bull; Graphs &bull; Flowcharts</div>
     </div>
     <div class="header-right">
       <div class="model-switcher" id="model-switcher">
@@ -482,15 +525,22 @@ body::before{content:'';position:fixed;inset:0;
 
   <div class="input-area">
     <div class="sel-context-row" id="sel-context-row"></div>
+    <!-- Staged images row -->
+    <div class="img-staged-row" id="img-staged-row"></div>
+    <!-- Staged PDFs row -->
     <div class="pdf-staged-row" id="pdf-staged-row"></div>
     <input type="file" id="pdf-input" accept=".pdf" multiple onchange="handlePdfSelect(event)">
+    <!-- NEW: image file input — multiple, up to 5 -->
+    <input type="file" id="img-input" accept="image/jpeg,image/png,image/gif,image/webp" multiple onchange="handleImgSelect(event)">
     <div class="input-wrap" id="input-wrap">
       <button class="upload-btn" id="upload-btn" onclick="document.getElementById('pdf-input').click()" title="Attach PDF(s)">📎</button>
-      <textarea id="chat-input" rows="1" placeholder="Ask anything, graphs, flowcharts, flashcards, quiz… or attach a PDF" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <!-- NEW: image upload button -->
+      <button class="img-upload-btn" id="img-upload-btn" onclick="document.getElementById('img-input').click()" title="Attach image(s) — ask in any Indian language">🖼️</button>
+      <textarea id="chat-input" rows="1" placeholder="Ask anything, graphs, flowcharts, flashcards, quiz… or attach a PDF / image" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
       <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="Voice input">🎤</button>
       <button class="send-btn" onclick="sendMessage()">➤</button>
     </div>
-    <div class="input-hint">🎤 voice &bull; 📎 attach PDF(s) &bull; 📈 graphs &bull; 🔀 flowcharts &bull; 🔊 speak any reply</div>
+    <div class="input-hint">🎤 voice &bull; 📎 pdf &bull; 🖼️ image (any Indian language) &bull; 📈 graphs &bull; 🔀 flowcharts &bull; 🔊 speak</div>
   </div>
 </div>
 
@@ -503,10 +553,15 @@ const FILES_MAX     = 20;
 
 let activeQuiz      = null;
 let stagedPdfs      = [];
+let stagedImages    = [];   // ← NEW: array of {dataUrl, name, base64}
 let activeModel     = 'auto';
 let isFreeMode      = false;
 let activeFilesTab  = 'notes';
-let currentEditCardId = null;
+
+// ── LIGHTBOX ──────────────────────────────────────────────────────────────────
+function openLightbox(src){ document.getElementById('lightbox-img').src=src; document.getElementById('lightbox').classList.add('visible'); }
+function closeLightbox(){ document.getElementById('lightbox').classList.remove('visible'); document.getElementById('lightbox-img').src=''; }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeLightbox(); });
 
 // ── RATE LIMIT ────────────────────────────────────────────────────────────────
 let rlInterval = null;
@@ -535,7 +590,7 @@ function enableFreeMode(){
   closeRateLimit(); isFreeMode=true;
   try{ localStorage.setItem(FREEMODE_KEY,'1'); }catch(e){}
   applyFreeMode();
-  addMsg('ai','**Free Mode ON** — Flash model only.\n\n**Available:** Chat, Flashcards, Quiz, Notes, Formula, Graphs, PDF, Flowcharts\n**Disabled:** Code, Pro model, Smart model\n\nTap Exit Free Mode in the banner when your quota resets.');
+  addMsg('ai','**Free Mode ON** — Flash model only.\n\n**Available:** Chat, Flashcards, Quiz, Notes, Formula, Graphs, PDF, Image, Flowcharts\n**Disabled:** Code, Pro model, Smart model\n\nTap Exit Free Mode in the banner when your quota resets.');
 }
 function disableFreeMode(){
   isFreeMode=false;
@@ -568,7 +623,7 @@ function applyFreeMode(){
                 : 'Sedy Smart — Qwen3-32b, multilingual & reasoning';
       btn.classList.toggle('active', btn.dataset.model==='auto');
     });
-    document.getElementById('chat-input').placeholder='Ask anything, graphs, flowcharts, flashcards, quiz… or attach a PDF';
+    document.getElementById('chat-input').placeholder='Ask anything, graphs, flowcharts, flashcards, quiz… or attach a PDF / image';
   }
 }
 
@@ -583,7 +638,7 @@ function updateMemoryBadge(){ document.getElementById('memory-count').textConten
 function clearChat(){
   chatHistory=[]; localStorage.removeItem(STORAGE_KEY);
   document.getElementById('chat-messages').innerHTML='';
-  stagedPdfs=[]; renderStagedRow(); activeQuiz=null; stopSpeaking();
+  stagedPdfs=[]; stagedImages=[]; renderStagedRow(); renderImgStagedRow(); activeQuiz=null; stopSpeaking();
   addMsg('ai','Chat cleared! Ready to help you study again.');
   updateMemoryBadge();
 }
@@ -616,7 +671,7 @@ function toggleVoice(){ if(!recognition){ addMsg('ai','🎤 Voice input not supp
 // ── TTS ───────────────────────────────────────────────────────────────────────
 let currentUtterance=null, currentSpeakBtn=null;
 function stopSpeaking(){ if(window.speechSynthesis) window.speechSynthesis.cancel(); if(currentSpeakBtn){ currentSpeakBtn.classList.remove('speaking'); currentSpeakBtn.textContent='🔊 Speak'; } currentUtterance=null; currentSpeakBtn=null; }
-function speakText(text,btn){ if(!window.speechSynthesis){ addMsg('ai','TTS not supported in your browser.'); return; } if(currentSpeakBtn===btn){ stopSpeaking(); return; } stopSpeaking(); const clean=text.replace(/<[^>]+>/g,' ').replace(/#{1,3}\s+/g,'').replace(/\*{1,3}([^*]+)\*{1,3}/g,'$1').replace(/`[^`]+`/g,'').replace(/\$\$?[^$]+\$\$?/g,' math expression ').replace(/\s+/g,' ').trim(); currentUtterance=new SpeechSynthesisUtterance(clean); currentUtterance.rate=0.95; currentUtterance.pitch=1; currentUtterance.lang='en-US'; currentSpeakBtn=btn; btn.classList.add('speaking'); btn.textContent='⏹ Stop'; currentUtterance.onend=()=>{ btn.classList.remove('speaking'); btn.textContent='🔊 Speak'; currentUtterance=null; currentSpeakBtn=null; }; currentUtterance.onerror=()=>{ btn.classList.remove('speaking'); btn.textContent='🔊 Speak'; currentUtterance=null; currentSpeakBtn=null; }; window.speechSynthesis.speak(currentUtterance); }
+function speakText(text,btn){ if(!window.speechSynthesis){ addMsg('ai','TTS not supported in your browser.'); return; } if(currentSpeakBtn===btn){ stopSpeaking(); return; } stopSpeaking(); const clean=text.replace(/<[^>]+>/g,' ').replace(/#{1,3}\s+/g,'').replace(/\*{1,3}([^*]+)\*{1,3}/g,'$1').replace(/`[^`]+`/g,'').replace(/\$\$?[^$]+\$\$?/g,' math expression ').replace(/\s+/g,' ').trim(); currentUtterance=new SpeechSynthesisUtterance(clean); currentUtterance.rate=0.95; currentUtterance.pitch=1; currentSpeakBtn=btn; btn.classList.add('speaking'); btn.textContent='⏹ Stop'; currentUtterance.onend=()=>{ btn.classList.remove('speaking'); btn.textContent='🔊 Speak'; currentUtterance=null; currentSpeakBtn=null; }; currentUtterance.onerror=()=>{ btn.classList.remove('speaking'); btn.textContent='🔊 Speak'; currentUtterance=null; currentSpeakBtn=null; }; window.speechSynthesis.speak(currentUtterance); }
 function speakMsg(btnId){ const btn=document.getElementById(btnId); if(!btn) return; const msgDiv=btn.closest('.msg'); const rawText=msgDiv._rawText||btn.closest('.msg-content').querySelector('.msg-bubble').innerText; speakText(rawText,btn); }
 
 // ── MESSAGE RENDERING ─────────────────────────────────────────────────────────
@@ -663,6 +718,7 @@ function addMsg(role, content, extra){
     div.innerHTML=`<div class="msg-avatar">${avatarIcon}</div>
       <div class="msg-content">
         ${extra&&extra.pdfBadge?`<div class="pdf-reply-badge">📄 ${_esc(extra.pdfBadge)}</div>`:''}
+        ${extra&&extra.imgBadge?`<div class="img-reply-badge">🖼️ ${extra.imgBadge}</div>`:''}
         <div class="msg-bubble">${parseMarkdown(content)}</div>
         <div class="msg-actions">
           <button class="speak-btn" id="${speakId}" onclick="speakMsg('${speakId}')">🔊 Speak</button>
@@ -670,12 +726,27 @@ function addMsg(role, content, extra){
       </div>`;
     div._rawText=content;
   } else {
+    // PDF attachments
     let attachHtml='';
     if(extra&&extra.pdfs&&extra.pdfs.length){
-      attachHtml='<div class="pdf-user-attachments">'+extra.pdfs.map(p=>{
+      attachHtml+='<div class="pdf-user-attachments">'+extra.pdfs.map(p=>{
         const thumb=p.thumbDataUrl?`<img class="pdf-user-thumb-img" src="${p.thumbDataUrl}" alt="">`:`<div class="pdf-user-thumb-icon">📄</div>`;
         return `<div class="pdf-user-thumb">${thumb}<div class="pdf-user-thumb-info"><div class="pdf-user-thumb-name">${_esc(p.name)}</div><div class="pdf-user-thumb-sub">${p.sizeKb} KB${p.pageCount?' · '+p.pageCount+'p':''}</div></div></div>`;
       }).join('')+'</div>';
+    }
+    // Image attachments
+    if(extra&&extra.images&&extra.images.length){
+      const imgs=extra.images;
+      attachHtml+='<div class="img-user-attachments">';
+      // Show up to 4 thumbnails, then a +N counter
+      const show=Math.min(imgs.length, 4);
+      for(let i=0;i<show;i++){
+        attachHtml+=`<div class="img-user-thumb" onclick="openLightbox('${imgs[i].dataUrl}')"><img src="${imgs[i].dataUrl}" alt="${_esc(imgs[i].name)}"></div>`;
+      }
+      if(imgs.length>4){
+        attachHtml+=`<div class="img-user-count">+${imgs.length-4}</div>`;
+      }
+      attachHtml+='</div>';
     }
     div.innerHTML=`<div class="msg-avatar">${avatarIcon}</div>
       <div class="msg-content">
@@ -700,6 +771,76 @@ function showTyping(){
 }
 function hideTyping(){ const t=document.getElementById('typing-msg'); if(t) t.remove(); }
 
+// ── NEW: IMAGE HANDLING ────────────────────────────────────────────────────────
+const MAX_IMAGES = 5;
+const MAX_IMG_SIZE_MB = 8;
+
+function handleImgSelect(event){
+  const files=Array.from(event.target.files); event.target.value='';
+  if(!files.length) return;
+  const remaining = MAX_IMAGES - stagedImages.length;
+  if(remaining<=0){ addMsg('ai','⚠️ Maximum 5 images allowed per message.'); return; }
+  const toLoad = files.slice(0, remaining);
+  if(files.length>remaining) addMsg('ai',`ℹ️ Only adding ${remaining} image(s) — max 5 per message.`);
+
+  toLoad.forEach(file=>{
+    if(!file.type.startsWith('image/')){ addMsg('ai','⚠️ Only image files (JPG, PNG, GIF, WebP) are supported.'); return; }
+    const sizeMB = file.size / 1024 / 1024;
+    if(sizeMB > MAX_IMG_SIZE_MB){ addMsg('ai',`⚠️ Image "${file.name}" is too large (${sizeMB.toFixed(1)} MB). Max size is ${MAX_IMG_SIZE_MB} MB.`); return; }
+
+    const reader = new FileReader();
+    reader.onload=(e)=>{
+      const dataUrl = e.target.result;
+      // Extract pure base64 (without data URI prefix)
+      const base64 = dataUrl.split(',')[1];
+      stagedImages.push({ dataUrl, base64, name: file.name, sizeMB: sizeMB.toFixed(1) });
+      renderImgStagedRow();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderImgStagedRow(){
+  const row = document.getElementById('img-staged-row');
+  const inputWrap = document.getElementById('input-wrap');
+  const imgBtn = document.getElementById('img-upload-btn');
+  const input = document.getElementById('chat-input');
+  if(!row) return;
+  row.innerHTML='';
+  if(!stagedImages.length){
+    row.classList.remove('visible');
+    inputWrap.classList.remove('img-mode');
+    imgBtn.classList.remove('active');
+    if(!stagedPdfs.length) input.placeholder='Ask anything, graphs, flowcharts, flashcards, quiz… or attach a PDF / image';
+    return;
+  }
+  row.classList.add('visible');
+  inputWrap.classList.add('img-mode');
+  imgBtn.classList.add('active');
+  input.placeholder = stagedImages.length===1
+    ? 'Ask about this image (any language: Hindi, Bengali, Tamil…)'
+    : `Ask about these ${stagedImages.length} images (any language)`;
+
+  stagedImages.forEach((img,idx)=>{
+    const chip = document.createElement('div'); chip.className='img-staged-chip';
+    chip.innerHTML=`<img src="${img.dataUrl}" alt="${_esc(img.name)}" onclick="openLightbox('${img.dataUrl}')"><button class="img-staged-remove" onclick="event.stopPropagation();removeStagedImg(${idx})">✕</button>`;
+    row.appendChild(chip);
+  });
+
+  // Add more button if under limit
+  if(stagedImages.length < MAX_IMAGES){
+    const addChip = document.createElement('div'); addChip.className='img-staged-add';
+    addChip.innerHTML='<span>+</span><span>Add</span>';
+    addChip.onclick=()=>document.getElementById('img-input').click();
+    row.appendChild(addChip);
+  }
+}
+
+function removeStagedImg(idx){
+  stagedImages.splice(idx,1);
+  renderImgStagedRow();
+}
+
 // ── PDF HANDLING ──────────────────────────────────────────────────────────────
 async function renderPdfFirstPage(arrayBuf){
   if(!window.pdfjsLib) return null;
@@ -717,9 +858,9 @@ function renderStagedRow(){
   const row=document.getElementById('pdf-staged-row');
   if(!row) return;
   row.innerHTML='';
-  if(!stagedPdfs.length){ row.classList.remove('visible'); document.getElementById('upload-btn').classList.remove('active'); document.getElementById('input-wrap').classList.remove('pdf-mode'); document.getElementById('chat-input').placeholder='Ask anything, graphs, flowcharts, flashcards, quiz… or attach a PDF'; return; }
+  if(!stagedPdfs.length){ row.classList.remove('visible'); document.getElementById('upload-btn').classList.remove('active'); if(!stagedImages.length) document.getElementById('input-wrap').classList.remove('pdf-mode'); return; }
   row.classList.add('visible'); document.getElementById('upload-btn').classList.add('active'); document.getElementById('input-wrap').classList.add('pdf-mode');
-  document.getElementById('chat-input').placeholder=stagedPdfs.length===1?'Ask anything about "'+stagedPdfs[0].name.slice(0,30)+'"…':'Ask anything about these '+stagedPdfs.length+' PDFs…';
+  if(!stagedImages.length) document.getElementById('chat-input').placeholder=stagedPdfs.length===1?'Ask anything about "'+stagedPdfs[0].name.slice(0,30)+'"…':'Ask anything about these '+stagedPdfs.length+' PDFs…';
   stagedPdfs.forEach((pdf,idx)=>{
     const chip=document.createElement('div'); chip.className='pdf-staged-chip';
     const thumbHtml=pdf.thumbDataUrl?`<img class="pdf-staged-thumb" src="${pdf.thumbDataUrl}" alt="">`:`<div class="pdf-staged-thumb-icon">📄</div>`;
@@ -729,15 +870,10 @@ function renderStagedRow(){
 }
 function removeStagedPdf(idx){ stagedPdfs.splice(idx,1); renderStagedRow(); }
 function arrayBufferToBase64(ab){
-  const bytes=new Uint8Array(ab);
-  let b64='';
-  const chunk=8192;
-  for(let i=0;i<bytes.length;i+=chunk){
-    b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
-  }
+  const bytes=new Uint8Array(ab); let b64=''; const chunk=8192;
+  for(let i=0;i<bytes.length;i+=chunk){ b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk)); }
   return btoa(b64);
 }
-
 function handlePdfSelect(event){
   const files=Array.from(event.target.files); event.target.value='';
   if(!files.length) return;
@@ -974,7 +1110,7 @@ function renderGraph(data){
             </div>
             <span class="graph-source-badge ${isLive?'live':'estimated'}">${isLive?'● Live':'○ Estimated'}</span>
           </div>
-          <div class="graph-canvas-wrap"><canvas id="${cid}" height="220"></canvas><div class="graph-tooltip" id="tt_${cid}"></div></div>
+          <div class="graph-canvas-wrap"><canvas id="${cid}" height="220"></canvas></div>
           ${data.caption?`<div style="font-size:11px;color:var(--text3);margin-top:6px;font-family:'DM Mono',monospace;">${_esc(data.caption)}</div>`:''}
         </div>
       </div>
@@ -1009,14 +1145,12 @@ const FC_COLORS={
   purple:{fill:'#EEEDFE',stroke:'#534AB7',text:'#3C3489'},
 };
 const FC_NW=140, FC_NH=54;
-
 function fcShapePathD(n){
   const {x,y}=n; const w=FC_NW, h=FC_NH;
   if(n.shape==='diamond'){ const cx=x+w/2,cy=y+h/2; return `M${cx},${y} L${x+w},${cy} L${cx},${y+h} L${x},${cy} Z`; }
   if(n.shape==='para'){ const sk=12; return `M${x+sk},${y} L${x+w},${y} L${x+w-sk},${y+h} L${x},${y+h} Z`; }
   return `M${x+8},${y} L${x+w-8},${y} Q${x+w},${y} ${x+w},${y+8} L${x+w},${y+h-8} Q${x+w},${y+h} ${x+w-8},${y+h} L${x+8},${y+h} Q${x},${y+h} ${x},${y+h-8} L${x},${y+8} Q${x},${y} ${x+8},${y} Z`;
 }
-
 function fcEdgePath(edge, nMap){
   const f=nMap[edge.f], t=nMap[edge.t];
   if(!f||!t) return '';
@@ -1031,7 +1165,6 @@ function fcEdgePath(edge, nMap){
   const mid=(fy+ty)/2;
   return `M${fx},${fy} L${fx},${mid} L${tx},${mid} L${tx},${ty}`;
 }
-
 function fcEdgeMid(d){
   const pts=d.match(/-?[\d.]+,-?[\d.]+/g)||[];
   if(pts.length<2) return {x:0,y:0};
@@ -1039,20 +1172,14 @@ function fcEdgeMid(d){
   const p=pts[i].split(',');
   return {x:+p[0],y:+p[1]};
 }
-
 function buildFlowchartSVG(fcData, revealedSet, cardId){
   const nMap={};
   fcData.nodes.forEach(n=>nMap[n.id]=n);
   let maxX=0, maxY=0;
   fcData.nodes.forEach(n=>{ maxX=Math.max(maxX,n.x+FC_NW+40); maxY=Math.max(maxY,n.y+FC_NH+60); });
   const svgW=Math.max(maxX,500), svgH=Math.max(maxY,300);
-
   let edgesHtml='', nodesHtml='';
-
-  // defs
   const defs=`<defs><marker id="fcarr_${cardId}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#4a5a7a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
-
-  // draw edges only where both endpoints revealed
   fcData.edges.forEach(e=>{
     if(!revealedSet.has(e.f)||!revealedSet.has(e.t)) return;
     const d=fcEdgePath(e,nMap);
@@ -1061,8 +1188,6 @@ function buildFlowchartSVG(fcData, revealedSet, cardId){
     edgesHtml+=`<path d="${d}" fill="none" stroke="#243350" stroke-width="1.2" marker-end="url(#fcarr_${cardId})" style="animation:fcFadeIn .3s ease"/>`;
     if(e.label){ edgesHtml+=`<text x="${mp.x+4}" y="${mp.y-4}" font-size="10" fill="#4a5a7a" font-family="'DM Mono',monospace" style="animation:fcFadeIn .3s ease">${_esc(e.label)}</text>`; }
   });
-
-  // draw nodes
   fcData.nodes.forEach(n=>{
     if(!revealedSet.has(n.id)) return;
     const c=FC_COLORS[n.col]||FC_COLORS.blue;
@@ -1073,15 +1198,12 @@ function buildFlowchartSVG(fcData, revealedSet, cardId){
     const cursor=clickable||canCollapse?'pointer':'default';
     const onclick=clickable?`onclick="fcRevealChildren('${cardId}','${n.id}')"`
                  :canCollapse?`onclick="fcCollapse('${cardId}','${n.id}')"`:'';
-
     let shapeHtml='';
     if(n.shape==='oval'){
       shapeHtml=`<ellipse cx="${n.x+FC_NW/2}" cy="${n.y+FC_NH/2}" rx="${FC_NW/2}" ry="${FC_NH/2}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="${clickable?2:1.2}"/>`;
     } else {
       shapeHtml=`<path d="${fcShapePathD(n)}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="${clickable?2:1.2}"/>`;
     }
-
-    // pulse ring if clickable (unexplored children)
     let pulseHtml='';
     if(clickable){
       if(n.shape==='oval'){
@@ -1090,121 +1212,39 @@ function buildFlowchartSVG(fcData, revealedSet, cardId){
         pulseHtml=`<rect x="${n.x-4}" y="${n.y-4}" width="${FC_NW+8}" height="${FC_NH+8}" rx="12" fill="none" stroke="${c.stroke}" stroke-width="1" opacity="0.5" style="animation:fcPulse 1.8s ease-in-out infinite"/>`;
       }
     }
-
-    // label text
     const lines=(n.label||'').split('\\n');
     const lh=15, th=lines.length*lh;
     const sy=n.y+FC_NH/2-th/2+lh/2;
     let textHtml=lines.map((l,i)=>`<text x="${n.x+FC_NW/2}" y="${sy+i*lh}" text-anchor="middle" dominant-baseline="central" font-size="${lines.length>1?11:12}" font-weight="500" fill="${c.text}" font-family="'DM Sans',sans-serif">${_esc(l)}</text>`).join('');
     if(n.sub){ textHtml+=`<text x="${n.x+FC_NW/2}" y="${n.y+FC_NH-8}" text-anchor="middle" dominant-baseline="central" font-size="9" fill="${c.stroke}" font-family="'DM Mono',monospace">${_esc(n.sub)}</text>`; }
-
-    // +/- indicator
     let indHtml='';
     if(hasChildren){
       const sym=allChildRevealed?'−':'+';
       const ix=n.x+FC_NW-12, iy=n.y+6;
       indHtml=`<circle cx="${ix+6}" cy="${iy+6}" r="8" fill="${c.stroke}" opacity="0.18"/><text x="${ix+6}" y="${iy+6}" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="${c.stroke}" font-family="'DM Sans',sans-serif">${sym}</text>`;
     }
-
     nodesHtml+=`<g ${onclick} style="cursor:${cursor};animation:fcFadeIn .3s ease">${pulseHtml}${shapeHtml}${textHtml}${indHtml}</g>`;
   });
-
   const style=`<style>@keyframes fcFadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes fcPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}}</style>`;
   return {svgInner:style+defs+edgesHtml+nodesHtml, svgW, svgH};
 }
-
-// Per-chart revealed state stored by cardId
 const fcRevealedMap={};
 const fcDataMap={};
-
-function fcRevealChildren(cardId, nodeId){
-  const rev=fcRevealedMap[cardId];
-  const data=fcDataMap[cardId];
-  if(!rev||!data) return;
-  data.edges.filter(e=>e.f===nodeId&&!e.back).forEach(e=>rev.add(e.t));
-  redrawFlowchart(cardId);
-}
-function fcCollapse(cardId, nodeId){
-  const rev=fcRevealedMap[cardId];
-  const data=fcDataMap[cardId];
-  if(!rev||!data) return;
-  function removeDesc(id){ data.edges.filter(e=>e.f===id).forEach(e=>{ rev.delete(e.t); removeDesc(e.t); }); }
-  removeDesc(nodeId);
-  redrawFlowchart(cardId);
-}
-function fcExpandAll(cardId){
-  const rev=fcRevealedMap[cardId];
-  const data=fcDataMap[cardId];
-  if(!rev||!data) return;
-  data.nodes.forEach(n=>rev.add(n.id));
-  redrawFlowchart(cardId);
-}
-function fcCollapseAll(cardId){
-  const rev=fcRevealedMap[cardId];
-  const data=fcDataMap[cardId];
-  if(!rev||!data) return;
-  rev.clear();
-  if(data.nodes.length) rev.add(data.nodes[0].id);
-  redrawFlowchart(cardId);
-}
-function fcZoom(cardId, factor){
-  const svg=document.getElementById('fcsvg_'+cardId);
-  if(!svg) return;
-  const cur=parseFloat(svg.dataset.zoom||'1');
-  const nz=Math.min(3,Math.max(0.3,cur*factor));
-  svg.dataset.zoom=nz;
-  svg.style.transform=`scale(${nz})`;
-  svg.style.transformOrigin='top left';
-}
-function fcReset(cardId){
-  const svg=document.getElementById('fcsvg_'+cardId);
-  if(!svg) return;
-  svg.dataset.zoom='1'; svg.style.transform='scale(1)';
-  const wrap=document.getElementById('fcwrap_'+cardId);
-  if(wrap){ wrap.scrollTop=0; wrap.scrollLeft=0; }
-}
-function fcDownload(cardId){
-  const svg=document.getElementById('fcsvg_'+cardId);
-  if(!svg) return;
-  const s=new XMLSerializer().serializeToString(svg);
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([s],{type:'image/svg+xml'}));
-  a.download='flowchart.svg'; a.click();
-}
-function fcSave(cardId){
-  const data=fcDataMap[cardId];
-  if(!data) return;
-  const files=loadFiles();
-  if(files.length>=FILES_MAX){ addMsg('ai','⚠️ Storage full (max '+FILES_MAX+' files).'); return; }
-  const existing=files.findIndex(f=>f.topic===data.title&&f.type==='flowchart');
-  const entry={id:'f_'+Date.now(),type:'flowchart',topic:data.title,fcData:data,createdAt:Date.now(),wordCount:data.nodes.length};
-  if(existing>=0) files[existing]=entry; else files.unshift(entry);
-  saveFiles(files); updateFilesBadge();
-  const btn=document.getElementById('fcsave_'+cardId);
-  if(btn){ btn.textContent='✓ Saved'; btn.classList.add('saved'); setTimeout(()=>{ btn.textContent='💾 Save'; btn.classList.remove('saved'); },2000); }
-}
-
-function redrawFlowchart(cardId){
-  const svg=document.getElementById('fcsvg_'+cardId);
-  const data=fcDataMap[cardId];
-  const rev=fcRevealedMap[cardId];
-  if(!svg||!data||!rev) return;
-  const {svgInner,svgW,svgH}=buildFlowchartSVG(data,rev,cardId);
-  svg.setAttribute('viewBox',`0 0 ${svgW} ${svgH}`);
-  svg.setAttribute('width',svgW); svg.setAttribute('height',svgH);
-  svg.innerHTML=svgInner;
-  const allRevealed=data.nodes.every(n=>rev.has(n.id));
-  const hintEl=document.getElementById('fchint_'+cardId);
-  if(hintEl) hintEl.textContent=allRevealed?'All steps revealed — click − on any node to collapse that branch':rev.size===1?'Click the pulsing node to reveal what happens next':'Click any pulsing + node to expand · Click − to collapse';
-}
-
+function fcRevealChildren(cardId, nodeId){ const rev=fcRevealedMap[cardId]; const data=fcDataMap[cardId]; if(!rev||!data) return; data.edges.filter(e=>e.f===nodeId&&!e.back).forEach(e=>rev.add(e.t)); redrawFlowchart(cardId); }
+function fcCollapse(cardId, nodeId){ const rev=fcRevealedMap[cardId]; const data=fcDataMap[cardId]; if(!rev||!data) return; function removeDesc(id){ data.edges.filter(e=>e.f===id).forEach(e=>{ rev.delete(e.t); removeDesc(e.t); }); } removeDesc(nodeId); redrawFlowchart(cardId); }
+function fcExpandAll(cardId){ const rev=fcRevealedMap[cardId]; const data=fcDataMap[cardId]; if(!rev||!data) return; data.nodes.forEach(n=>rev.add(n.id)); redrawFlowchart(cardId); }
+function fcCollapseAll(cardId){ const rev=fcRevealedMap[cardId]; const data=fcDataMap[cardId]; if(!rev||!data) return; rev.clear(); if(data.nodes.length) rev.add(data.nodes[0].id); redrawFlowchart(cardId); }
+function fcZoom(cardId, factor){ const svg=document.getElementById('fcsvg_'+cardId); if(!svg) return; const cur=parseFloat(svg.dataset.zoom||'1'); const nz=Math.min(3,Math.max(0.3,cur*factor)); svg.dataset.zoom=nz; svg.style.transform=`scale(${nz})`; svg.style.transformOrigin='top left'; }
+function fcReset(cardId){ const svg=document.getElementById('fcsvg_'+cardId); if(!svg) return; svg.dataset.zoom='1'; svg.style.transform='scale(1)'; const wrap=document.getElementById('fcwrap_'+cardId); if(wrap){ wrap.scrollTop=0; wrap.scrollLeft=0; } }
+function fcDownload(cardId){ const svg=document.getElementById('fcsvg_'+cardId); if(!svg) return; const s=new XMLSerializer().serializeToString(svg); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([s],{type:'image/svg+xml'})); a.download='flowchart.svg'; a.click(); }
+function fcSave(cardId){ const data=fcDataMap[cardId]; if(!data) return; const files=loadFiles(); if(files.length>=FILES_MAX){ addMsg('ai','⚠️ Storage full (max '+FILES_MAX+' files).'); return; } const existing=files.findIndex(f=>f.topic===data.title&&f.type==='flowchart'); const entry={id:'f_'+Date.now(),type:'flowchart',topic:data.title,fcData:data,createdAt:Date.now(),wordCount:data.nodes.length}; if(existing>=0) files[existing]=entry; else files.unshift(entry); saveFiles(files); updateFilesBadge(); const btn=document.getElementById('fcsave_'+cardId); if(btn){ btn.textContent='✓ Saved'; btn.classList.add('saved'); setTimeout(()=>{ btn.textContent='💾 Save'; btn.classList.remove('saved'); },2000); } }
+function redrawFlowchart(cardId){ const svg=document.getElementById('fcsvg_'+cardId); const data=fcDataMap[cardId]; const rev=fcRevealedMap[cardId]; if(!svg||!data||!rev) return; const {svgInner,svgW,svgH}=buildFlowchartSVG(data,rev,cardId); svg.setAttribute('viewBox',`0 0 ${svgW} ${svgH}`); svg.setAttribute('width',svgW); svg.setAttribute('height',svgH); svg.innerHTML=svgInner; const allRevealed=data.nodes.every(n=>rev.has(n.id)); const hintEl=document.getElementById('fchint_'+cardId); if(hintEl) hintEl.textContent=allRevealed?'All steps revealed — click − on any node to collapse that branch':rev.size===1?'Click the pulsing node to reveal what happens next':'Click any pulsing + node to expand · Click − to collapse'; }
 function renderFlowchartMsg(data){
   const cardId='fc_'+Date.now();
   fcDataMap[cardId]=data;
   const rev=new Set();
   if(data.nodes.length) rev.add(data.nodes[0].id);
   fcRevealedMap[cardId]=rev;
-
   const {svgInner,svgW,svgH}=buildFlowchartSVG(data,rev,cardId);
   const wrap=document.getElementById('chat-messages');
   const div=document.createElement('div'); div.className='msg ai';
@@ -1242,15 +1282,12 @@ function renderFlowchartMsg(data){
       </div>
     </div>`;
   wrap.appendChild(div);
-
-  // pan support
   const canvasWrap=document.getElementById('fcwrap_'+cardId);
   let panning=false,px=0,py=0;
   canvasWrap.addEventListener('mousedown',e=>{ panning=true; px=e.clientX; py=e.clientY; canvasWrap.style.cursor='grabbing'; });
   document.addEventListener('mousemove',e=>{ if(!panning) return; canvasWrap.scrollLeft-=(e.clientX-px); canvasWrap.scrollTop-=(e.clientY-py); px=e.clientX; py=e.clientY; });
   document.addEventListener('mouseup',()=>{ panning=false; canvasWrap.style.cursor=''; });
   canvasWrap.addEventListener('wheel',e=>{ e.preventDefault(); fcZoom(cardId,e.deltaY<0?1.1:0.91); },{passive:false});
-
   scrollBottom();
 }
 
@@ -1258,12 +1295,10 @@ function renderFlowchartMsg(data){
 const CODE_REQUEST=/\b(write|create|make|build|code|program|develop|implement|generate)\b.{0,80}\b(code|script|function|program|app|tool|bot|website|api|class|component|snippet|algorithm|game|calculator|system|project|application)\b|\b(code|script|function|app|program|game|calculator)\b.{0,40}\b(for|that|to|which|in|using|with)\b|\b(using|in)\s+(html|css|javascript|python|java|c\+\+|react|node)/i;
 const CODE_SHARE=/^(here|here'?s|this is|i have|look at|check|fix|debug|review|explain|why|what|help with|error in|issue with|problem with|my code|the code)/i;
 function isCodeRequest(text){ const t=text.trim(); if(CODE_SHARE.test(t)) return false; if(t.startsWith('```')||t.includes('<!DOCTYPE')||t.includes('<html')) return false; if(t.length>300) return false; return CODE_REQUEST.test(t); }
-
 async function generateCodeQuestions(userRequest){
   try{ const res=await fetch(API_URL+'/code-questions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:userRequest})}); if(res.ok){ const data=await res.json(); if(Array.isArray(data.questions)&&data.questions.length>0) return data.questions; } }catch(e){}
   return [];
 }
-
 async function showCodeContextForm(originalRequest){
   const wrap=document.getElementById('chat-messages'); const fid='ccf'+Date.now();
   const div=document.createElement('div'); div.className='msg ai'; div.id=fid+'-msg';
@@ -1293,75 +1328,91 @@ function skipCodeForm(fid){ const msgEl=document.getElementById(fid+'-msg'); if(
 // ── MAIN SEND ─────────────────────────────────────────────────────────────────
 async function sendMessage(){
   let text=document.getElementById('chat-input').value.trim();
-  if(!text&&!stagedPdfs.length) return;
+  if(!text&&!stagedPdfs.length&&!stagedImages.length) return;
   if(selectedContexts.length){ text=text?`Context:\n${selectedContexts.join('\n')}\n\nQuestion: ${text}`:selectedContexts.join('\n'); selectedContexts=[]; renderContextChips(); }
   document.getElementById('chat-input').value=''; autoResize(document.getElementById('chat-input'));
 
-  // PDF mode — detect intent first, then route to the right feature with PDF context
+  // ── NEW: IMAGE MODE — if images are staged, route directly to /image-chat ──
+  if(stagedImages.length){
+    const images=[...stagedImages]; stagedImages=[]; renderImgStagedRow();
+    if(!text) text='';  // empty question is fine — backend will describe the image
+    addMsg('user', text||'(image sent)', {images});
+    pushHistory('user', text||'[sent an image]');
+    showTyping();
+    try{
+      const res=await fetch(API_URL+'/image-chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          message: text,
+          images: images.map(img=>img.base64),
+          image_names: images.map(img=>img.name),
+          history: chatHistory.slice(-10),
+        })
+      });
+      if(res.status===429){ const d=await res.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const data=await res.json(); hideTyping();
+      const reply=data.reply||'Sorry, no response.';
+      pushHistory('assistant',reply);
+      const badge = data.image_count===1 ? 'Vision — 1 image' : `Vision — ${data.image_count} images`;
+      const msgDiv=addMsg('ai',reply,{imgBadge:badge}); msgDiv._rawText=reply;
+    }catch(err){
+      hideTyping();
+      addMsg('ai','❌ Could not process the image. Please check your connection and try again.');
+      console.error(err);
+    }
+    return;
+  }
+
+  // PDF mode
   if(stagedPdfs.length){
     const pdfs=[...stagedPdfs]; stagedPdfs=[]; renderStagedRow();
     if(!text) text='Please summarise this document.';
     addMsg('user',text,{pdfs});
     pushHistory('user',text);
     showTyping();
-
-    // Detect intent on the user's message so PDF can power all features
     let pdfIntent='chat';
     try{
       const ir=await fetch(API_URL+'/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-6)})});
       if(ir.ok){ const id=await ir.json(); pdfIntent=id.intent||'chat'; }
     }catch(e){}
-
     const pdf=pdfs[0];
     const pdfBase64=pdf.base64;
     const pdfName=pdf.name;
-
-    // Helper — extract topic from text for notes/formula/flashcard/quiz/flowchart
     const topicFromText=(t)=>t.replace(/^(make|create|generate|give me|show me|draw|diagram|flowchart|notes|note|formula|flashcard|flash card|quiz|test me on|flashcards?|from (this|the) (pdf|document)|based on (this|the) (pdf|document))\s+/gi,'').replace(/(notes?|formula sheet?|flashcards?|quiz|flowchart|diagram)\s+(on|for|about|of)\s+/gi,'').trim()||pdfName.replace(/\.pdf$/i,'');
-
     try{
-      // Flowchart from PDF
       if(pdfIntent==='flowchart'){
         const res=await fetch(API_URL+'/flowchart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text+' (based on the uploaded PDF: '+pdfName+')',history:chatHistory.slice(-10),model:activeModel})});
         if(res.status===429){ const d=await res.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data=await res.json(); hideTyping();
         pushHistory('assistant','[Flowchart from PDF: '+data.title+']');
-        renderFlowchartMsg(data);
-        return;
+        renderFlowchartMsg(data); return;
       }
-
-      // Notes from PDF
       if(pdfIntent==='notes'){
         const res=await fetch(API_URL+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:topicFromText(text),history:chatHistory.slice(-10),model:activeModel,pdf_base64:pdfBase64,pdf_name:pdfName})});
         if(res.status===429){ const d=await res.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data=await res.json(); hideTyping();
         pushHistory('assistant','[Notes from PDF: '+data.topic+']');
-        renderNotesMsg(data.notes,data.topic);
-        return;
+        renderNotesMsg(data.notes,data.topic); return;
       }
-
-      // Formula sheet from PDF
       if(pdfIntent==='formula'){
         const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:topicFromText(text),history:chatHistory.slice(-10),model:activeModel,pdf_base64:pdfBase64,pdf_name:pdfName})});
         if(res.status===429){ const d=await res.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data=await res.json(); hideTyping();
         pushHistory('assistant','[Formula Sheet from PDF: '+data.topic+']');
-        renderFormulaMsg(data.sheet,data.topic);
-        return;
+        renderFormulaMsg(data.sheet,data.topic); return;
       }
-
-      // Flashcards from PDF — pass PDF text via /pdf-chat first then render
       if(pdfIntent==='flashcard'||pdfIntent==='both'){
         const topicStr=topicFromText(text);
-        // Use pdf-chat to extract content, then ask for flashcards JSON
-        const extractRes=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'List all the key concepts, terms and facts from this document that would make good flashcards. Be comprehensive.',pdf_base64:pdfBase64,pdf_name:pdfName,history:[],model:activeModel})});
+        const extractRes=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'List all the key concepts, terms and facts from this document.',pdf_base64:pdfBase64,pdf_name:pdfName,history:[],model:activeModel})});
         if(extractRes.status===429){ const d=await extractRes.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
         if(!extractRes.ok) throw new Error('HTTP '+extractRes.status);
         const extractData=await extractRes.json();
-        const enrichedTopic=topicStr+'. Key content from document:\n'+extractData.reply.slice(0,800);
+        const enrichedTopic=topicStr+'. Key content:\n'+extractData.reply.slice(0,800);
         const fcRes=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:enrichedTopic,count:0,history:chatHistory.slice(-6),model:activeModel})});
         if(!fcRes.ok) throw new Error('HTTP '+fcRes.status);
         const fcData=await fcRes.json(); hideTyping();
@@ -1377,11 +1428,9 @@ async function sendMessage(){
         }
         return;
       }
-
-      // Quiz from PDF
       if(pdfIntent==='quiz'){
         const topicStr=topicFromText(text);
-        const extractRes=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'List all the key concepts, facts and important points from this document.',pdf_base64:pdfBase64,pdf_name:pdfName,history:[],model:activeModel})});
+        const extractRes=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'List all the key concepts and facts from this document.',pdf_base64:pdfBase64,pdf_name:pdfName,history:[],model:activeModel})});
         if(extractRes.status===429){ const d=await extractRes.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
         if(!extractRes.ok) throw new Error('HTTP '+extractRes.status);
         const extractData=await extractRes.json();
@@ -1390,23 +1439,8 @@ async function sendMessage(){
         if(!qRes.ok) throw new Error('HTTP '+qRes.status);
         const qData=await qRes.json(); hideTyping();
         pushHistory('assistant','[Quiz from PDF: '+qData.topic+']');
-        renderQuiz(qData.questions,qData.topic,qData.difficulty);
-        return;
+        renderQuiz(qData.questions,qData.topic,qData.difficulty); return;
       }
-
-      // Graph from PDF — treat as chat with graph hint
-      if(pdfIntent==='graph'){
-        const res=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,pdf_base64:pdfBase64,pdf_name:pdfName,history:chatHistory.slice(-10),model:activeModel})});
-        if(res.status===429){ const d=await res.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
-        if(!res.ok) throw new Error('HTTP '+res.status);
-        const data=await res.json(); hideTyping();
-        const reply=data.reply||'Sorry, no response.';
-        pushHistory('assistant',reply);
-        const msgDiv=addMsg('ai',reply,{pdfBadge:pdfName}); msgDiv._rawText=reply;
-        return;
-      }
-
-      // Default — plain PDF chat (summarise, explain, Q&A)
       const res=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,pdf_base64:pdfBase64,pdf_name:pdfName,history:chatHistory.slice(-10),model:activeModel})});
       if(res.status===429){ const d=await res.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
       if(!res.ok) throw new Error('HTTP '+res.status);
@@ -1414,26 +1448,19 @@ async function sendMessage(){
       const reply=data.reply||'Sorry, no response.';
       pushHistory('assistant',reply);
       const msgDiv=addMsg('ai',reply,{pdfBadge:pdfName}); msgDiv._rawText=reply;
-
     }catch(err){ hideTyping(); addMsg('ai','Could not process the PDF. Please check your connection and try again.'); console.error(err); }
     return;
   }
 
   addMsg('user',text);
-
-  // Code context form
   if(isCodeRequest(text)&&!isFreeMode){ await showCodeContextForm(text); return; }
-
-  // Intent detection
   showTyping();
   let intent='chat';
   try{
     const ir=await fetch(API_URL+'/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-6)})});
     if(ir.ok){ const id=await ir.json(); intent=id.intent||'chat'; }
   }catch(e){}
-
   pushHistory('user',text);
-
   if(intent==='graph'){
     try{
       const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-10),model:activeModel})});
@@ -1445,7 +1472,6 @@ async function sendMessage(){
     }catch(err){ hideTyping(); addMsg('ai','Could not generate the graph. Please try again.'); console.error(err); }
     return;
   }
-
   if(intent==='flowchart'){
     try{
       const res=await fetch(API_URL+'/flowchart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(-10),model:activeModel})});
@@ -1457,7 +1483,6 @@ async function sendMessage(){
     }catch(err){ hideTyping(); addMsg('ai','Could not generate the flowchart. Please try again.'); console.error(err); }
     return;
   }
-
   if(intent==='notes'){
     try{
       const res=await fetch(API_URL+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:chatHistory.slice(-10),model:activeModel})});
@@ -1469,7 +1494,6 @@ async function sendMessage(){
     }catch(err){ hideTyping(); addMsg('ai','Could not generate notes. Please try again.'); }
     return;
   }
-
   if(intent==='formula'){
     try{
       const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:chatHistory.slice(-10),model:activeModel})});
@@ -1481,15 +1505,12 @@ async function sendMessage(){
     }catch(err){ hideTyping(); addMsg('ai','Could not generate formula sheet. Please try again.'); }
     return;
   }
-
   if(intent==='flashcard'||intent==='both'){
     try{
       const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:chatHistory.slice(-10),model:activeModel})});
       if(res.status===429){ const d=await res.json(); hideTyping(); showRateLimit(d.detail||{}); return; }
       if(!res.ok) throw new Error('HTTP '+res.status);
       const data=await res.json();
-      if(intent==='both'){ /* fall through to quiz after */ }
-      else { hideTyping(); pushHistory('assistant','[Flashcards: '+data.topic+']'); renderFlashcards(data.cards,data.topic); return; }
       if(intent==='both'){
         const qres=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:chatHistory.slice(-10),model:activeModel})});
         if(!qres.ok) throw new Error('HTTP '+qres.status);
@@ -1497,12 +1518,12 @@ async function sendMessage(){
         pushHistory('assistant','[Flashcards+Quiz: '+data.topic+']');
         renderFlashcards(data.cards,data.topic);
         renderQuiz(qdata.questions,qdata.topic,qdata.difficulty);
-        return;
+      } else {
+        hideTyping(); pushHistory('assistant','[Flashcards: '+data.topic+']'); renderFlashcards(data.cards,data.topic);
       }
     }catch(err){ hideTyping(); addMsg('ai','Could not generate flashcards. Please try again.'); }
     return;
   }
-
   if(intent==='quiz'){
     try{
       const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:chatHistory.slice(-10),model:activeModel})});
@@ -1514,8 +1535,6 @@ async function sendMessage(){
     }catch(err){ hideTyping(); addMsg('ai','Could not generate quiz. Please try again.'); }
     return;
   }
-
-  // Default: chat
   await _sendChat(text);
 }
 
@@ -1554,7 +1573,6 @@ function saveFile(cardId,type,topic){
 }
 function deleteFile(id){ const files=loadFiles().filter(f=>f.id!==id); saveFiles(files); updateFilesBadge(); renderFilesList(); }
 function formatFileDate(ts){ const d=new Date(ts),now=new Date(),diff=now-d; if(diff<60000) return 'Just now'; if(diff<3600000) return Math.floor(diff/60000)+'m ago'; if(diff<86400000) return Math.floor(diff/3600000)+'h ago'; return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}); }
-
 function openFile(id){
   const files=loadFiles(); const file=files.find(f=>f.id===id); if(!file) return; closeFilesPanel();
   if(file.type==='notes'){
@@ -1569,7 +1587,6 @@ function openFile(id){
     renderFlowchartMsg(file.fcData); scrollBottom();
   }
 }
-
 function renderFilesList(){
   const listEl=document.getElementById('files-list'); if(!listEl) return;
   const files=loadFiles().filter(f=>f.type===activeFilesTab);
@@ -1583,7 +1600,7 @@ function closeFilesPanel(){ document.getElementById('files-overlay').classList.r
 
 // ── SESSION INIT ──────────────────────────────────────────────────────────────
 function initSession(){
-  addMsg('ai','**Hey! I\'m Sedy ✦**\n\nYour AI study companion. Ask me anything:\n- Explain a concept or solve a problem\n- **Flashcards** or **Quiz** on any topic\n- **Graph** any data\n- **Flowchart** any process — click to reveal each step\n- **Notes** or **Formula sheet** on any subject\n- Upload a **PDF** to ask questions about it\n\nWhat would you like to learn today?');
+  addMsg('ai','**Hey! I\'m Sedy ✦**\n\nYour AI study companion. Ask me anything:\n- Explain a concept or solve a problem\n- **Flashcards** or **Quiz** on any topic\n- **Graph** any data\n- **Flowchart** any process — click to reveal each step\n- **Notes** or **Formula sheet** on any subject\n- Upload a **PDF** to ask questions about it\n- 🖼️ **Upload an image** — I can read handwritten notes, diagrams, question papers, and answer in any Indian language (Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi...)\n\nWhat would you like to learn today?');
 }
 
 // ── KEEP-ALIVE ────────────────────────────────────────────────────────────────
@@ -1597,7 +1614,6 @@ updateMemoryBadge();
 updateFilesBadge();
 applyFreeMode();
 
-// Load Chart.js dynamically
 (function loadChartJs(){
   const s=document.createElement('script');
   s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';

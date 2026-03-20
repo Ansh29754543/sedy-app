@@ -734,11 +734,25 @@ body::before{content:'';position:fixed;inset:0;
 .ide-resize-handle{height:5px;background:#30363d;cursor:row-resize;flex-shrink:0;}
 .ide-resize-handle:hover{background:#58a6ff;}
 
-/* ── WEB SEARCH BADGE ────────────────────────────────────── */
-.ws-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:12px;background:rgba(79,142,255,.1);border:1px solid rgba(79,142,255,.22);font-family:'DM Mono',monospace;font-size:9px;color:var(--accent);letter-spacing:.5px;margin-bottom:6px;}
-.ws-source{display:inline-flex;align-items:center;gap:4px;padding:1px 6px;border-radius:8px;background:rgba(79,142,255,.07);border:1px solid rgba(79,142,255,.15);font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);margin:2px 2px 0;vertical-align:middle;}
-.ws-source a{color:var(--accent);text-decoration:none;}
-.ws-source a:hover{text-decoration:underline;}
+/* ── WEB SEARCH ──────────────────────────────────────────── */
+.ws-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;background:rgba(79,142,255,.1);border:1px solid rgba(79,142,255,.22);font-family:'DM Mono',monospace;font-size:9px;color:var(--accent);letter-spacing:.5px;margin-bottom:6px;cursor:default;}
+/* Searching live indicator shown while fetching */
+.ws-searching{display:flex;align-items:center;gap:8px;padding:9px 13px;background:var(--card);border:1px solid var(--border2);border-radius:12px;font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;margin-bottom:6px;width:fit-content;}
+.ws-searching-dots{display:flex;gap:3px;}
+.ws-searching-dots span{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:bounce .9s infinite;}
+.ws-searching-dots span:nth-child(2){animation-delay:.15s;}
+.ws-searching-dots span:nth-child(3){animation-delay:.3s;}
+/* Sources row */
+.ws-sources-row{margin-top:9px;display:flex;flex-direction:column;gap:0;}
+.ws-sources-label{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px;}
+.ws-sources-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.ws-source-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:9px;background:var(--bg3);border:1px solid var(--border);font-size:11px;color:var(--text2);cursor:pointer;transition:all .18s;text-decoration:none;position:relative;}
+.ws-source-chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,142,255,.06);}
+.ws-source-chip img{width:12px;height:12px;border-radius:2px;flex-shrink:0;}
+.ws-source-chip-name{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'DM Mono',monospace;}
+/* Snippet tooltip on hover */
+.ws-source-chip .ws-tooltip{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:8px 11px;font-size:11px;color:var(--text2);font-family:'DM Sans',monospace;white-space:normal;width:240px;box-shadow:0 6px 24px rgba(0,0,0,.5);z-index:200;line-height:1.5;pointer-events:none;}
+.ws-source-chip:hover .ws-tooltip{display:block;}
 
 </style>
 </head>
@@ -3212,49 +3226,97 @@ function parseMarkdown(text){
 })();
 
 // ══════════════════════════════════════════════════════════
-// ── WEB SEARCH AUTO-DETECT ──────────────────────────────────
+// ── WEB SEARCH AUTO-DETECT ─────────────────────────────────
 // ══════════════════════════════════════════════════════════
-// Keywords that signal the user wants current/live info
-const WEB_SEARCH_TRIGGERS=/\b(today|current|latest|recent|now|2024|2025|2026|news|price of|cost of|weather|who is|who won|score|result|election|live|update|this year|this month|last week|last month|currently|at present|right now|as of|stock|share price|match|ipl|world cup|exam date|admit card|result out|cutoff|official)\b/i;
+const WEB_SEARCH_TRIGGERS=/\b(today|current|latest|recent|now|2024|2025|2026|news|price of|cost of|weather|who is|who won|score|result|election|live|update|this year|this month|last week|last month|currently|at present|right now|as of|stock|share price|match|ipl|world cup|exam date|admit card|result out|cutoff|official|trending|breaking)\b/i;
 
 async function maybeWebSearch(message){
   if(!WEB_SEARCH_TRIGGERS.test(message)) return null;
   try{
     const res=await fetch(API_URL+'/web-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:message,history:chatHistory.slice(-4)})});
-    if(res.status===404) return null; // endpoint not deployed yet — graceful fallback
+    if(res.status===404||res.status===503) return null;
     if(!res.ok) return null;
-    const data=await res.json();
-    return data; // {reply, sources:[{title,url}]}
+    return await res.json();
   }catch(e){ return null; }
+}
+
+// Show live "Searching the web…" indicator in chat
+function showWsSearching(query){
+  const wrap=document.getElementById('chat-messages');
+  const div=document.createElement('div');
+  div.className='msg ai'; div.id='ws-searching-msg';
+  div.innerHTML=`<div class="msg-avatar">✦</div>
+    <div class="msg-content">
+      <div class="msg-bubble" style="background:none;border:none;padding:0;">
+        <div class="ws-searching">
+          <div class="ws-searching-dots"><span></span><span></span><span></span></div>
+          Searching the web for <strong style="color:var(--text)">"${_esc(query.slice(0,50))}"</strong>…
+        </div>
+      </div>
+    </div>`;
+  wrap.appendChild(div); scrollBottom();
+  return div;
+}
+
+function hideWsSearching(){
+  const el=document.getElementById('ws-searching-msg');
+  if(el) el.remove();
+}
+
+function buildWsSourcesHtml(sources){
+  if(!sources||!sources.length) return '';
+  const chips=sources.slice(0,5).map(s=>{
+    const domain=s.url?s.url.replace(/https?:\/\//,'').split('/')[0]:'';
+    const favicon=s.favicon||`https://www.google.com/s2/favicons?domain=${domain}&sz=16`;
+    const snippet=s.snippet?_esc(s.snippet.slice(0,120))+'…':'';
+    return `<a class="ws-source-chip" href="${_esc(s.url)}" target="_blank" rel="noopener">
+      <img src="${favicon}" alt="" onerror="this.style.display='none'">
+      <span class="ws-source-chip-name">${_esc(s.title.slice(0,35))}</span>
+      ${snippet?`<span class="ws-tooltip"><strong>${_esc(s.title.slice(0,60))}</strong><br>${snippet}</span>`:''}
+    </a>`;
+  }).join('');
+  return `<div class="ws-sources-row">
+    <div class="ws-sources-label">Sources</div>
+    <div class="ws-sources-chips">${chips}</div>
+  </div>`;
 }
 
 // Patch _sendChat to intercept web-search-worthy queries
 const _origSendChat=_sendChat;
 async function _sendChat(text){
-  // Check if web search might help
-  const wsResult=await maybeWebSearch(text);
-  if(wsResult&&wsResult.reply){
-    hideTyping();
-    const reply=wsResult.reply;
-    pushHistory('assistant',reply);
-    // Build sources HTML
-    let sourcesHtml='';
-    if(wsResult.sources&&wsResult.sources.length){
-      sourcesHtml='<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center"><span style="font-size:10px;color:var(--text3);font-family:DM Mono,monospace;margin-right:2px;">Sources:</span>'+wsResult.sources.slice(0,4).map(s=>`<span class="ws-source"><a href="${_esc(s.url)}" target="_blank" rel="noopener">${_esc(s.title.slice(0,30))}…</a></span>`).join('')+'</div>';
-    }
-    const fullHtml=`<div class="ws-badge">🔍 Web Search</div>${parseMarkdown(reply)}${sourcesHtml}`;
-    const wrap=document.getElementById('chat-messages');
-    const div=document.createElement('div'); div.className='msg ai';
-    const speakId='spk'+Date.now();
-    div.innerHTML=`<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble">${fullHtml}</div><div class="msg-actions"><button class="speak-btn" id="${speakId}" onclick="speakMsg('${speakId}')">🔊 Speak</button></div></div>`;
-    div._rawText=reply;
-    wrap.appendChild(div);
-    renderMath(div.querySelector('.msg-bubble'));
-    scrollBottom();
-    return;
+  if(!WEB_SEARCH_TRIGGERS.test(text)){
+    await _origSendChat(text); return;
   }
-  // fallback to normal chat
-  await _origSendChat(text);
+  // Show searching indicator
+  const searchingEl=showWsSearching(text);
+  const wsResult=await maybeWebSearch(text);
+  hideWsSearching();
+
+  if(!wsResult||!wsResult.reply){
+    // No result or endpoint not set — fall back silently
+    await _origSendChat(text); return;
+  }
+
+  const reply=wsResult.reply;
+  pushHistory('assistant',reply);
+
+  const sourcesHtml=buildWsSourcesHtml(wsResult.sources);
+  const fullHtml=`<div class="ws-badge">🔍 Web Search</div>${parseMarkdown(reply)}${sourcesHtml}`;
+
+  const wrap=document.getElementById('chat-messages');
+  const div=document.createElement('div'); div.className='msg ai';
+  const speakId='spk'+Date.now();
+  div.innerHTML=`<div class="msg-avatar">✦</div>
+    <div class="msg-content">
+      <div class="msg-bubble">${fullHtml}</div>
+      <div class="msg-actions">
+        <button class="speak-btn" id="${speakId}" onclick="speakMsg('${speakId}')">🔊 Speak</button>
+      </div>
+    </div>`;
+  div._rawText=reply;
+  wrap.appendChild(div);
+  renderMath(div.querySelector('.msg-bubble'));
+  scrollBottom();
 }
 
 function initSession(){

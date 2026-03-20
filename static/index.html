@@ -478,24 +478,95 @@ body::before{content:'';position:fixed;inset:0;
 .scope-frame-b::before{bottom:0;left:0;border-width:0 0 2px 2px;border-radius:0 0 0 3px;}
 .scope-frame-b::after{bottom:0;right:0;border-width:0 2px 2px 0;border-radius:0 0 3px 0;}
 
-/* AI response card */
-.scope-answer-card{position:absolute;bottom:140px;left:14px;right:14px;background:rgba(8,11,18,.92);backdrop-filter:blur(20px);border:1px solid rgba(0,229,192,.25);border-radius:18px;padding:16px 18px;max-height:40vh;overflow-y:auto;display:none;animation:slideUp .25s ease;}
-.scope-answer-card.visible{display:block;}
-.scope-answer-card::-webkit-scrollbar{width:3px;}
-.scope-answer-card::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-.scope-answer-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+/* AI response card — expanded with tabs */
+.scope-answer-card{position:absolute;bottom:140px;left:14px;right:14px;background:rgba(8,11,18,.94);backdrop-filter:blur(24px);border:1px solid rgba(0,229,192,.25);border-radius:18px;overflow:hidden;display:none;animation:slideUp .25s ease;max-height:52vh;display:none;flex-direction:column;}
+.scope-answer-card.visible{display:flex;}
+.scope-answer-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px 0;flex-shrink:0;}
 .scope-answer-badge{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;color:var(--accent3);letter-spacing:.8px;text-transform:uppercase;}
 .scope-answer-dot{width:6px;height:6px;border-radius:50%;background:var(--accent3);box-shadow:0 0 5px var(--accent3);}
-.scope-answer-close{background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:0;line-height:1;}
-.scope-answer-close:hover{color:var(--text);}
-.scope-answer-body{font-size:14px;color:var(--text);line-height:1.7;}
+.scope-answer-close{background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:0;line-height:1;transition:color .15s;}
+.scope-answer-close:hover{color:var(--danger);}
+
+/* Tab bar inside answer card */
+.scope-tabs{display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.08);margin-top:8px;flex-shrink:0;}
+.scope-tab{flex:1;padding:7px 0;background:none;border:none;cursor:pointer;font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.35);transition:all .18s;border-bottom:2px solid transparent;letter-spacing:.3px;}
+.scope-tab:hover{color:rgba(255,255,255,.65);}
+.scope-tab.active{color:var(--accent3);border-bottom-color:var(--accent3);}
+
+/* Tab panels */
+.scope-tab-panel{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.scope-tab-panel.active{display:flex;}
+
+/* Answer tab */
+.scope-answer-body{font-size:14px;color:var(--text);line-height:1.7;padding:12px 14px;overflow-y:auto;flex:1;user-select:text;-webkit-user-select:text;cursor:text;}
+.scope-answer-body::-webkit-scrollbar{width:3px;}
+.scope-answer-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 .scope-answer-body strong{color:var(--accent3);}
 .scope-answer-body em{color:var(--accent);font-style:italic;}
 .scope-answer-body h2,.scope-answer-body h3{font-family:'Syne',sans-serif;color:var(--accent3);margin:6px 0 3px;}
 .scope-answer-body ul{padding-left:16px;margin:4px 0;}
 .scope-answer-body li{margin:2px 0;}
 .scope-answer-body code{background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3);}
-.scope-speak-btn{margin-top:10px;background:none;border:1px solid rgba(0,229,192,.2);border-radius:8px;padding:4px 12px;font-size:11px;color:var(--accent3);cursor:pointer;font-family:'DM Mono',monospace;transition:all .2s;}
+.scope-answer-actions{display:flex;gap:6px;padding:8px 14px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;flex-wrap:wrap;}
+.scope-act-btn{padding:5px 12px;border-radius:8px;background:none;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .18s;white-space:nowrap;}
+.scope-act-btn:hover{border-color:rgba(0,229,192,.4);color:var(--accent3);}
+.scope-act-btn.active{border-color:var(--danger);color:var(--danger);}
+.scope-act-btn.copied{border-color:var(--success);color:var(--success);}
+
+/* Text extract tab */
+.scope-extract-area{flex:1;overflow-y:auto;padding:10px 14px;}
+.scope-extract-area::-webkit-scrollbar{width:3px;}
+.scope-extract-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.scope-extracted-text{font-size:13px;color:var(--text);line-height:1.8;font-family:'DM Mono',monospace;white-space:pre-wrap;word-break:break-word;user-select:text;-webkit-user-select:text;cursor:text;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px;}
+.scope-extract-empty{font-size:13px;color:var(--text3);text-align:center;padding:24px 0;font-family:'DM Mono',monospace;}
+.scope-extract-actions{display:flex;gap:6px;padding:8px 14px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+
+/* Translate tab */
+.scope-translate-panel{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+.scope-lang-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:10px 14px;flex-shrink:0;}
+.scope-lang-btn{padding:6px 4px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.55);font-size:10px;cursor:pointer;font-family:'DM Mono',monospace;text-align:center;transition:all .18s;line-height:1.3;}
+.scope-lang-btn:hover{border-color:rgba(0,229,192,.4);color:var(--accent3);background:rgba(0,229,192,.08);}
+.scope-lang-btn.active{border-color:var(--accent3);color:var(--accent3);background:rgba(0,229,192,.12);font-weight:700;}
+.scope-translated-body{font-size:14px;color:var(--text);line-height:1.75;padding:10px 14px;overflow-y:auto;flex:1;user-select:text;-webkit-user-select:text;}
+.scope-translated-body::-webkit-scrollbar{width:3px;}
+.scope-translated-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.scope-translate-loading{display:none;align-items:center;gap:8px;padding:16px 14px;color:var(--accent3);font-size:12px;font-family:'DM Mono',monospace;}
+.scope-translate-loading.visible{display:flex;}
+
+/* Chat/follow-up tab */
+.scope-chat-messages{flex:1;overflow-y:auto;padding:8px 14px;display:flex;flex-direction:column;gap:8px;}
+.scope-chat-messages::-webkit-scrollbar{width:3px;}
+.scope-chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.scope-chat-msg{display:flex;gap:7px;animation:msgIn .2s ease;}
+.scope-chat-msg.user{flex-direction:row-reverse;}
+.scope-chat-bubble{max-width:85%;padding:8px 11px;border-radius:12px;font-size:13px;line-height:1.6;word-break:break-word;}
+.scope-chat-msg.ai .scope-chat-bubble{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-top-left-radius:3px;color:var(--text);user-select:text;-webkit-user-select:text;}
+.scope-chat-msg.user .scope-chat-bubble{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border-top-right-radius:3px;}
+.scope-chat-avatar{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;align-self:flex-start;margin-top:1px;}
+.scope-chat-msg.ai .scope-chat-avatar{background:linear-gradient(135deg,var(--accent3),var(--accent));}
+.scope-chat-msg.user .scope-chat-avatar{background:rgba(255,255,255,.1);}
+.scope-chat-typing{display:flex;gap:4px;padding:4px 0;}
+.scope-chat-typing span{width:6px;height:6px;background:var(--accent3);border-radius:50%;animation:bounce .9s infinite;}
+.scope-chat-typing span:nth-child(2){animation-delay:.15s;}
+.scope-chat-typing span:nth-child(3){animation-delay:.3s;}
+.scope-followup-bar{display:flex;align-items:center;gap:6px;padding:8px 10px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.scope-followup-input{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:7px 13px;color:white;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+.scope-followup-input:focus{border-color:rgba(0,229,192,.4);}
+.scope-followup-input::placeholder{color:rgba(255,255,255,.3);}
+.scope-followup-send{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:white;flex-shrink:0;transition:transform .15s;}
+.scope-followup-send:hover{transform:scale(1.08);}
+.scope-followup-voice{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all .2s;}
+.scope-followup-voice:hover{background:rgba(255,79,106,.2);border-color:rgba(255,79,106,.4);}
+.scope-followup-voice.listening{background:rgba(255,79,106,.2);border-color:var(--danger);animation:micPulse .8s infinite;}
+
+/* Selection popup inside scope */
+.scope-sel-popup{position:fixed;z-index:950;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:5px;display:none;gap:4px;box-shadow:0 8px 24px rgba(0,0,0,.6);animation:slideUp .15s ease;}
+.scope-sel-popup.visible{display:flex;}
+.scope-sel-copy{padding:6px 11px;background:linear-gradient(135deg,var(--accent3),var(--accent));border:none;border-radius:7px;font-size:11px;font-weight:700;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.scope-sel-ask{padding:6px 11px;background:none;border:1px solid var(--border2);border-radius:7px;font-size:11px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all .15s;}
+.scope-sel-ask:hover{border-color:var(--accent3);color:var(--accent3);}
+
+.scope-speak-btn{margin:0;background:none;border:1px solid rgba(0,229,192,.2);border-radius:8px;padding:4px 12px;font-size:11px;color:var(--accent3);cursor:pointer;font-family:'DM Mono',monospace;transition:all .2s;}
 .scope-speak-btn:hover{background:rgba(0,229,192,.08);}
 .scope-speak-btn.speaking{animation:speakPulse 1.4s infinite;}
 
@@ -605,14 +676,77 @@ body::before{content:'';position:fixed;inset:0;
       <div class="scope-scanline"></div>
     </div>
 
-    <!-- AI answer card (appears above input bar) -->
+    <!-- Selection popup (appears when user selects text inside card) -->
+    <div class="scope-sel-popup" id="scope-sel-popup">
+      <button class="scope-sel-copy" onclick="copyScopeSelection()">⎘ Copy</button>
+      <button class="scope-sel-ask"  onclick="askScopeSelection()">Ask about this</button>
+    </div>
+
+    <!-- AI answer card — tabbed -->
     <div class="scope-answer-card" id="scope-answer-card">
       <div class="scope-answer-header">
-        <div class="scope-answer-badge"><div class="scope-answer-dot"></div>Sedy Scope · AI Answer</div>
+        <div class="scope-answer-badge"><div class="scope-answer-dot"></div>Sedy Scope</div>
         <button class="scope-answer-close" onclick="closeScopeAnswer()">✕</button>
       </div>
-      <div class="scope-answer-body" id="scope-answer-body"></div>
-      <button class="scope-speak-btn" id="scope-speak-btn" onclick="speakScopeAnswer()">🔊 Speak answer</button>
+
+      <!-- Tab bar -->
+      <div class="scope-tabs">
+        <button class="scope-tab active" data-tab="answer"    onclick="switchScopeTab('answer')">✦ Answer</button>
+        <button class="scope-tab"        data-tab="text"      onclick="switchScopeTab('text')">⎘ Text</button>
+        <button class="scope-tab"        data-tab="translate" onclick="switchScopeTab('translate')">🌐 Translate</button>
+        <button class="scope-tab"        data-tab="chat"      onclick="switchScopeTab('chat')">💬 Follow-up</button>
+      </div>
+
+      <!-- ── TAB: Answer ── -->
+      <div class="scope-tab-panel active" id="scope-panel-answer">
+        <div class="scope-answer-body" id="scope-answer-body"></div>
+        <div class="scope-answer-actions">
+          <button class="scope-act-btn" id="scope-speak-btn" onclick="speakScopeAnswer()">🔊 Speak</button>
+          <button class="scope-act-btn" id="scope-copy-answer-btn" onclick="copyScopeAnswer()">⎘ Copy</button>
+          <button class="scope-act-btn" onclick="sendScopeToMain()">↗ Send to chat</button>
+        </div>
+      </div>
+
+      <!-- ── TAB: Extracted Text ── -->
+      <div class="scope-tab-panel" id="scope-panel-text">
+        <div class="scope-extract-area">
+          <div class="scope-extracted-text" id="scope-extracted-text" style="display:none"></div>
+          <div class="scope-extract-empty" id="scope-extract-empty">No text extracted yet.<br>Capture an image with text first.</div>
+        </div>
+        <div class="scope-extract-actions">
+          <button class="scope-act-btn" id="scope-copy-text-btn" onclick="copyScopeExtractedText()">⎘ Copy all text</button>
+          <button class="scope-act-btn" onclick="askAboutExtractedText()">Ask about this text</button>
+        </div>
+      </div>
+
+      <!-- ── TAB: Translate ── -->
+      <div class="scope-tab-panel" id="scope-panel-translate">
+        <div class="scope-translate-panel">
+          <div class="scope-lang-grid" id="scope-lang-grid">
+            <!-- language buttons injected by JS -->
+          </div>
+          <div class="scope-translate-loading" id="scope-translate-loading">
+            <div class="ccf-spinner"></div> Translating…
+          </div>
+          <div class="scope-translated-body" id="scope-translated-body"></div>
+          <div class="scope-answer-actions" style="border-top:1px solid rgba(255,255,255,.06);">
+            <button class="scope-act-btn" id="scope-copy-trans-btn" onclick="copyScopeTranslation()">⎘ Copy translation</button>
+            <button class="scope-act-btn" onclick="speakScopeTranslation()">🔊 Speak translation</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: Follow-up chat ── -->
+      <div class="scope-tab-panel" id="scope-panel-chat">
+        <div class="scope-chat-messages" id="scope-chat-messages"></div>
+        <div class="scope-followup-bar">
+          <input class="scope-followup-input" id="scope-followup-input"
+            placeholder="Ask a follow-up…"
+            onkeydown="if(event.key==='Enter')sendScopeFollowup()">
+          <button class="scope-followup-voice" id="scope-followup-voice" onclick="toggleFollowupVoice()" title="Speak">🎤</button>
+          <button class="scope-followup-send" onclick="sendScopeFollowup()">➤</button>
+        </div>
+      </div>
     </div>
 
     <!-- Bottom bar: text input + voice btn + capture btn -->
@@ -2152,276 +2286,392 @@ function closeCrop(){
 // ══════════════════════════════════════════════════════════════════════════════
 // ── SEDY SCOPE ────────────────────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
-let scopeStream       = null;
-let scopeFacingMode   = 'environment';   // back camera by default (front on desktop fallback)
-let scopeRecognition  = null;
-let scopeListening    = false;
-let scopeLastAnswer   = '';
-let scopeSpeaking     = false;
-let scopeUtterance    = null;
+let scopeStream          = null;
+let scopeFacingMode      = 'environment';
+let scopeRecognition     = null;
+let scopeFollowupRec     = null;
+let scopeListening       = false;
+let scopeFollowupListening = false;
+let scopeLastAnswer      = '';
+let scopeLastExtracted   = '';
+let scopeLastTranslated  = '';
+let scopeSelectedLang    = '';
+let scopeSpeaking        = false;
+let scopeUtterance       = null;
+let scopeActiveTab       = 'answer';
+let scopeChatHistory     = [];   // local follow-up chat history (frame context)
+let scopeLastBase64      = '';   // last captured frame (for follow-up context)
+
+const SCOPE_LANGUAGES = [
+  {code:'hi',  label:'हिंदी',    name:'Hindi'},
+  {code:'bn',  label:'বাংলা',   name:'Bengali'},
+  {code:'ta',  label:'தமிழ்',   name:'Tamil'},
+  {code:'te',  label:'తెలుగు',  name:'Telugu'},
+  {code:'kn',  label:'ಕನ್ನಡ',   name:'Kannada'},
+  {code:'ml',  label:'മലയാളം', name:'Malayalam'},
+  {code:'mr',  label:'मराठी',   name:'Marathi'},
+  {code:'gu',  label:'ગુજ.',    name:'Gujarati'},
+  {code:'pa',  label:'ਪੰਜਾਬੀ', name:'Punjabi'},
+  {code:'ur',  label:'اردو',    name:'Urdu'},
+  {code:'or',  label:'ଓଡ଼ିଆ',  name:'Odia'},
+  {code:'fr',  label:'Français',name:'French'},
+  {code:'de',  label:'Deutsch', name:'German'},
+  {code:'es',  label:'Español', name:'Spanish'},
+  {code:'ar',  label:'العربية', name:'Arabic'},
+  {code:'ja',  label:'日本語',   name:'Japanese'},
+];
+
+
 
 // ── Open / close ──────────────────────────────────────────────────────────────
 async function openScope(){
-  const overlay = document.getElementById('scope-overlay');
+  const overlay=document.getElementById('scope-overlay');
   overlay.classList.add('active');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow='hidden';
+  buildScopeLangGrid();
   await startScopeCamera();
 }
-
 function closeScope(){
-  stopScopeCamera();
-  stopScopeVoice();
-  stopScopeSpeak();
+  stopScopeCamera(); stopScopeVoice(); stopScopeSpeak();
+  if(scopeFollowupRec){try{scopeFollowupRec.stop();}catch(e){} scopeFollowupRec=null;}
   document.getElementById('scope-overlay').classList.remove('active');
-  document.body.style.overflow = '';
-  closeScopeAnswer();
-  setScopeStatus('');
+  document.body.style.overflow='';
+  closeScopeAnswer(); setScopeStatus('');
+  document.getElementById('scope-sel-popup').classList.remove('visible');
 }
 
 // ── Camera ─────────────────────────────────────────────────────────────────────
 async function startScopeCamera(){
   stopScopeCamera();
-  const video = document.getElementById('scope-video');
+  const video=document.getElementById('scope-video');
   try{
-    // Try requested facing mode, fall back to any camera
     let stream;
-    try{
-      stream = await navigator.mediaDevices.getUserMedia({
-        video:{ facingMode: scopeFacingMode, width:{ideal:1280}, height:{ideal:720} },
-        audio: false
-      });
-    }catch(e){
-      stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
-    }
-    scopeStream = stream;
-    video.srcObject = stream;
-    // Mirror front camera
-    video.classList.toggle('mirrored', scopeFacingMode === 'user');
-    await video.play();
-    setScopeStatus('');
+    try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:scopeFacingMode,width:{ideal:1280},height:{ideal:720}},audio:false}); }
+    catch(e){ stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false}); }
+    scopeStream=stream; video.srcObject=stream;
+    video.classList.toggle('mirrored',scopeFacingMode==='user');
+    await video.play(); setScopeStatus('');
   }catch(err){
-    setScopeStatus('Camera unavailable — ' + err.message, 'error');
-    showScopeAnswer('⚠️ Could not access camera.\n\n**Possible reasons:**\n- Camera permission denied — check browser settings\n- No camera found on this device\n- Another app is using the camera');
+    setScopeStatus('Camera unavailable','error');
+    showScopeAnswer('⚠️ Could not access camera.\n\n- Camera permission denied\n- No camera found\n- Another app is using it');
   }
 }
-
 function stopScopeCamera(){
-  if(scopeStream){ scopeStream.getTracks().forEach(t=>t.stop()); scopeStream=null; }
-  const video = document.getElementById('scope-video');
-  video.srcObject = null;
+  if(scopeStream){scopeStream.getTracks().forEach(t=>t.stop());scopeStream=null;}
+  document.getElementById('scope-video').srcObject=null;
 }
-
 function scopeFlipCamera(){
-  scopeFacingMode = scopeFacingMode === 'environment' ? 'user' : 'environment';
+  scopeFacingMode=scopeFacingMode==='environment'?'user':'environment';
   startScopeCamera();
 }
 
-// ── Capture frame ──────────────────────────────────────────────────────────────
+// ── Capture frame (optimised — max 800px, quality 0.65 for speed) ─────────────
 function captureFrame(){
-  const video  = document.getElementById('scope-video');
-  const canvas = document.createElement('canvas');
-  canvas.width  = video.videoWidth  || 1280;
-  canvas.height = video.videoHeight || 720;
-  const ctx = canvas.getContext('2d');
-  // Flip back if mirrored so the image sent to AI is correct
-  if(video.classList.contains('mirrored')){
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
-  }
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL('image/jpeg', 0.85).split(',')[1]; // base64
+  const video=document.getElementById('scope-video');
+  const MAX_W=800;
+  let w=video.videoWidth||1280, h=video.videoHeight||720;
+  if(w>MAX_W){ h=Math.round(h*(MAX_W/w)); w=MAX_W; }
+  const canvas=document.createElement('canvas');
+  canvas.width=w; canvas.height=h;
+  const ctx=canvas.getContext('2d');
+  if(video.classList.contains('mirrored')){ctx.translate(w,0);ctx.scale(-1,1);}
+  ctx.drawImage(video,0,0,w,h);
+  return canvas.toDataURL('image/jpeg',0.65).split(',')[1];
 }
 
-// ── Send to AI ────────────────────────────────────────────────────────────────
-async function scopeSend(){
-  const question = (document.getElementById('scope-text-input').value||'').trim();
-  await _scopeAsk(question);
+// ── Tab switching ──────────────────────────────────────────────────────────────
+function switchScopeTab(tab){
+  scopeActiveTab=tab;
+  document.querySelectorAll('.scope-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.querySelectorAll('.scope-tab-panel').forEach(p=>p.classList.toggle('active',p.id==='scope-panel-'+tab));
+  if(tab==='chat') setTimeout(()=>{const el=document.getElementById('scope-chat-messages');if(el)el.scrollTop=el.scrollHeight;},60);
 }
 
-async function scopeCapture(){
-  const question = (document.getElementById('scope-text-input').value||'').trim() || '';
-  await _scopeAsk(question);
-}
+// ── Main capture + ask ─────────────────────────────────────────────────────────
+async function scopeSend(){await _scopeAsk((document.getElementById('scope-text-input').value||'').trim());}
+async function scopeCapture(){await _scopeAsk((document.getElementById('scope-text-input').value||'').trim());}
 
 async function _scopeAsk(question){
-  if(!scopeStream){
-    showScopeAnswer('Camera is not active. Please reopen Sedy Scope.');
-    return;
-  }
-  // Capture
+  if(!scopeStream){showScopeAnswer('Camera is not active. Please reopen Sedy Scope.');return;}
   let base64;
-  try{ base64 = captureFrame(); }
-  catch(e){ showScopeAnswer('⚠️ Could not capture frame: ' + e.message); return; }
+  try{base64=captureFrame();}
+  catch(e){showScopeAnswer('⚠️ Could not capture frame: '+e.message);return;}
+  scopeLastBase64=base64;
 
-  // UI feedback
-  const btn = document.getElementById('scope-capture-btn');
+  const btn=document.getElementById('scope-capture-btn');
   btn.classList.add('loading');
   document.getElementById('scope-video-wrap').classList.add('scanning');
-  setScopeStatus('🔭 Sedy Scope is thinking…', 'thinking');
-  closeScopeAnswer();
-  stopScopeSpeak();
+  setScopeStatus('🔭 Thinking…','thinking');
+  closeScopeAnswer(); stopScopeSpeak();
 
-  const prompt = question || 'Look at this image carefully. Describe what you see and explain anything educational — text, diagrams, equations, objects, or anything that might be useful for a student.';
+  const extractInstruction='ALSO at the very end, output a block starting with exactly "EXTRACTED_TEXT:" followed by all readable text in the image. If none write "EXTRACTED_TEXT: (none)".';
+  const prompt=question
+    ?question+'\n\n'+extractInstruction
+    :'Describe what you see — text, diagrams, equations, or anything educational. '+extractInstruction;
 
   try{
-    const res = await fetch(API_URL + '/image-chat', {
-      method:  'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        message:  prompt,
-        images:   [base64],
-        image_names: ['scope_frame.jpg'],
-        history:  chatHistory.slice(-6),
-      })
-    });
-
-    if(res.status === 429){
-      const d = await res.json();
-      showScopeAnswer('⏳ Rate limit reached. Please wait a moment and try again.');
-      showRateLimit(d.detail || {});
-    } else if(!res.ok){
-      throw new Error('HTTP ' + res.status);
-    } else {
-      const data = await res.json();
-      const reply = data.reply || 'No response.';
-      scopeLastAnswer = reply;
+    const res=await fetch(API_URL+'/image-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:prompt,images:[base64],image_names:['scope_frame.jpg'],history:scopeChatHistory.slice(-6)})});
+    if(res.status===429){const d=await res.json();showRateLimit(d.detail||{});showScopeAnswer('⏳ Rate limit. Please wait.');}
+    else if(!res.ok){throw new Error('HTTP '+res.status);}
+    else{
+      const data=await res.json();
+      let reply=data.reply||'No response.';
+      const extMatch=reply.match(/EXTRACTED_TEXT:([\s\S]*?)(?:\n\n|$)/);
+      if(extMatch){scopeLastExtracted=extMatch[1].trim();reply=reply.replace(/EXTRACTED_TEXT:[\s\S]*$/,'').trim();}
+      else{scopeLastExtracted='';}
+      scopeLastAnswer=reply; scopeLastTranslated=''; scopeSelectedLang='';
+      const extEl=document.getElementById('scope-extracted-text');
+      const extEmpty=document.getElementById('scope-extract-empty');
+      if(scopeLastExtracted&&scopeLastExtracted!=='(none)'){extEl.textContent=scopeLastExtracted;extEl.style.display='block';extEmpty.style.display='none';}
+      else{extEl.style.display='none';extEmpty.style.display='block';}
+      document.getElementById('scope-translated-body').innerHTML='';
+      document.getElementById('scope-translate-loading').classList.remove('visible');
+      document.querySelectorAll('.scope-lang-btn').forEach(b=>b.classList.remove('active'));
+      scopeChatHistory.push({role:'user',content:question||'(describe image)'},{role:'assistant',content:reply});
+      if(scopeChatHistory.length>12)scopeChatHistory=scopeChatHistory.slice(-12);
+      pushHistory('user','[Sedy Scope] '+(question||'(frame)'));
+      pushHistory('assistant',reply);
+      document.getElementById('scope-text-input').value='';
       showScopeAnswer(reply);
-      // Also log to main chat history
-      pushHistory('user', '[Sedy Scope] ' + (question||'(frame captured)'));
-      pushHistory('assistant', reply);
-      // Clear input
-      document.getElementById('scope-text-input').value = '';
+      switchScopeTab('answer');
+      renderScopeChatMsg('user',question||'(captured frame)');
+      renderScopeChatMsg('ai',reply);
     }
-  }catch(err){
-    showScopeAnswer('⚠️ Could not reach Sedy. Check your connection.');
-    console.error(err);
-  }finally{
-    btn.classList.remove('loading');
-    document.getElementById('scope-video-wrap').classList.remove('scanning');
-    setScopeStatus('');
-  }
+  }catch(err){showScopeAnswer('⚠️ Could not reach Sedy. Check connection.');console.error(err);}
+  finally{btn.classList.remove('loading');document.getElementById('scope-video-wrap').classList.remove('scanning');setScopeStatus('');}
 }
 
 // ── Answer card ────────────────────────────────────────────────────────────────
 function showScopeAnswer(text){
-  const card = document.getElementById('scope-answer-card');
-  const body = document.getElementById('scope-answer-body');
-  // Parse basic markdown for the overlay
-  body.innerHTML = parseScopeMarkdown(text);
-  if(window.renderMathInElement) renderMathInElement(body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+  const card=document.getElementById('scope-answer-card');
+  const body=document.getElementById('scope-answer-body');
+  body.innerHTML=parseScopeMarkdown(text);
+  if(window.renderMathInElement)renderMathInElement(body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
   card.classList.add('visible');
+  body.onmouseup=body.ontouchend=()=>handleScopeTextSelection();
 }
-
 function closeScopeAnswer(){
   document.getElementById('scope-answer-card').classList.remove('visible');
+  document.getElementById('scope-sel-popup').classList.remove('visible');
 }
-
 function parseScopeMarkdown(text){
   return text
-    .replace(/```[\s\S]*?```/g, m => {
-      const code = m.replace(/```\w*\n?/,'').replace(/```$/,'');
-      return `<pre style="background:rgba(0,0,0,.4);border:1px solid var(--border2);border-radius:8px;padding:10px;font-family:'DM Mono',monospace;font-size:12px;overflow-x:auto;margin:6px 0;">${_esc(code.trim())}</pre>`;
-    })
+    .replace(/```[\s\S]*?```/g,m=>{const code=m.replace(/```\w*\n?/,'').replace(/```$/,'');return'<pre style="background:rgba(0,0,0,.4);border:1px solid var(--border2);border-radius:8px;padding:10px;font-family:\'DM Mono\',monospace;font-size:12px;overflow-x:auto;margin:6px 0;">'+_esc(code.trim())+'</pre>';})
     .replace(/^### (.+)$/gm,'<h3>$1</h3>')
     .replace(/^## (.+)$/gm,'<h2>$1</h2>')
     .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g,'<em>$1</em>')
     .replace(/`([^`]+)`/g,'<code>$1</code>')
     .replace(/^- (.+)$/gm,'<li style="margin:2px 0">$1</li>')
-    .replace(/(<li[\s\S]*?<\/li>\n?)+/g, m=>'<ul style="padding-left:16px;margin:5px 0">'+m+'</ul>')
+    .replace(/(<li[\s\S]*?<\/li>\n?)+/g,m=>'<ul style="padding-left:16px;margin:5px 0">'+m+'</ul>')
     .replace(/\n\n/g,'<br><br>')
     .replace(/\n/g,'<br>');
 }
 
-// ── TTS for scope ──────────────────────────────────────────────────────────────
+// ── Text selection popup ───────────────────────────────────────────────────────
+let scopeSelText='';
+function handleScopeTextSelection(){
+  const sel=window.getSelection();
+  if(!sel||sel.isCollapsed||sel.toString().trim().length<3){document.getElementById('scope-sel-popup').classList.remove('visible');return;}
+  scopeSelText=sel.toString().trim();
+  const range=sel.getRangeAt(0);
+  const rect=range.getBoundingClientRect();
+  const popup=document.getElementById('scope-sel-popup');
+  popup.style.top=(rect.top-44+window.scrollY)+'px';
+  popup.style.left=Math.min(rect.left,window.innerWidth-160)+'px';
+  popup.classList.add('visible');
+}
+function copyScopeSelection(){
+  if(scopeSelText)navigator.clipboard.writeText(scopeSelText).catch(()=>{});
+  document.getElementById('scope-sel-popup').classList.remove('visible');
+  window.getSelection().removeAllRanges();
+}
+function askScopeSelection(){
+  document.getElementById('scope-sel-popup').classList.remove('visible');
+  window.getSelection().removeAllRanges();
+  if(!scopeSelText)return;
+  switchScopeTab('chat');
+  document.getElementById('scope-followup-input').value='Explain: "'+scopeSelText.slice(0,120)+'"';
+  document.getElementById('scope-followup-input').focus();
+}
+document.addEventListener('mousedown',e=>{
+  if(!e.target.closest('#scope-sel-popup')&&!e.target.closest('#scope-answer-body')&&!e.target.closest('#scope-extracted-text')&&!e.target.closest('.scope-chat-bubble'))
+    document.getElementById('scope-sel-popup').classList.remove('visible');
+});
+
+// ── Copy / send helpers ────────────────────────────────────────────────────────
+function copyScopeAnswer(){
+  if(!scopeLastAnswer)return;
+  navigator.clipboard.writeText(scopeLastAnswer).catch(()=>{});
+  const btn=document.getElementById('scope-copy-answer-btn');
+  if(btn){btn.textContent='✓ Copied';btn.classList.add('copied');setTimeout(()=>{btn.textContent='⎘ Copy';btn.classList.remove('copied');},1800);}
+}
+function copyScopeExtractedText(){
+  if(!scopeLastExtracted)return;
+  navigator.clipboard.writeText(scopeLastExtracted).catch(()=>{});
+  const btn=document.getElementById('scope-copy-text-btn');
+  if(btn){btn.textContent='✓ Copied';btn.classList.add('copied');setTimeout(()=>{btn.textContent='⎘ Copy all text';btn.classList.remove('copied');},1800);}
+}
+function copyScopeTranslation(){
+  if(!scopeLastTranslated)return;
+  navigator.clipboard.writeText(scopeLastTranslated).catch(()=>{});
+  const btn=document.getElementById('scope-copy-trans-btn');
+  if(btn){btn.textContent='✓ Copied';btn.classList.add('copied');setTimeout(()=>{btn.textContent='⎘ Copy translation';btn.classList.remove('copied');},1800);}
+}
+function sendScopeToMain(){
+  if(!scopeLastAnswer)return;
+  closeScope();
+  addMsg('ai',scopeLastAnswer,{imgBadge:'From Sedy Scope'});
+}
+function askAboutExtractedText(){
+  if(!scopeLastExtracted)return;
+  switchScopeTab('chat');
+  document.getElementById('scope-followup-input').value='Explain this extracted text: "'+scopeLastExtracted.slice(0,200)+'"';
+  document.getElementById('scope-followup-input').focus();
+}
+
+// ── Translate tab ──────────────────────────────────────────────────────────────
+function buildScopeLangGrid(){
+  const grid=document.getElementById('scope-lang-grid');
+  if(!grid||grid.children.length)return;
+  grid.innerHTML=SCOPE_LANGUAGES.map(l=>'<button class="scope-lang-btn" data-code="'+l.code+'" onclick="translateScope(\''+l.code+'\',\''+l.name+'\')">'+l.label+'</button>').join('');
+}
+async function translateScope(code,name){
+  const textToTranslate=scopeLastAnswer||scopeLastExtracted;
+  if(!textToTranslate){document.getElementById('scope-translated-body').innerHTML='<span style="color:var(--text3);font-family:DM Mono,monospace;font-size:12px;">Capture something first, then translate.</span>';return;}
+  if(scopeSelectedLang===code){scopeSelectedLang='';document.getElementById('scope-translated-body').innerHTML='';document.querySelectorAll('.scope-lang-btn').forEach(b=>b.classList.remove('active'));return;}
+  scopeSelectedLang=code;
+  document.querySelectorAll('.scope-lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.code===code));
+  const loadEl=document.getElementById('scope-translate-loading');
+  const bodyEl=document.getElementById('scope-translated-body');
+  loadEl.classList.add('visible');bodyEl.innerHTML='';
+  const prompt='Translate the following text into '+name+'. Output ONLY the translation, nothing else:\n\n'+textToTranslate;
+  try{
+    const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:prompt,model:'flash',history:[]})});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    scopeLastTranslated=data.reply||'';
+    bodyEl.innerHTML=parseScopeMarkdown(scopeLastTranslated);
+    bodyEl.onmouseup=bodyEl.ontouchend=()=>handleScopeTextSelection();
+  }catch(e){bodyEl.innerHTML='<span style="color:var(--danger);font-size:12px;">Translation failed.</span>';}
+  finally{loadEl.classList.remove('visible');}
+}
+function speakScopeTranslation(){
+  if(!scopeLastTranslated||!window.speechSynthesis)return;
+  const clean=scopeLastTranslated.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+  const utt=new SpeechSynthesisUtterance(clean);
+  window.speechSynthesis.cancel();window.speechSynthesis.speak(utt);
+}
+
+// ── Follow-up chat tab ─────────────────────────────────────────────────────────
+async function sendScopeFollowup(){
+  const input=document.getElementById('scope-followup-input');
+  const text=(input.value||'').trim();if(!text)return;
+  input.value='';
+  renderScopeChatMsg('user',text);
+  const typingId='sct'+Date.now();
+  const chatEl=document.getElementById('scope-chat-messages');
+  const typDiv=document.createElement('div');typDiv.className='scope-chat-msg ai';typDiv.id=typingId;
+  typDiv.innerHTML='<div class="scope-chat-avatar">✦</div><div class="scope-chat-bubble"><div class="scope-chat-typing"><span></span><span></span><span></span></div></div>';
+  chatEl.appendChild(typDiv);chatEl.scrollTop=chatEl.scrollHeight;
+  try{
+    let reply='';
+    if(scopeLastBase64){
+      const res=await fetch(API_URL+'/image-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,images:[scopeLastBase64],image_names:['scope_context.jpg'],history:scopeChatHistory.slice(-6)})});
+      if(res.ok){const d=await res.json();reply=d.reply||'';}
+    }
+    if(!reply){
+      const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,model:'auto',history:scopeChatHistory.slice(-8)})});
+      if(res.ok){const d=await res.json();reply=d.reply||'';}
+    }
+    const typEl=document.getElementById(typingId);if(typEl)typEl.remove();
+    if(!reply)reply='Sorry, no response.';
+    scopeChatHistory.push({role:'user',content:text},{role:'assistant',content:reply});
+    if(scopeChatHistory.length>16)scopeChatHistory=scopeChatHistory.slice(-16);
+    renderScopeChatMsg('ai',reply);
+  }catch(e){
+    const typEl=document.getElementById(typingId);if(typEl)typEl.remove();
+    renderScopeChatMsg('ai','⚠️ Could not reach Sedy.');
+  }
+}
+function renderScopeChatMsg(role,text){
+  const chatEl=document.getElementById('scope-chat-messages');if(!chatEl)return;
+  const div=document.createElement('div');div.className='scope-chat-msg '+role;
+  const avatar=role==='ai'?'✦':'👤';
+  const html=role==='ai'?parseScopeMarkdown(text):_esc(text);
+  div.innerHTML='<div class="scope-chat-avatar">'+avatar+'</div><div class="scope-chat-bubble">'+html+'</div>';
+  if(role==='ai'){const b=div.querySelector('.scope-chat-bubble');b.onmouseup=b.ontouchend=()=>handleScopeTextSelection();}
+  chatEl.appendChild(div);chatEl.scrollTop=chatEl.scrollHeight;
+}
+
+// ── Follow-up voice ───────────────────────────────────────────────────────────
+function toggleFollowupVoice(){if(scopeFollowupListening){stopFollowupVoice();return;}startFollowupVoice();}
+function startFollowupVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){renderScopeChatMsg('ai','🎤 Voice not supported. Try Chrome.');return;}
+  scopeFollowupRec=new SR();scopeFollowupRec.continuous=false;scopeFollowupRec.interimResults=true;scopeFollowupRec.lang='en-IN';
+  const btn=document.getElementById('scope-followup-voice');
+  const inp=document.getElementById('scope-followup-input');
+  scopeFollowupRec.onstart=()=>{scopeFollowupListening=true;btn.classList.add('listening');btn.textContent='⏹';inp.placeholder='🎤 Listening…';};
+  scopeFollowupRec.onresult=(e)=>{inp.value=Array.from(e.results).map(r=>r[0].transcript).join('');};
+  scopeFollowupRec.onend=()=>{scopeFollowupListening=false;btn.classList.remove('listening');btn.textContent='🎤';inp.placeholder='Ask a follow-up…';const t=inp.value.trim();if(t)sendScopeFollowup();};
+  scopeFollowupRec.onerror=()=>{scopeFollowupListening=false;btn.classList.remove('listening');btn.textContent='🎤';};
+  try{scopeFollowupRec.start();}catch(e){}
+}
+function stopFollowupVoice(){
+  if(scopeFollowupRec){try{scopeFollowupRec.stop();}catch(e){}scopeFollowupRec=null;}
+  scopeFollowupListening=false;
+  const btn=document.getElementById('scope-followup-voice');
+  if(btn){btn.classList.remove('listening');btn.textContent='🎤';}
+}
+
+// ── TTS ───────────────────────────────────────────────────────────────────────
 function speakScopeAnswer(){
-  const btn = document.getElementById('scope-speak-btn');
-  if(scopeSpeaking){ stopScopeSpeak(); return; }
-  if(!scopeLastAnswer || !window.speechSynthesis) return;
-  const clean = scopeLastAnswer.replace(/<[^>]+>/g,' ').replace(/#{1,3}\s+/g,'').replace(/\*{1,3}([^*]+)\*{1,3}/g,'$1').replace(/\$\$?[^$]+\$\$?/g,' math expression ').replace(/\s+/g,' ').trim();
-  scopeUtterance = new SpeechSynthesisUtterance(clean);
-  scopeUtterance.rate = 0.95; scopeUtterance.pitch = 1;
-  scopeSpeaking = true;
-  btn.classList.add('speaking'); btn.textContent = '⏹ Stop speaking';
-  scopeUtterance.onend = scopeUtterance.onerror = ()=>{
-    scopeSpeaking = false;
-    btn.classList.remove('speaking'); btn.textContent = '🔊 Speak answer';
-    scopeUtterance = null;
-  };
+  const btn=document.getElementById('scope-speak-btn');
+  if(scopeSpeaking){stopScopeSpeak();return;}
+  if(!scopeLastAnswer||!window.speechSynthesis)return;
+  const clean=scopeLastAnswer.replace(/<[^>]+>/g,' ').replace(/#{1,3}\s+/g,'').replace(/\*{1,3}([^*]+)\*{1,3}/g,'$1').replace(/\$\$?[^$]+\$\$?/g,' math ').replace(/\s+/g,' ').trim();
+  scopeUtterance=new SpeechSynthesisUtterance(clean);scopeUtterance.rate=0.95;
+  scopeSpeaking=true;btn.classList.add('active');btn.textContent='⏹ Stop';
+  scopeUtterance.onend=scopeUtterance.onerror=()=>{scopeSpeaking=false;btn.classList.remove('active');btn.textContent='🔊 Speak';scopeUtterance=null;};
   window.speechSynthesis.speak(scopeUtterance);
 }
 function stopScopeSpeak(){
-  if(window.speechSynthesis) window.speechSynthesis.cancel();
-  scopeSpeaking = false; scopeUtterance = null;
-  const btn = document.getElementById('scope-speak-btn');
-  if(btn){ btn.classList.remove('speaking'); btn.textContent = '🔊 Speak answer'; }
+  if(window.speechSynthesis)window.speechSynthesis.cancel();
+  scopeSpeaking=false;scopeUtterance=null;
+  const btn=document.getElementById('scope-speak-btn');
+  if(btn){btn.classList.remove('active');btn.textContent='🔊 Speak';}
 }
 
-// ── Voice input for scope ──────────────────────────────────────────────────────
-function toggleScopeVoice(){
-  if(scopeListening){ stopScopeVoice(); return; }
-  startScopeVoice();
-}
-
+// ── Main voice input ───────────────────────────────────────────────────────────
+function toggleScopeVoice(){if(scopeListening){stopScopeVoice();return;}startScopeVoice();}
 function startScopeVoice(){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ showScopeAnswer('🎤 Voice input is not supported in this browser. Try Chrome.'); return; }
-
-  scopeRecognition = new SR();
-  scopeRecognition.continuous      = false;
-  scopeRecognition.interimResults  = true;
-  scopeRecognition.lang            = 'en-IN';   // Indian English default; browser picks language
-
-  const btn   = document.getElementById('scope-voice-btn');
-  const input = document.getElementById('scope-text-input');
-
-  scopeRecognition.onstart = ()=>{
-    scopeListening = true;
-    btn.classList.add('listening'); btn.textContent = '⏹';
-    setScopeStatus('🎤 Listening — speak your question…', 'listening');
-    input.placeholder = '🎤 Listening…';
-  };
-
-  scopeRecognition.onresult = (e)=>{
-    const transcript = Array.from(e.results).map(r=>r[0].transcript).join('');
-    input.value = transcript;
-  };
-
-  scopeRecognition.onend = ()=>{
-    scopeListening = false;
-    btn.classList.remove('listening'); btn.textContent = '🎤';
-    setScopeStatus('');
-    input.placeholder = 'Ask about what you see… (or tap 🎤)';
-    const text = input.value.trim();
-    if(text) _scopeAsk(text);   // auto-send after speech
-  };
-
-  scopeRecognition.onerror = (e)=>{
-    scopeListening = false;
-    btn.classList.remove('listening'); btn.textContent = '🎤';
-    setScopeStatus('');
-    if(e.error !== 'no-speech') showScopeAnswer('🎤 Microphone error: ' + e.error);
-  };
-
-  try{ scopeRecognition.start(); }catch(e){}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showScopeAnswer('🎤 Voice not supported. Try Chrome.');return;}
+  scopeRecognition=new SR();scopeRecognition.continuous=false;scopeRecognition.interimResults=true;scopeRecognition.lang='en-IN';
+  const btn=document.getElementById('scope-voice-btn');
+  const input=document.getElementById('scope-text-input');
+  scopeRecognition.onstart=()=>{scopeListening=true;btn.classList.add('listening');btn.textContent='⏹';setScopeStatus('🎤 Listening…','listening');input.placeholder='🎤 Listening…';};
+  scopeRecognition.onresult=(e)=>{input.value=Array.from(e.results).map(r=>r[0].transcript).join('');};
+  scopeRecognition.onend=()=>{scopeListening=false;btn.classList.remove('listening');btn.textContent='🎤';setScopeStatus('');input.placeholder='Ask about what you see… (or tap 🎤)';const t=input.value.trim();if(t)_scopeAsk(t);};
+  scopeRecognition.onerror=(e)=>{scopeListening=false;btn.classList.remove('listening');btn.textContent='🎤';setScopeStatus('');if(e.error!=='no-speech')showScopeAnswer('🎤 Mic error: '+e.error);};
+  try{scopeRecognition.start();}catch(e){}
 }
-
 function stopScopeVoice(){
-  if(scopeRecognition){ try{ scopeRecognition.stop(); }catch(e){} scopeRecognition=null; }
-  scopeListening = false;
-  const btn = document.getElementById('scope-voice-btn');
-  if(btn){ btn.classList.remove('listening'); btn.textContent='🎤'; }
+  if(scopeRecognition){try{scopeRecognition.stop();}catch(e){}scopeRecognition=null;}
+  scopeListening=false;
+  const btn=document.getElementById('scope-voice-btn');
+  if(btn){btn.classList.remove('listening');btn.textContent='🎤';}
   setScopeStatus('');
 }
 
 // ── Status pill ───────────────────────────────────────────────────────────────
-function setScopeStatus(msg, type=''){
-  const el = document.getElementById('scope-status');
-  if(!el) return;
-  if(!msg){ el.classList.remove('visible','listening','thinking'); el.textContent=''; return; }
-  el.textContent = msg;
-  el.className   = 'scope-status visible ' + (type||'');
+function setScopeStatus(msg,type=''){
+  const el=document.getElementById('scope-status');if(!el)return;
+  if(!msg){el.classList.remove('visible','listening','thinking');el.textContent='';return;}
+  el.textContent=msg;el.className='scope-status visible '+(type||'');
 }
+
 function initSession(){
   addMsg('ai','**Hey! I\'m Sedy ✦**\n\nYour AI study companion. Ask me anything:\n- Explain concepts, solve math, help with code\n- **Flashcards**, **Quiz**, **Notes**, **Formula sheet**\n- **Graph** any data · **Flowchart** any process\n- 📎 **Upload any file** — PDF, image (JPG/PNG), text, code, CSV, JSON\n- 📸 **Take a screenshot** — capture any part of your screen and I\'ll explain it\n- 🌍 Supports all Indian languages — Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi and more\n\nWhat would you like to learn today?');
 }

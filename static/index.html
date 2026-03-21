@@ -2353,36 +2353,38 @@ function detectLanguage(text) {
     }
   }
 
-  // 2. Hinglish — romanised Hindi mixed with English
-  //    Check BEFORE Latin patterns so "hai/kya/yaar" wins over French "il/en" etc.
-  const hinglishWords = /\b(kya|kyun|kaisa|kaise|kab|kahan|kon|kaun|hai|hain|hoon|tha|thi|the|tum|aap|mera|meri|tera|teri|uska|uski|yaar|bhai|didi|behen|matlab|sahi|bilkul|theek|achha|accha|thoda|bahut|zyada|samajh|padh|likh|baat|karo|karo|karna|karle|karle|ho|nahi|nah|haan|arre|yeh|woh|aur|par|lekin)\b/i;
   const words = text.trim().split(/\s+/);
+  const totalWords = words.length;
+
+  // 2. Hinglish — romanised Hindi mixed with English
+  //    Check BEFORE Latin patterns so "hai/kya/yaar" wins over other patterns
+  //    Expanded list including common Hinglish shopping/bargaining words
+  const hinglishWords = /\b(kya|kyun|kaisa|kaise|kab|kahan|kon|kaun|hai|hain|hoon|tha|thi|tum|aap|mera|meri|tera|teri|uska|uski|yaar|bhai|didi|behen|matlab|sahi|bilkul|theek|achha|accha|thoda|bahut|zyada|samajh|padh|likh|baat|karo|karna|karle|ho|nahi|nah|haan|arre|yeh|woh|aur|par|lekin|rupay|rupee|rupees|paisa|paise|lena|leke|dena|deke|khareedna|shopkeeper|dukaan|dukaandar|wapas|vapas|seedha|bolna|bolo|batao|suno|dekho|ek|do|teen|char|sau|hazar|lakh)\b/i;
   const hinglishMatches = words.filter(w => hinglishWords.test(w)).length;
-  // Need at least 1 clear Hinglish word — more reliable than counting
   if (hinglishMatches >= 1) {
     return { lang: 'hi', name: 'Hinglish', flag: '🇮🇳', bcp47: 'hi-IN', isHinglish: true };
   }
 
-  // 3. Latin-script language detection — STRICTER rules to avoid false triggers
-  //    Require at least 2 matching keywords AND text must be mostly non-English
-  //    (prevents "hello can you help me in the shop" → German because "in" matched)
-  const commonEnglishWords = /\b(the|a|an|is|are|was|were|be|been|have|has|had|do|does|did|will|would|can|could|should|may|might|shall|hello|hi|hey|help|me|my|you|your|i|we|they|he|she|it|this|that|what|where|when|how|why|who|which|please|thank|and|or|but|so|for|with|at|by|from|to|of|on|in|into|up|out|about|like|just|not|no|yes|ok|okay)\b/ig;
+  // 3. Latin-script language detection — VERY STRICT to avoid false triggers
+  //    Strategy: count English words. If sentence is mostly English → it IS English.
+  //    Only detect French/German/etc if the non-English keywords are clearly dominant.
+  const commonEnglishWords = /\b(the|a|an|is|are|was|were|be|been|have|has|had|do|does|did|will|would|can|could|should|may|might|shall|hello|hi|hey|help|me|my|you|your|i|we|they|he|she|it|this|that|what|where|when|how|why|who|which|please|thank|and|or|but|so|for|with|at|by|from|to|of|on|in|into|up|out|about|like|just|not|no|yes|ok|okay|tell|show|give|make|take|get|go|come|see|know|want|need|use|say|look|buy|sell|bargain|shop|price|money|rupee|hundred|per|kilo)\b/ig;
   const englishWordCount = (text.match(commonEnglishWords) || []).length;
-  const totalWords = words.length;
   const englishRatio = englishWordCount / Math.max(totalWords, 1);
 
-  // If more than 50% of words are common English words → treat as English
-  // This prevents "hello can you help me in the shopkeeper" → German
-  if (englishRatio > 0.5) {
+  // If 40%+ words are common English → it's English, not French/German
+  // Raised from 50% to 40% to be more conservative about false Latin-lang triggers
+  if (englishRatio >= 0.4) {
     return { lang: 'en', name: 'English', flag: '🇬🇧', bcp47: 'en-US' };
   }
 
-  // Now try Latin language patterns with stricter matching
+  // For very short texts (≤5 words), require much higher confidence
+  // "im" "est" alone should NOT trigger German/French
   for (const lp of LATIN_LANG_PATTERNS) {
     if (!(lp.keywords instanceof RegExp)) continue;
     const matches = (text.match(lp.keywords) || []).length;
-    // Require at least 2 keyword matches for short texts, 1 for longer
-    const threshold = totalWords <= 6 ? 2 : 1;
+    // Short text: need 3+ keyword matches. Long text: need 2+.
+    const threshold = totalWords <= 5 ? 3 : totalWords <= 10 ? 2 : 1;
     if (matches >= threshold) {
       return { lang: lp.lang, name: lp.name, flag: lp.flag, bcp47: lp.bcp47 };
     }
@@ -2784,10 +2786,19 @@ async function processVoiceInput(text) {
   const prevLang = voiceState.detectedLang;
   let lang = rawLang;
 
+  // ── Language continuity: once a language is established, be very sticky ──
+  // If we were speaking Hindi/Indian and the new detection says English,
+  // only switch if the WHOLE sentence is clearly English (>= 70% common English words)
+  // AND it's a long enough sentence. Otherwise keep the previous language.
   if (prevLang && prevLang.lang !== 'en' && rawLang?.lang === 'en') {
-    const wordCount = text.trim().split(/\s+/).length;
-    if (wordCount <= 8) {
-      // Short English phrase mid Indian-language conversation → treat as Hinglish/same lang
+    const words = text.trim().split(/\s+/);
+    const commonEnglish = /\b(the|a|an|is|are|was|were|be|been|have|has|had|do|does|did|will|would|can|could|should|may|might|shall|hello|hi|hey|help|me|my|you|your|i|we|they|he|she|it|this|that|what|where|when|how|why|who|which|please|thank|and|or|but|so|for|with|at|by|from|to|of|on|in|into|up|out|about|like|just|not|no|yes|ok|okay)\b/ig;
+    const enCount = (text.match(commonEnglish) || []).length;
+    const enRatio = enCount / Math.max(words.length, 1);
+    // Only switch to English if it's overwhelmingly English AND >= 6 words
+    // This prevents short English phrases mid-Hindi conversation from switching the language
+    if (words.length < 6 || enRatio < 0.7) {
+      // Stick with previous language — treat it as Hinglish if prev was Hindi
       lang = { ...prevLang, isHinglish: prevLang.lang === 'hi' };
     }
   }

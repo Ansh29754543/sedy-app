@@ -1004,6 +1004,150 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   border-bottom-left-radius:3px;
 }
 
+/* ══════════════════════════════════════════
+   BLINK & LEARN
+══════════════════════════════════════════ */
+
+/* ── Attention bar — fixed top of chat area ── */
+.bl-bar{
+  display:none;align-items:center;gap:10px;
+  padding:7px 16px;background:rgba(0,229,192,.07);
+  border-bottom:1px solid rgba(0,229,192,.2);
+  flex-shrink:0;animation:fadeIn .3s ease;
+}
+.bl-bar.visible{display:flex;}
+.bl-status-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--accent3);box-shadow:0 0 8px var(--accent3);
+  flex-shrink:0;transition:background .3s,box-shadow .3s;
+}
+.bl-status-dot.looking{background:var(--accent3);box-shadow:0 0 8px var(--accent3);}
+.bl-status-dot.away{background:var(--warning);box-shadow:0 0 8px var(--warning);animation:pulseDot .6s infinite;}
+.bl-status-dot.off{background:var(--text3);box-shadow:none;}
+.bl-status-text{
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:var(--text2);letter-spacing:.3px;flex:1;
+}
+.bl-streak{
+  font-family:'Syne',sans-serif;font-size:11px;
+  font-weight:700;color:var(--accent3);
+  background:rgba(0,229,192,.1);border:1px solid rgba(0,229,192,.2);
+  border-radius:12px;padding:2px 8px;
+}
+.bl-off-btn{
+  background:none;border:1px solid var(--border2);border-radius:8px;
+  padding:3px 9px;font-size:10px;color:var(--text3);cursor:pointer;
+  font-family:'DM Mono',monospace;transition:all .18s;
+}
+.bl-off-btn:hover{border-color:var(--danger);color:var(--danger);}
+
+/* ── Camera preview pip ── */
+.bl-pip{
+  position:fixed;bottom:80px;right:16px;z-index:200;
+  width:80px;height:60px;border-radius:12px;overflow:hidden;
+  border:2px solid rgba(0,229,192,.4);background:#000;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);display:none;
+  transition:all .25s;cursor:pointer;
+}
+.bl-pip.visible{display:block;}
+.bl-pip:hover{transform:scale(1.06);}
+.bl-pip video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+.bl-pip-label{
+  position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
+  font-size:8px;font-family:'DM Mono',monospace;
+  color:rgba(255,255,255,.7);white-space:nowrap;
+  background:rgba(0,0,0,.5);padding:1px 5px;border-radius:4px;
+}
+.bl-pip-dot{
+  position:absolute;top:5px;right:5px;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--accent3);box-shadow:0 0 6px var(--accent3);
+  transition:background .3s;
+}
+.bl-pip-dot.away{background:var(--warning);box-shadow:0 0 6px var(--warning);}
+
+/* ── Attention lost overlay on chat messages ── */
+.bl-pause-overlay{
+  position:absolute;inset:0;z-index:50;
+  background:rgba(8,11,18,.85);backdrop-filter:blur(8px);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;border-radius:0;animation:fadeIn .3s ease;
+  pointer-events:all;
+}
+.bl-pause-overlay.visible{display:flex;}
+.bl-pause-icon{
+  font-size:52px;animation:blinkEye 1.5s ease-in-out infinite;
+}
+@keyframes blinkEye{
+  0%,90%,100%{transform:scaleY(1);}
+  95%{transform:scaleY(0.1);}
+}
+.bl-pause-title{
+  font-family:'Syne',sans-serif;font-size:20px;font-weight:800;
+  color:var(--text);text-align:center;
+}
+.bl-pause-sub{
+  font-size:13px;color:var(--text2);text-align:center;
+  max-width:280px;line-height:1.6;font-family:'DM Sans',sans-serif;
+}
+.bl-pause-timer{
+  font-family:'Syne',sans-serif;font-size:36px;font-weight:800;
+  color:var(--warning);line-height:1;
+}
+.bl-check-card{
+  background:var(--card);border:1px solid rgba(0,229,192,.25);
+  border-radius:16px;padding:16px 20px;max-width:320px;width:90%;
+  display:flex;flex-direction:column;gap:10px;
+}
+.bl-check-q{
+  font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;
+  font-weight:600;line-height:1.5;text-align:center;
+}
+.bl-check-opts{display:flex;flex-direction:column;gap:7px;}
+.bl-check-opt{
+  padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:9px;cursor:pointer;font-size:13px;color:var(--text);
+  transition:all .18s;text-align:left;font-family:'DM Sans',sans-serif;
+}
+.bl-check-opt:hover{border-color:var(--accent);background:var(--card2);}
+.bl-check-opt.correct{border-color:var(--success);background:rgba(0,229,160,.1);color:var(--success);}
+.bl-check-opt.wrong{border-color:var(--danger);background:rgba(255,79,106,.08);color:var(--danger);}
+.bl-check-skip{
+  padding:8px 16px;background:none;border:1px solid var(--border2);
+  border-radius:9px;font-size:12px;color:var(--text3);cursor:pointer;
+  font-family:'DM Sans',sans-serif;transition:all .18s;text-align:center;
+}
+.bl-check-skip:hover{border-color:var(--text2);color:var(--text2);}
+
+/* ── Attention score badge on messages ── */
+.bl-score-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 7px;border-radius:12px;font-size:9px;
+  font-family:'DM Mono',monospace;letter-spacing:.4px;
+  margin-top:4px;
+}
+.bl-score-badge.good{background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.2);color:var(--success);}
+.bl-score-badge.ok{background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.2);color:var(--warning);}
+.bl-score-badge.missed{background:rgba(255,79,106,.08);border:1px solid rgba(255,79,106,.2);color:var(--danger);}
+
+/* ── Session stats card ── */
+.bl-stats-card{
+  background:var(--card);border:1px solid rgba(0,229,192,.2);
+  border-left:3px solid var(--accent3);border-radius:14px;
+  padding:12px 16px;margin:4px 0;
+}
+.bl-stats-title{
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  color:var(--accent3);margin-bottom:8px;
+}
+.bl-stats-grid{display:flex;gap:12px;flex-wrap:wrap;}
+.bl-stat-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.bl-stat-num{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);}
+.bl-stat-lbl{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.5px;text-transform:uppercase;}
+
+/* ── Wrapper for relative positioning of pause overlay ── */
+#chat-messages{position:relative;}
+
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
   :root{--sidebar-w:240px;}
@@ -1072,6 +1216,18 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div class="voice-live-dot"></div>LIVE
         </div>
       </button>
+
+      <!-- Blink & Learn Button -->
+      <button class="voice-chat-btn blink-learn-btn" onclick="toggleBlinkLearn()" id="blink-sidebar-btn" style="background:linear-gradient(135deg,rgba(0,229,192,.15),rgba(79,142,255,.15));border-color:rgba(0,229,192,.3);">
+        <div class="voice-chat-btn-icon" style="background:linear-gradient(135deg,var(--accent3),var(--accent));">👁</div>
+        <div class="voice-chat-btn-text">
+          <div class="voice-chat-btn-label">Blink &amp; Learn</div>
+          <div class="voice-chat-btn-sub" id="blink-sidebar-sub">AI watches your attention</div>
+        </div>
+        <div class="voice-chat-btn-live" id="blink-live-indicator" style="display:none;color:var(--accent3);">
+          <div class="voice-live-dot" style="background:var(--accent3);box-shadow:0 0 5px var(--accent3);"></div>ON
+        </div>
+      </button>
       <div class="memory-badge-sb">
         <div class="memory-dot"></div>
         <span id="memory-count-sb">0 messages</span>
@@ -1109,7 +1265,15 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
     </div>
 
-    <!-- Free mode banner -->
+    <!-- ══ BLINK & LEARN attention bar ══ -->
+    <div class="bl-bar" id="bl-bar">
+      <div class="bl-status-dot looking" id="bl-dot"></div>
+      <div class="bl-status-text" id="bl-status-text">Watching your attention…</div>
+      <div class="bl-streak" id="bl-streak" style="display:none">🔥 0 min focused</div>
+      <button class="bl-off-btn" onclick="toggleBlinkLearn()">Turn off</button>
+    </div>
+
+    <!-- Freemode banner -->
     <div class="freemode-banner" id="freemode-banner">
       <div class="freemode-badge"><div class="freemode-dot"></div>⚡ Free Mode Active</div>
       <div style="font-size:10px;color:var(--text3)">Flash model only</div>
@@ -1278,6 +1442,28 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       🎤
     </button>
     <div class="voice-hold-hint" id="voice-hold-hint">Hold to speak · Release to send</div>
+  </div>
+</div>
+
+<!-- ══ BLINK & LEARN — PiP camera preview ══ -->
+<div class="bl-pip" id="bl-pip" onclick="blTogglePip()" title="Click to hide/show preview">
+  <video id="bl-video" autoplay playsinline muted></video>
+  <div class="bl-pip-label">👁 Watching</div>
+  <div class="bl-pip-dot" id="bl-pip-dot"></div>
+</div>
+
+<!-- ══ BLINK & LEARN — Attention lost pause overlay ══ -->
+<div class="bl-pause-overlay" id="bl-pause-overlay">
+  <div class="bl-pause-icon" id="bl-pause-icon">👁</div>
+  <div class="bl-pause-title" id="bl-pause-title">Hey, you zoned out!</div>
+  <div class="bl-pause-sub" id="bl-pause-sub">You looked away for a while. Let me check if you caught everything.</div>
+  <!-- Countdown shown before question -->
+  <div class="bl-pause-timer" id="bl-pause-timer" style="display:none">3</div>
+  <!-- Quick check question card -->
+  <div class="bl-check-card" id="bl-check-card" style="display:none">
+    <div class="bl-check-q" id="bl-check-q">Loading question…</div>
+    <div class="bl-check-opts" id="bl-check-opts"></div>
+    <button class="bl-check-skip" onclick="blDismissCheck('skip')">I was just thinking — I got it ✓</button>
   </div>
 </div>
 
@@ -2929,6 +3115,289 @@ function speakVoice(text, langCode) {
     }, 100);
   });
 }
+// ══════════════════════════════════════════════════════
+// BLINK & LEARN — Attention Tracking System
+// ══════════════════════════════════════════════════════
+//
+// HOW IT WORKS (pure frontend, no server for detection):
+// 1. Uses face-api.js (TinyFaceDetector) loaded from CDN
+// 2. Streams front camera to a hidden video element
+// 3. Every 500ms, runs face detection on a canvas snapshot
+// 4. If no face detected for >= AWAY_THRESHOLD ms → "attention lost"
+// 5. Shows a pause overlay with a quick comprehension check question
+// 6. Question is generated by the backend using recent chat history
+// 7. Tracks focus time, away events, score — shows session stats
+//
+// The face detection runs entirely client-side (TinyFaceDetector ~190KB).
+// The question generation hits /attention-check (new backend endpoint).
+
+const BL_AWAY_THRESHOLD  = 3000;  // ms of no face before triggering
+const BL_CHECK_INTERVAL  = 500;   // ms between face detection ticks
+const BL_MIN_MSG_FOR_Q   = 2;     // min AI messages before asking questions
+const BL_COUNTDOWN_SECS  = 3;     // countdown before showing question
+
+let blState = {
+  active:false, stream:null, faceApiLoaded:false, detectLoop:null,
+  lastSeenAt:Date.now(), awayStart:null, awayTriggered:false,
+  focusedMs:0, focusStart:null, awayCount:0,
+  checksPassed:0, checksFailed:0, totalChecks:0,
+  pipHidden:false, lastQuestion:null, focusTimerInterval:null,
+};
+
+function blLoadFaceApi() {
+  return new Promise((resolve, reject) => {
+    if (window.faceapi) { resolve(); return; }
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js';
+    script.onload = async () => {
+      try {
+        await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights');
+        blState.faceApiLoaded = true;
+        resolve();
+      } catch(e) { reject(e); }
+    };
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+async function toggleBlinkLearn() {
+  if (blState.active) blStop();
+  else await blStart();
+}
+
+async function blStart() {
+  const subEl = document.getElementById('blink-sidebar-sub');
+  if (subEl) subEl.textContent = 'Loading face detector…';
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:'user', width:{ideal:320}, height:{ideal:240} }, audio:false
+    });
+    blState.stream = stream;
+    const video = document.getElementById('bl-video');
+    video.srcObject = stream;
+    await new Promise(r => { video.onloadeddata = r; });
+    await blLoadFaceApi();
+  } catch(err) {
+    if (subEl) subEl.textContent = 'AI watches your attention';
+    if (err.name === 'NotAllowedError') addMsg('ai','👁 **Blink & Learn** needs camera access. Please allow the camera and try again.');
+    else addMsg('ai','👁 Could not start Blink & Learn: ' + err.message);
+    return;
+  }
+  blState.active=true; blState.lastSeenAt=Date.now(); blState.awayStart=null;
+  blState.awayTriggered=false; blState.focusedMs=0; blState.focusStart=Date.now();
+  blState.awayCount=0; blState.checksPassed=0; blState.checksFailed=0; blState.totalChecks=0;
+  document.getElementById('bl-bar').classList.add('visible');
+  document.getElementById('bl-pip').classList.add('visible');
+  document.getElementById('blink-live-indicator').style.display = 'flex';
+  if (subEl) subEl.textContent = 'Watching your attention…';
+  blState.detectLoop = setInterval(blDetectTick, BL_CHECK_INTERVAL);
+  blState.focusTimerInterval = setInterval(blUpdateFocusTimer, 10000);
+  addMsg('ai','👁 **Blink & Learn activated!**\n\nI\'m watching your attention via the front camera. If you look away for 3+ seconds, I\'ll pause and check if you\'re following along. Stay focused — let\'s go! 🎯');
+}
+
+function blStop() {
+  blState.active = false;
+  clearInterval(blState.detectLoop);
+  clearInterval(blState.focusTimerInterval);
+  if (blState.stream) { blState.stream.getTracks().forEach(t => t.stop()); blState.stream = null; }
+  if (blState.focusStart) { blState.focusedMs += Date.now() - blState.focusStart; blState.focusStart = null; }
+  document.getElementById('bl-bar').classList.remove('visible');
+  document.getElementById('bl-pip').classList.remove('visible');
+  document.getElementById('blink-live-indicator').style.display = 'none';
+  document.getElementById('bl-pause-overlay').classList.remove('visible');
+  const subEl = document.getElementById('blink-sidebar-sub');
+  if (subEl) subEl.textContent = 'AI watches your attention';
+  if (blState.totalChecks > 0 || blState.focusedMs > 30000) blShowSessionStats();
+}
+
+async function blDetectTick() {
+  if (!blState.active || !blState.faceApiLoaded || blState.awayTriggered) return;
+  const video = document.getElementById('bl-video');
+  if (!video || video.readyState < 2) return;
+  try {
+    const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({inputSize:160, scoreThreshold:0.4}));
+    const now = Date.now();
+    const dot = document.getElementById('bl-pip-dot');
+    const statusDot = document.getElementById('bl-dot');
+    const statusTxt = document.getElementById('bl-status-text');
+    if (detection) {
+      blState.lastSeenAt = now; blState.awayStart = null;
+      if (dot) dot.classList.remove('away');
+      if (statusDot) statusDot.className = 'bl-status-dot looking';
+      if (statusTxt) statusTxt.textContent = 'Focused ✓';
+    } else {
+      if (!blState.awayStart) blState.awayStart = now;
+      const awayMs = now - blState.awayStart;
+      if (dot) dot.classList.add('away');
+      if (statusDot) statusDot.className = 'bl-status-dot away';
+      const secs = Math.floor(awayMs / 1000);
+      if (statusTxt) statusTxt.textContent = secs > 0 ? `Looking away for ${secs}s…` : 'Looking away…';
+      if (awayMs >= BL_AWAY_THRESHOLD && !blState.awayTriggered) {
+        blState.awayTriggered = true; blState.awayCount++;
+        if (blState.focusStart) { blState.focusedMs += now - blState.focusStart; blState.focusStart = null; }
+        blTriggerAttentionCheck();
+      }
+    }
+  } catch(e) {}
+}
+
+async function blTriggerAttentionCheck() {
+  const overlay=document.getElementById('bl-pause-overlay');
+  const icon=document.getElementById('bl-pause-icon');
+  const title=document.getElementById('bl-pause-title');
+  const sub=document.getElementById('bl-pause-sub');
+  const timerEl=document.getElementById('bl-pause-timer');
+  const checkCard=document.getElementById('bl-check-card');
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  const msgs=[
+    {icon:'👁',title:'Hey, you zoned out!',sub:'You looked away. Let me check you caught everything.'},
+    {icon:'😴',title:'Wakey wakey!',sub:'Looks like you drifted off. Quick check before we continue.'},
+    {icon:'🤔',title:'Still with me?',sub:'You looked away for a bit. Let\'s make sure it sank in.'},
+    {icon:'👋',title:'Come back!',sub:'I noticed you looked away. No worries — let\'s do a quick recap.'},
+    {icon:'📚',title:'Focus check!',sub:'Quick question to make sure you\'re following along.'},
+  ];
+  const m=msgs[Math.floor(Math.random()*msgs.length)];
+  icon.textContent=m.icon; title.textContent=m.title; sub.textContent=m.sub;
+  timerEl.style.display='block'; checkCard.style.display='none';
+  overlay.classList.add('visible');
+  for (let i=BL_COUNTDOWN_SECS; i>=1; i--) {
+    timerEl.textContent=i;
+    await new Promise(r=>setTimeout(r,1000));
+    if (!blState.awayTriggered) return;
+  }
+  timerEl.style.display='none';
+  await blFetchAndShowQuestion();
+}
+
+async function blFetchAndShowQuestion() {
+  const checkCard=document.getElementById('bl-check-card');
+  const qEl=document.getElementById('bl-check-q');
+  const optsEl=document.getElementById('bl-check-opts');
+  checkCard.style.display='flex'; qEl.textContent='Loading question…'; optsEl.innerHTML='';
+  blState.totalChecks++;
+  const aiMsgs = getChatHistory().filter(m=>m.role==='assistant');
+  if (aiMsgs.length < BL_MIN_MSG_FOR_Q) { blShowFallbackQuestion(); return; }
+  const recentCtx = aiMsgs.slice(-3).map(m=>m.content.replace(/^\[Voice\]\s*/,'').slice(0,300)).join(' | ');
+  try {
+    const res = await fetch(API_URL+'/attention-check', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({context:recentCtx, history:getChatHistory().slice(-6)})
+    });
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    if (!data.question||!data.options||data.answer_index===undefined) { blShowFallbackQuestion(); return; }
+    blState.lastQuestion = data;
+    qEl.textContent = data.question;
+    optsEl.innerHTML='';
+    data.options.forEach((opt,i)=>{
+      const btn=document.createElement('button');
+      btn.className='bl-check-opt'; btn.textContent=opt;
+      btn.onclick=()=>blAnswerCheck(i,data.answer_index,data.explanation);
+      optsEl.appendChild(btn);
+    });
+  } catch(e) { blShowFallbackQuestion(); }
+}
+
+function blShowFallbackQuestion() {
+  const qEl=document.getElementById('bl-check-q');
+  const optsEl=document.getElementById('bl-check-opts');
+  const fallbacks=[
+    {q:'What was the last topic you were reading about?',opts:['I remember it clearly ✓','I remember parts of it','I missed it completely'],ans:0},
+    {q:'How well are you following along right now?',opts:['Totally following ✓','Somewhat following','Lost — need a recap'],ans:0},
+    {q:'Quick — what was just explained?',opts:['I know it!','Vaguely…','I need to re-read it'],ans:0},
+  ];
+  const fb=fallbacks[Math.floor(Math.random()*fallbacks.length)];
+  blState.lastQuestion={...fb,isFallback:true};
+  qEl.textContent=fb.q; optsEl.innerHTML='';
+  fb.opts.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='bl-check-opt'; btn.textContent=opt;
+    btn.onclick=()=>blAnswerCheck(i,fb.ans,null);
+    optsEl.appendChild(btn);
+  });
+}
+
+function blAnswerCheck(chosen, correct, explanation) {
+  const optsEl=document.getElementById('bl-check-opts');
+  const opts=optsEl.querySelectorAll('.bl-check-opt');
+  const passed=chosen===correct;
+  opts.forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===correct) btn.classList.add('correct');
+    else if(i===chosen) btn.classList.add('wrong');
+  });
+  if(passed) {
+    blState.checksPassed++;
+    document.getElementById('bl-pause-title').textContent='✅ Great, you got it!';
+    document.getElementById('bl-pause-sub').textContent=explanation||'You\'re on track. Keep going!';
+  } else {
+    blState.checksFailed++;
+    document.getElementById('bl-pause-title').textContent='❌ Missed that one';
+    document.getElementById('bl-pause-sub').textContent=explanation||'That\'s okay — re-read the last message and ask me if unsure.';
+  }
+  blTagLastMessage(passed?'good':'missed');
+  setTimeout(()=>blDismissCheck(passed?'pass':'fail'),2500);
+}
+
+function blDismissCheck(result) {
+  document.getElementById('bl-pause-overlay').classList.remove('visible');
+  blState.awayTriggered=false;
+  blState.focusStart=Date.now();
+  const statusDot=document.getElementById('bl-dot');
+  const statusTxt=document.getElementById('bl-status-text');
+  if(statusDot) statusDot.className='bl-status-dot looking';
+  if(statusTxt) statusTxt.textContent='Focused ✓';
+  if(result==='fail') {
+    setTimeout(()=>{
+      const lastCtx=getChatHistory().filter(m=>m.role==='assistant').slice(-1)[0]?.content;
+      if(lastCtx) addMsg('ai','🔁 **Quick recap:**\n\n'+lastCtx.replace(/^\[Voice\]\s*/,''));
+    },400);
+  }
+}
+
+function blTagLastMessage(result) {
+  const msgs=document.getElementById('chat-messages');
+  const aiMsgs=msgs.querySelectorAll('.msg.ai');
+  if(!aiMsgs.length) return;
+  const last=aiMsgs[aiMsgs.length-1];
+  const actions=last.querySelector('.msg-actions');
+  if(!actions||last.querySelector('.bl-score-badge')) return;
+  const badge=document.createElement('div');
+  const labels={good:'👁 Focused',ok:'👁 Partial',missed:'👁 Missed'};
+  badge.className=`bl-score-badge ${result}`;
+  badge.textContent=labels[result]||labels.ok;
+  actions.insertBefore(badge,actions.firstChild);
+}
+
+function blUpdateFocusTimer() {
+  if(!blState.active) return;
+  const streakEl=document.getElementById('bl-streak');
+  if(!streakEl) return;
+  let total=blState.focusedMs;
+  if(blState.focusStart) total+=Date.now()-blState.focusStart;
+  const mins=Math.floor(total/60000);
+  if(mins>0){streakEl.style.display='inline-flex';streakEl.textContent=`🔥 ${mins} min focused`;}
+}
+
+function blShowSessionStats() {
+  const totalFocused=blState.focusedMs;
+  const focusMins=Math.max(0,Math.floor(totalFocused/60000));
+  const accuracy=blState.totalChecks>0?Math.round((blState.checksPassed/blState.totalChecks)*100):100;
+  const wrap=document.getElementById('chat-messages');
+  const div=document.createElement('div');
+  div.className='msg ai';
+  const scoreColor=accuracy>=70?'var(--success)':'var(--danger)';
+  div.innerHTML=`<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble" style="padding:0;background:none;border:none;"><div class="bl-stats-card"><div class="bl-stats-title">👁 Blink &amp; Learn — Session Report</div><div class="bl-stats-grid"><div class="bl-stat-item"><div class="bl-stat-num" style="color:var(--accent3)">${focusMins}</div><div class="bl-stat-lbl">Focused min</div></div><div class="bl-stat-item"><div class="bl-stat-num" style="color:var(--warning)">${blState.awayCount}</div><div class="bl-stat-lbl">Distracted</div></div><div class="bl-stat-item"><div class="bl-stat-num" style="color:${scoreColor}">${accuracy}%</div><div class="bl-stat-lbl">Check score</div></div><div class="bl-stat-item"><div class="bl-stat-num">${blState.totalChecks}</div><div class="bl-stat-lbl">Checks taken</div></div></div></div></div></div>`;
+  wrap.appendChild(div);
+  scrollBottom();
+}
+
+function blTogglePip() {
+  blState.pipHidden=!blState.pipHidden;
+  document.getElementById('bl-pip').style.opacity=blState.pipHidden?'0.15':'1';
+}
+
 (function(){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';document.head.appendChild(s);})();
 
 // ══════════════════════════════════════════════════════

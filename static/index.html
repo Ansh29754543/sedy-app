@@ -2390,54 +2390,74 @@ function updateLangUI(langObj) {
 }
 
 // ── Get voice + pitch params for language + persona ───────
-// Returns { voice, pitch, rate, lang }
-// KEY INSIGHT: When only one language voice exists (e.g. only Google Hindi Female),
-// we use the SAME voice for both but apply very different pitch/rate:
-//   Girl → pitch 1.1, rate normal  → sounds feminine
-//   Boy  → pitch 0.6, rate 0.95   → sounds noticeably male/deeper
-// This is the same trick used by screen readers and voice assistants.
+//
+// THE REAL PROBLEM: Most browsers (Chrome, Edge, Android) only ship
+// female voices for Indian languages (Google हिन्दी, Google বাংলা etc).
+// Lowering pitch on a female voice still sounds female.
+//
+// THE ACTUAL SOLUTION:
+//   GIRL → Use the language-specific voice (e.g. Google हिन्दी) + pitch 1.1
+//   BOY  → Use the English MALE voice (Microsoft Guy / Google UK Male) + pitch 0.78
+//          The English male voice will read Hindi/Indian text with a male voice.
+//          It sounds slightly accented but is CLEARLY male — much better than a
+//          pitch-hacked female voice.
+//
+// If a genuine male voice for the language is available (Edge on Windows has some),
+// that is used instead.
 
 function getVoiceParams(langCode, persona) {
   const isIndian = ['hi','bn','ta','te','kn','ml','mr','gu','pa'].includes(langCode);
   const isEast   = ['ja','ko','zh'].includes(langCode);
 
+  // ── ENGLISH or no lang detected ──
   if (!langCode || langCode === 'en') {
     return {
       voice: persona === 'girl' ? voiceState.enGirlVoice : voiceState.enBoyVoice,
-      pitch: persona === 'girl' ? 1.1 : 0.75,
+      pitch: persona === 'girl' ? 1.1 : 0.78,
       rate:  voiceState.speed,
     };
   }
 
-  const girlKey = `${langCode}_girl`;
-  const boyKey  = `${langCode}_boy`;
-  const girlVoice = voiceState.voiceCache[girlKey] || voiceState.enGirlVoice;
-  const boyVoice  = voiceState.voiceCache[boyKey];   // may be null
+  const girlKey   = `${langCode}_girl`;
+  const boyKey    = `${langCode}_boy`;
+  const langGirlV = voiceState.voiceCache[girlKey];  // language-specific female (may exist)
+  const langBoyV  = voiceState.voiceCache[boyKey];   // language-specific male (usually null)
 
+  // ── GIRL persona ──
+  // Use lang-specific voice if available, else English female
   if (persona === 'girl') {
     return {
-      voice: girlVoice,
-      pitch: isIndian ? 1.1 : (isEast ? 1.05 : 1.1),
+      voice: langGirlV || voiceState.enGirlVoice,
+      pitch: isIndian ? 1.12 : (isEast ? 1.05 : 1.1),
       rate:  voiceState.speed,
     };
   }
 
-  // BOY persona
-  if (boyVoice && boyVoice !== girlVoice) {
-    // We have a genuinely different male voice — use it with moderate pitch drop
+  // ── BOY persona ──
+  // Priority 1: genuine different male voice for this language
+  if (langBoyV && langBoyV !== langGirlV) {
     return {
-      voice: boyVoice,
+      voice: langBoyV,
       pitch: isIndian ? 0.82 : (isEast ? 0.85 : 0.8),
-      rate:  voiceState.speed * 0.97,
+      rate:  voiceState.speed * 0.96,
     };
   }
 
-  // Only one voice for this language (very common for Indian langs in Chrome/Edge)
-  // Use the same voice but DRASTICALLY lower pitch → clearly male-sounding
+  // Priority 2: English male voice reading the foreign language text
+  // This is the KEY FIX — a real male voice reading Hindi sounds clearly male
+  if (voiceState.enBoyVoice) {
+    return {
+      voice: voiceState.enBoyVoice,
+      pitch: isIndian ? 0.78 : (isEast ? 0.82 : 0.78),
+      rate:  voiceState.speed * 0.93,
+    };
+  }
+
+  // Priority 3: last resort — lang female voice with very low pitch
   return {
-    voice: girlVoice,
-    pitch: isIndian ? 0.55 : 0.6,   // deep enough to sound male
-    rate:  voiceState.speed * 0.93, // slightly slower = more masculine feel
+    voice: langGirlV || voiceState.enGirlVoice,
+    pitch: 0.5,
+    rate:  voiceState.speed * 0.9,
   };
 }
 
@@ -2814,21 +2834,25 @@ function speakVoice(text, langCode) {
     const utter = new SpeechSynthesisUtterance(text);
     utter.volume = 1;
 
-    // Get voice + pitch params — this handles the gender differentiation
+    // Get voice + pitch — handles all gender/language combos
     const params = getVoiceParams(langCode || 'en', voiceState.persona);
     if (params.voice) utter.voice = params.voice;
     utter.pitch = params.pitch;
     utter.rate  = params.rate;
 
-    // Set utterance lang so the engine uses correct phonemes
-    const bcp47 = voiceState.detectedLang?.bcp47;
-    if (bcp47 && langCode && langCode !== 'en') utter.lang = bcp47;
+    // Set utterance lang ONLY when the voice actually speaks this language.
+    // If boy uses English male voice to speak Hindi, do NOT set lang='hi-IN'
+    // because the English voice engine won't handle it — let it read as-is.
+    const usingLangSpecificVoice = params.voice && params.voice !== voiceState.enBoyVoice && params.voice !== voiceState.enGirlVoice;
+    if (usingLangSpecificVoice && langCode && langCode !== 'en') {
+      const bcp47 = voiceState.detectedLang?.bcp47;
+      if (bcp47) utter.lang = bcp47;
+    }
 
     utter.onend  = () => { voiceState.isSpeaking = false; if (voiceState.active) setVoiceOrbState('idle'); resolve(); };
     utter.onerror= () => { voiceState.isSpeaking = false; if (voiceState.active) setVoiceOrbState('idle'); resolve(); };
     voiceState.currentUtterance = utter;
 
-    // Chrome needs small delay after cancel() before speak()
     setTimeout(() => {
       if (voiceState.active) window.speechSynthesis.speak(utter);
       else resolve();

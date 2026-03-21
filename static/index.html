@@ -2339,11 +2339,10 @@ if (window.speechSynthesis) {
 function detectLanguage(text) {
   if (!text || text.trim().length < 2) return null;
 
-  // Script detection (most reliable)
+  // 1. Script detection — most reliable, no false positives
   for (const [key, entry] of Object.entries(LANG_DB)) {
     if (!entry.regex) continue;
     if (entry.regex.test(text)) {
-      // Devanagari: distinguish Hindi vs Marathi
       if (entry.variants) {
         const marWords = /\b(आहे|आहेत|होते|करतो|करते|माझ्या|तुमच्या|नाही|तर|पण)\b/;
         const variant = marWords.test(text) ? 'mr' : 'hi';
@@ -2354,20 +2353,42 @@ function detectLanguage(text) {
     }
   }
 
-  // Latin: keyword-based
+  // 2. Hinglish — romanised Hindi mixed with English
+  //    Check BEFORE Latin patterns so "hai/kya/yaar" wins over French "il/en" etc.
+  const hinglishWords = /\b(kya|kyun|kaisa|kaise|kab|kahan|kon|kaun|hai|hain|hoon|tha|thi|the|tum|aap|mera|meri|tera|teri|uska|uski|yaar|bhai|didi|behen|matlab|sahi|bilkul|theek|achha|accha|thoda|bahut|zyada|samajh|padh|likh|baat|karo|karo|karna|karle|karle|ho|nahi|nah|haan|arre|yeh|woh|aur|par|lekin)\b/i;
+  const words = text.trim().split(/\s+/);
+  const hinglishMatches = words.filter(w => hinglishWords.test(w)).length;
+  // Need at least 1 clear Hinglish word — more reliable than counting
+  if (hinglishMatches >= 1) {
+    return { lang: 'hi', name: 'Hinglish', flag: '🇮🇳', bcp47: 'hi-IN', isHinglish: true };
+  }
+
+  // 3. Latin-script language detection — STRICTER rules to avoid false triggers
+  //    Require at least 2 matching keywords AND text must be mostly non-English
+  //    (prevents "hello can you help me in the shop" → German because "in" matched)
+  const commonEnglishWords = /\b(the|a|an|is|are|was|were|be|been|have|has|had|do|does|did|will|would|can|could|should|may|might|shall|hello|hi|hey|help|me|my|you|your|i|we|they|he|she|it|this|that|what|where|when|how|why|who|which|please|thank|and|or|but|so|for|with|at|by|from|to|of|on|in|into|up|out|about|like|just|not|no|yes|ok|okay)\b/ig;
+  const englishWordCount = (text.match(commonEnglishWords) || []).length;
+  const totalWords = words.length;
+  const englishRatio = englishWordCount / Math.max(totalWords, 1);
+
+  // If more than 50% of words are common English words → treat as English
+  // This prevents "hello can you help me in the shopkeeper" → German
+  if (englishRatio > 0.5) {
+    return { lang: 'en', name: 'English', flag: '🇬🇧', bcp47: 'en-US' };
+  }
+
+  // Now try Latin language patterns with stricter matching
   for (const lp of LATIN_LANG_PATTERNS) {
-    if (lp.keywords instanceof RegExp && lp.keywords.test(text)) {
+    if (!(lp.keywords instanceof RegExp)) continue;
+    const matches = (text.match(lp.keywords) || []).length;
+    // Require at least 2 keyword matches for short texts, 1 for longer
+    const threshold = totalWords <= 6 ? 2 : 1;
+    if (matches >= threshold) {
       return { lang: lp.lang, name: lp.name, flag: lp.flag, bcp47: lp.bcp47 };
     }
   }
 
-  // Hinglish detection: mix of English + Devanagari-ish romanised words
-  const hinglishWords = /\b(kya|hai|hoon|tum|aap|mera|meri|tera|teri|yaar|bhai|didi|kaise|kahan|kab|kyun|matlab|sahi|bilkul|theek|achha|thoda|bahut|samajh|padh|likh|baat)\b/i;
-  if (hinglishWords.test(text)) {
-    return { lang: 'hi', name: 'Hinglish', flag: '🇮🇳', bcp47: 'hi-IN', isHinglish: true };
-  }
-
-  // Default: English
+  // 4. Default: English
   return { lang: 'en', name: 'English', flag: '🇬🇧', bcp47: 'en-US' };
 }
 
@@ -2592,17 +2613,17 @@ function setVoiceOrbState(state) {
 
 // Localized UI hints for major languages
 const LOCALIZED_HINTS = {
-  hi: { idle:'माइक दबाकर बोलें', listening:'सुन रहे हैं…', thinking:'सोच रहे हैं…', speaking:'बोल रहे हैं…', hint_idle:'बोलने के लिए दबाएं', hint_listening:'बोलने के बाद छोड़ें', hint_speaking:'रोकने के लिए दबाएं' },
-  bn: { idle:'মাইক ধরে বলুন', listening:'শুনছি…', thinking:'ভাবছি…', speaking:'বলছি…', hint_idle:'বলতে ধরুন', hint_listening:'বলা শেষে ছাড়ুন', hint_speaking:'থামাতে ধরুন' },
-  ta: { idle:'மைக்கை பிடித்து பேசுங்கள்', listening:'கேட்கிறேன்…', thinking:'யோசிக்கிறேன்…', speaking:'பேசுகிறேன்…', hint_idle:'பேச பிடிக்கவும்', hint_listening:'முடிந்ததும் விடுங்கள்', hint_speaking:'நிறுத்த பிடிக்கவும்' },
-  te: { idle:'మైక్ పట్టుకుని మాట్లాడండి', listening:'వింటున్నాను…', thinking:'ఆలోచిస్తున్నాను…', speaking:'మాట్లాడుతున్నాను…', hint_idle:'మాట్లాడటానికి పట్టుకోండి', hint_listening:'మాట్లాడటం అయిన తర్వాత వదలండి', hint_speaking:'ఆపడానికి పట్టుకోండి' },
-  mr: { idle:'मायक दाबून बोला', listening:'ऐकतोय…', thinking:'विचार करतोय…', speaking:'बोलतोय…', hint_idle:'बोलण्यासाठी दाबा', hint_listening:'बोलून झाल्यावर सोडा', hint_speaking:'थांबवण्यासाठी दाबा' },
-  fr: { idle:'Maintenez le micro pour parler', listening:'J\'écoute…', thinking:'Je réfléchis…', speaking:'Je parle…', hint_idle:'Maintenez pour parler', hint_listening:'Relâchez après avoir parlé', hint_speaking:'Maintenez pour interrompre' },
-  es: { idle:'Mantén el micrófono para hablar', listening:'Escuchando…', thinking:'Pensando…', speaking:'Hablando…', hint_idle:'Mantén para hablar', hint_listening:'Suelta cuando termines', hint_speaking:'Mantén para interrumpir' },
-  de: { idle:'Mikrofon halten zum Sprechen', listening:'Höre zu…', thinking:'Denke nach…', speaking:'Spreche…', hint_idle:'Halten zum Sprechen', hint_listening:'Loslassen wenn fertig', hint_speaking:'Halten zum Unterbrechen' },
-  ja: { idle:'マイクを押して話してください', listening:'聞いています…', thinking:'考えています…', speaking:'話しています…', hint_idle:'押して話す', hint_listening:'話し終えたら離す', hint_speaking:'押して止める' },
-  ko: { idle:'마이크를 눌러 말하세요', listening:'듣고 있어요…', thinking:'생각 중…', speaking:'말하는 중…', hint_idle:'눌러서 말하기', hint_listening:'말 끝나면 놓기', hint_speaking:'눌러서 중단' },
-  zh: { idle:'按住麦克风说话', listening:'正在聆听…', thinking:'思考中…', speaking:'正在说话…', hint_idle:'按住说话', hint_listening:'说完松开', hint_speaking:'按住打断' },
+  hi: { idle:'माइक दबाकर बोलें', listening:'सुन रहे हैं…', thinking:'सोच रहे हैं…', speaking:'बोल रहे हैं…', hint_idle:'बोलने के लिए दबाएं', hint_listening:'बोलने के बाद छोड़ें', hint_speaking:'रोकने के लिए दबाएं', retry:'फिर से बोलो!' },
+  bn: { idle:'মাইক ধরে বলুন', listening:'শুনছি…', thinking:'ভাবছি…', speaking:'বলছি…', hint_idle:'বলতে ধরুন', hint_listening:'বলা শেষে ছাড়ুন', hint_speaking:'থামাতে ধরুন', retry:'আবার বলো!' },
+  ta: { idle:'மைக்கை பிடித்து பேசுங்கள்', listening:'கேட்கிறேன்…', thinking:'யோசிக்கிறேன்…', speaking:'பேசுகிறேன்…', hint_idle:'பேச பிடிக்கவும்', hint_listening:'முடிந்ததும் விடுங்கள்', hint_speaking:'நிறுத்த பிடிக்கவும்', retry:'மீண்டும் சொல்லுங்கள்!' },
+  te: { idle:'మైక్ పట్టుకుని మాట్లాడండి', listening:'వింటున్నాను…', thinking:'ఆలోచిస్తున్నాను…', speaking:'మాట్లాడుతున్నాను…', hint_idle:'మాట్లాడటానికి పట్టుకోండి', hint_listening:'మాట్లాడటం అయిన తర్వాత వదలండి', hint_speaking:'ఆపడానికి పట్టుకోండి', retry:'మళ్ళీ చెప్పండి!' },
+  mr: { idle:'मायक दाबून बोला', listening:'ऐकतोय…', thinking:'विचार करतोय…', speaking:'बोलतोय…', hint_idle:'बोलण्यासाठी दाबा', hint_listening:'बोलून झाल्यावर सोडा', hint_speaking:'थांबवण्यासाठी दाबा', retry:'परत सांग!' },
+  fr: { idle:'Maintenez le micro pour parler', listening:'J\'écoute…', thinking:'Je réfléchis…', speaking:'Je parle…', hint_idle:'Maintenez pour parler', hint_listening:'Relâchez après avoir parlé', hint_speaking:'Maintenez pour interrompre', retry:'Répétez s\'il vous plaît!' },
+  es: { idle:'Mantén el micrófono para hablar', listening:'Escuchando…', thinking:'Pensando…', speaking:'Hablando…', hint_idle:'Mantén para hablar', hint_listening:'Suelta cuando termines', hint_speaking:'Mantén para interrumpir', retry:'¡Repite por favor!' },
+  de: { idle:'Mikrofon halten zum Sprechen', listening:'Höre zu…', thinking:'Denke nach…', speaking:'Spreche…', hint_idle:'Halten zum Sprechen', hint_listening:'Loslassen wenn fertig', hint_speaking:'Halten zum Unterbrechen', retry:'Bitte wiederholen!' },
+  ja: { idle:'マイクを押して話してください', listening:'聞いています…', thinking:'考えています…', speaking:'話しています…', hint_idle:'押して話す', hint_listening:'話し終えたら離す', hint_speaking:'押して止める', retry:'もう一度言ってください!' },
+  ko: { idle:'마이크를 눌러 말하세요', listening:'듣고 있어요…', thinking:'생각 중…', speaking:'말하는 중…', hint_idle:'눌러서 말하기', hint_listening:'말 끝나면 놓기', hint_speaking:'눌러서 중단', retry:'다시 말해주세요!' },
+  zh: { idle:'按住麦克风说话', listening:'正在聆听…', thinking:'思考中…', speaking:'正在说话…', hint_idle:'按住说话', hint_listening:'说完松开', hint_speaking:'按住打断', retry:'请再说一遍!' },
 };
 function getLocalizedHint(key, lang) {
   return LOCALIZED_HINTS[lang]?.[key] || LOCALIZED_HINTS.hi?.[key] || '';
@@ -2625,31 +2646,39 @@ function addToHistory(text, role) {
   row.scrollTop = row.scrollHeight;
 }
 
-// ── Greeting (multilingual based on prior history) ─────────
+// ── Greeting ─────────────────────────────────────────────
 async function voiceGreet() {
   const voiceName = voiceState.persona === 'girl' ? 'Aria' : 'Nova';
-  // Check if there's existing chat history to reference
   const existingHistory = getChatHistory();
-  let greetMsg;
 
+  let greetMsg;
   if (existingHistory.length > 2) {
-    // Reference the ongoing conversation
-    const lastTopic = existingHistory.slice(-2).find(m => m.role === 'user')?.content?.slice(0, 40) || '';
-    greetMsg = `Hey! ${voiceName} here. Continuing from where we left off — you were asking about ${lastTopic}. What else?`;
+    // Reference ongoing chat context
+    const lastUserMsg = existingHistory.slice().reverse().find(m => m.role === 'user');
+    const topic = lastUserMsg?.content.replace(/^\[Voice\]\s*/,'').slice(0, 35) || 'your last topic';
+    greetMsg = voiceName === 'Aria'
+      ? `Hey! Continuing from where we left off — ${topic}. What's next?`
+      : `Yo! We were on ${topic}. What's up?`;
   } else {
     const greetings = voiceState.persona === 'girl'
-      ? ["Hey! I'm Aria. What are we studying today?",
-         "Hi! Aria here — what do you need help with?",
-         "Hey! Ready to learn? Just talk to me!"]
-      : ["Hey! I'm Nova. What subject today?",
-         "Yo! Nova here. What are we getting into?",
-         "Hey! Nova here — just talk, I'm listening!"];
+      ? [
+          "Hey! I'm Aria, your study buddy. What are we learning today?",
+          "Hi there! Aria here — what do you need help with?",
+          "Hey! Ready to learn something? Just talk to me!"
+        ]
+      : [
+          "Hey! Nova here. What subject are we doing today?",
+          "Yo! I'm Nova — what are we getting into?",
+          "Hey! Nova here, let's get started. What's the topic?"
+        ];
     greetMsg = greetings[Math.floor(Math.random() * greetings.length)];
   }
 
+  // Store greeting in voice history (clean, no prefix)
   voiceState.history = [{ role: 'assistant', content: greetMsg, lang: 'en' }];
   addToHistory(greetMsg, 'ai');
-  await speakVoice(greetMsg, null);
+  // Speak as English (greeting is always English first)
+  await speakVoice(greetMsg, 'en');
 }
 
 // ── Hold-to-talk ──────────────────────────────────────────
@@ -2716,105 +2745,135 @@ function stopVoiceRecognition() {
 }
 
 // ── Process voice input (language-aware) ──────────────────
+// ── Script hint map — tells backend which script to enforce ──────────────────
+function getScriptHint(langCode) {
+  const map = {
+    hi: 'Devanagari script',
+    mr: 'Devanagari script',
+    sa: 'Devanagari script',
+    bn: 'Bengali script',
+    as: 'Bengali script',
+    ta: 'Tamil script',
+    te: 'Telugu script',
+    kn: 'Kannada script',
+    ml: 'Malayalam script',
+    gu: 'Gujarati script',
+    pa: 'Gurmukhi script',
+    ur: 'Nastaliq/Arabic script',
+    or: 'Odia script',
+    ja: 'Japanese script (Hiragana/Katakana/Kanji)',
+    zh: 'Chinese script (Simplified)',
+    ko: 'Korean Hangul script',
+    ar: 'Arabic script',
+    ru: 'Cyrillic script',
+  };
+  return map[langCode] || 'Latin/Roman script';
+}
+
+// ── Main voice processor — calls dedicated /voice-chat endpoint ──────────────
 async function processVoiceInput(text) {
   setVoiceOrbState('thinking');
   voiceState.isThinking = true;
   showTranscript(text, 'user');
   addToHistory(text, 'user');
 
-  // Detect language
-  const lang = detectLanguage(text);
+  // ── Detect language with continuity logic ──
+  // If we're already in a Hindi/Indian conversation and user says a short
+  // English phrase, stick with the previous language (avoids mid-convo flipping)
+  const rawLang = detectLanguage(text);
+  const prevLang = voiceState.detectedLang;
+  let lang = rawLang;
+
+  if (prevLang && prevLang.lang !== 'en' && rawLang?.lang === 'en') {
+    const wordCount = text.trim().split(/\s+/).length;
+    if (wordCount <= 8) {
+      // Short English phrase mid Indian-language conversation → treat as Hinglish/same lang
+      lang = { ...prevLang, isHinglish: prevLang.lang === 'hi' };
+    }
+  }
+
   if (lang) updateLangUI(lang);
 
+  // Push to voice history (clean, no [Voice] prefix)
   voiceState.history.push({ role: 'user', content: text, lang: lang?.lang });
+
+  // Also save to main chat history (prefixed so it's visible in text chat)
   pushHistory('user', '[Voice] ' + text);
 
-  const voiceName = voiceState.persona === 'girl' ? 'Aria' : 'Nova';
-  const langName = lang?.name || 'English';
-  const isHinglish = lang?.isHinglish;
-
-  // Build context from existing chat + voice history
-  const mainCtx = getChatHistory()
-    .slice(-6)
-    .filter(m => !m.content.startsWith('[Voice]'))
+  // Build clean history for the API — last 10 voice turns only, no [Voice] tags
+  const voiceHistoryForApi = voiceState.history
+    .slice(-10)
+    .slice(0, -1)                       // exclude current user message (sent separately)
     .map(m => ({ role: m.role, content: m.content }));
 
-  // System prompt enforcing language + casual style
-  const systemMsg = `You are ${voiceName}, a super friendly AI study buddy on a voice call with a student.
-
-LANGUAGE RULE — CRITICAL:
-- The student is speaking in: ${langName}${isHinglish ? ' (mixing Hindi + English)' : ''}
-- YOU MUST respond in the EXACT SAME LANGUAGE: ${langName}
-- If Hinglish, reply in Hinglish naturally — mix Hindi and English like a desi friend
-- NEVER switch to English if they spoke Hindi/Tamil/Bengali/etc
-- Use the native script: Devanagari for Hindi/Marathi, Bengali script, Tamil script, etc.
-
-VOICE STYLE RULES:
-- Keep replies SHORT: 1-2 sentences only, like a quick WhatsApp voice message
-- Super casual and warm, like a close friend
-- No bullet points, no markdown, no headers, no lists
-- No "I" at start of every sentence — vary it
-- If they ask something complex, answer one small piece at a time
-- Be encouraging, use their language's casual filler words naturally
-- Reference earlier conversation context when relevant`;
-
   try {
-    const historyForApi = [
-      // Inject main chat context first
-      ...mainCtx,
-      // Then voice history (excluding current message)
-      ...voiceState.history.slice(-10).slice(0, -1).map(m => ({
-        role: m.role,
-        content: m.content,
-      }))
-    ];
-
-    const res = await fetch(API_URL + '/chat', {
+    // ── Call the dedicated /voice-chat endpoint ──────────────────────────────
+    const res = await fetch(API_URL + '/voice-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: systemMsg + '\n\nStudent says: ' + text,
-        model: 'flash',
-        history: historyForApi,
+        message:     text,
+        persona:     voiceState.persona,              // 'girl' | 'boy'
+        lang_code:   lang?.lang   || 'en',
+        lang_name:   lang?.name   || 'English',
+        is_hinglish: lang?.isHinglish || false,
+        script_hint: getScriptHint(lang?.lang),
+        history:     voiceHistoryForApi,
       })
     });
 
     voiceState.isThinking = false;
+
+    if (res.status === 429) {
+      const d = await res.json();
+      showRateLimit(d.detail || {});
+      setVoiceOrbState('idle');
+      return;
+    }
     if (!res.ok) throw new Error('HTTP ' + res.status);
+
     const data = await res.json();
-    let reply = (data.reply || '').trim();
+    const reply = (data.reply || '').trim();
 
-    // Strip markdown for clean speech
-    reply = reply
-      .replace(/#{1,3}\s+/g, '')
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/\*([^*]+)\*/g, '$1')
-      .replace(/`[^`]+`/g, '')
-      .replace(/\$\$?[^$]+\$\$?/g, '')
-      .replace(/\n+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+    if (!reply) {
+      // Backend returned empty — give a language-appropriate prompt
+      const retryMsg = getLocalizedHint('retry', lang?.lang) || 'Say that again?';
+      await speakVoice(retryMsg, lang?.lang);
+      return;
+    }
 
-    if (!reply) reply = lang?.lang === 'hi' ? 'समझ नहीं आया, फिर से बोलो!' : 'Hmm, say that again?';
-
-    // Cap to 2-3 sentences for natural voice feel
-    const sentences = reply.match(/[^।।!?.]+[।।!?.]+/g) || [reply];
-    if (sentences.length > 3) reply = sentences.slice(0, 3).join(' ').trim();
-
+    // Save reply to histories (clean)
     voiceState.history.push({ role: 'assistant', content: reply, lang: lang?.lang });
     pushHistory('assistant', '[Voice] ' + reply);
     addToHistory(reply, 'ai');
 
-    // Update recognition lang for next turn
-    if (lang) voiceState.recognitionLang = lang.bcp47;
+    // Update recognition language for the next turn
+    if (lang?.bcp47) voiceState.recognitionLang = lang.bcp47;
 
     await speakVoice(reply, lang?.lang);
 
   } catch (err) {
     voiceState.isThinking = false;
-    const errMsg = lang?.lang === 'hi' ? 'कुछ गड़बड़ हुई, फिर से कोशिश करो!' : 'Oops, something went wrong! Try again?';
+    console.error('Voice chat error:', err);
+    const errMsg = getErrMsg(lang?.lang);
     await speakVoice(errMsg, lang?.lang);
   }
+}
+
+// Language-appropriate error / retry messages
+function getErrMsg(langCode) {
+  const msgs = {
+    hi: 'कुछ गड़बड़ हुई, फिर से कोशिश करो!',
+    mr: 'काहीतरी चूक झाली, परत प्रयत्न कर!',
+    bn: 'কিছু সমস্যা হয়েছে, আবার চেষ্টা করো!',
+    ta: 'ஏதோ தவறு நடந்தது, மீண்டும் முயற்சிக்கவும்!',
+    te: 'ఏదో తప్పు జరిగింది, మళ్ళీ ప్రయత్నించు!',
+    kn: 'ಏನೋ ತಪ್ಪಾಯಿತು, ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ!',
+    ml: 'എന്തോ തെറ്റ് സംഭവിച്ചു, വീണ്ടും ശ്രമിക്കൂ!',
+    gu: 'કંઈક ભૂલ થઈ, ફરી પ્રયાસ કરો!',
+    pa: 'ਕੁਝ ਗਲਤ ਹੋਇਆ, ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ!',
+  };
+  return msgs[langCode] || 'Oops, something went wrong! Try again?';
 }
 
 // ── TTS speak with language-appropriate voice ─────────────

@@ -2229,59 +2229,105 @@ function loadVoices() {
   const all = window.speechSynthesis.getVoices();
   if (!all.length) return;
 
-  // Cache English voices
+  // ── Helper: score a voice against a preference list ──
   function scoreVoice(v, prefs) {
     const n = v.name.toLowerCase();
     for (let i = 0; i < prefs.length; i++) if (prefs[i].test(n)) return prefs.length - i;
     return 0;
   }
+
+  // ── Pick best English girl + boy voices ──
   const scored = all.map(v => ({ v, gs: scoreVoice(v, EN_GIRL_PREFS), bs: scoreVoice(v, EN_BOY_PREFS) }));
   const bG = scored.reduce((b, x) => x.gs > b.gs ? x : b, scored[0]);
-  const bB = scored.filter(x => x.v !== bG.v).reduce((b, x) => x.bs > b.bs ? x : b, scored.find(x => x.v !== bG.v) || scored[0]);
+  const bB = scored.filter(x => x.v !== bG.v)
+                   .reduce((b, x) => x.bs > b.bs ? x : b,
+                     scored.find(x => x.v !== bG.v) || scored[0]);
   voiceState.enGirlVoice = bG.v;
   voiceState.enBoyVoice = bB.v;
 
-  // Pre-cache per-language voices
-  function findVoice(prefs, langBcp47, gender) {
-    // 1. Try prefs match
-    for (const pref of prefs) {
-      const found = all.find(v => pref.test(v.name));
-      if (found) return found;
-    }
-    // 2. Try BCP47 language code match
+  // ── Smart per-language voice finder ──────────────────
+  // Strategy:
+  // 1. Try exact name pattern match for girl voice
+  // 2. Try exact name pattern match for boy voice
+  // 3. If only one lang voice exists → use it for GIRL, boy gets English male voice with low pitch
+  // 4. If two+ lang voices exist → first for girl, second for boy
+  // This guarantees BOY is never assigned the same object as GIRL
+
+  function findVoicePair(girlPrefs, boyPrefs, langBcp47) {
     const prefix = langBcp47.split('-')[0].toLowerCase();
-    const byLang = all.filter(v => v.lang && v.lang.toLowerCase().startsWith(prefix));
-    if (byLang.length) {
-      if (gender === 'girl') return byLang[0];
-      return byLang[byLang.length > 1 ? 1 : 0];
+
+    // Get all voices that match this language
+    const byLang = all.filter(v => {
+      const vLang = (v.lang || '').toLowerCase();
+      const vName = v.name.toLowerCase();
+      return vLang.startsWith(prefix) || vName.includes(prefix);
+    });
+
+    // Try explicit girl pref
+    let girlVoice = null;
+    for (const pref of girlPrefs) {
+      girlVoice = all.find(v => pref.test(v.name));
+      if (girlVoice) break;
     }
-    return null;
+    // Try explicit boy pref  
+    let boyVoice = null;
+    for (const pref of boyPrefs) {
+      boyVoice = all.find(v => pref.test(v.name));
+      if (boyVoice) break;
+    }
+
+    // If we found both distinct voices, great
+    if (girlVoice && boyVoice && girlVoice !== boyVoice) {
+      return { girl: girlVoice, boy: boyVoice };
+    }
+
+    // If only girl found (common for Indian langs) → boy = null (will use pitch hack)
+    if (girlVoice && !boyVoice) {
+      // Try to find a DIFFERENT lang voice for boy
+      const altBoy = byLang.find(v => v !== girlVoice);
+      return { girl: girlVoice, boy: altBoy || null };
+    }
+
+    // If we have multiple lang voices, assign by index
+    if (byLang.length >= 2) {
+      return { girl: byLang[0], boy: byLang[1] };
+    }
+    if (byLang.length === 1) {
+      return { girl: byLang[0], boy: null }; // boy will use pitch hack
+    }
+
+    return { girl: null, boy: null };
   }
 
-  // Script-based languages
+  // Build full cache
+  const langEntries = [];
   for (const [key, entry] of Object.entries(LANG_DB)) {
     if (entry.variants) {
-      for (const v of entry.variants) {
-        const gKey = `${v.lang}_girl`;
-        const bKey = `${v.lang}_boy`;
-        if (!voiceState.voiceCache[gKey]) voiceState.voiceCache[gKey] = findVoice(v.girlVoice, v.bcp47, 'girl');
-        if (!voiceState.voiceCache[bKey]) voiceState.voiceCache[bKey] = findVoice(v.boyVoice, v.bcp47, 'boy');
-      }
+      for (const v of entry.variants) langEntries.push(v);
     } else if (entry.lang) {
-      const gKey = `${entry.lang}_girl`;
-      const bKey = `${entry.lang}_boy`;
-      if (!voiceState.voiceCache[gKey]) voiceState.voiceCache[gKey] = findVoice(entry.girlVoice, entry.bcp47, 'girl');
-      if (!voiceState.voiceCache[bKey]) voiceState.voiceCache[bKey] = findVoice(entry.boyVoice, entry.bcp47, 'boy');
+      langEntries.push(entry);
     }
   }
-  // Latin patterns
-  for (const lp of LATIN_LANG_PATTERNS) {
-    const gKey = `${lp.lang}_girl`;
-    const bKey = `${lp.lang}_boy`;
-    if (!voiceState.voiceCache[gKey]) voiceState.voiceCache[gKey] = findVoice(lp.girlVoice, lp.bcp47, 'girl');
-    if (!voiceState.voiceCache[bKey]) voiceState.voiceCache[bKey] = findVoice(lp.boyVoice, lp.bcp47, 'boy');
+  for (const lp of LATIN_LANG_PATTERNS) langEntries.push(lp);
+
+  for (const entry of langEntries) {
+    const gKey = `${entry.lang}_girl`;
+    const bKey = `${entry.lang}_boy`;
+    const pair = findVoicePair(
+      entry.girlVoice || [],
+      entry.boyVoice  || [],
+      entry.bcp47
+    );
+    voiceState.voiceCache[gKey] = pair.girl;
+    voiceState.voiceCache[bKey] = pair.boy;
   }
-  console.log('🎙 Voices loaded. En-Girl:', voiceState.enGirlVoice?.name, '| En-Boy:', voiceState.enBoyVoice?.name);
+
+  // Debug log
+  console.log('🎙 En-Girl:', voiceState.enGirlVoice?.name);
+  console.log('🎙 En-Boy:', voiceState.enBoyVoice?.name);
+  console.log('🎙 hi_girl:', voiceState.voiceCache['hi_girl']?.name);
+  console.log('🎙 hi_boy:', voiceState.voiceCache['hi_boy']?.name || 'none → pitch hack');
+  console.log('🎙 All voices:', all.map(v => `${v.name} [${v.lang}]`).join(', '));
 }
 
 if (window.speechSynthesis) {
@@ -2343,16 +2389,61 @@ function updateLangUI(langObj) {
   if (topLang) topLang.textContent = langObj.flag + ' ' + langObj.name;
 }
 
-// ── Get voice for language + persona ─────────────────────
-function getVoiceForLang(langCode, persona) {
+// ── Get voice + pitch params for language + persona ───────
+// Returns { voice, pitch, rate, lang }
+// KEY INSIGHT: When only one language voice exists (e.g. only Google Hindi Female),
+// we use the SAME voice for both but apply very different pitch/rate:
+//   Girl → pitch 1.1, rate normal  → sounds feminine
+//   Boy  → pitch 0.6, rate 0.95   → sounds noticeably male/deeper
+// This is the same trick used by screen readers and voice assistants.
+
+function getVoiceParams(langCode, persona) {
+  const isIndian = ['hi','bn','ta','te','kn','ml','mr','gu','pa'].includes(langCode);
+  const isEast   = ['ja','ko','zh'].includes(langCode);
+
   if (!langCode || langCode === 'en') {
-    return persona === 'girl' ? voiceState.enGirlVoice : voiceState.enBoyVoice;
+    return {
+      voice: persona === 'girl' ? voiceState.enGirlVoice : voiceState.enBoyVoice,
+      pitch: persona === 'girl' ? 1.1 : 0.75,
+      rate:  voiceState.speed,
+    };
   }
-  const cacheKey = `${langCode}_${persona}`;
-  const cached = voiceState.voiceCache[cacheKey];
-  if (cached) return cached;
-  // Fallback to English
-  return persona === 'girl' ? voiceState.enGirlVoice : voiceState.enBoyVoice;
+
+  const girlKey = `${langCode}_girl`;
+  const boyKey  = `${langCode}_boy`;
+  const girlVoice = voiceState.voiceCache[girlKey] || voiceState.enGirlVoice;
+  const boyVoice  = voiceState.voiceCache[boyKey];   // may be null
+
+  if (persona === 'girl') {
+    return {
+      voice: girlVoice,
+      pitch: isIndian ? 1.1 : (isEast ? 1.05 : 1.1),
+      rate:  voiceState.speed,
+    };
+  }
+
+  // BOY persona
+  if (boyVoice && boyVoice !== girlVoice) {
+    // We have a genuinely different male voice — use it with moderate pitch drop
+    return {
+      voice: boyVoice,
+      pitch: isIndian ? 0.82 : (isEast ? 0.85 : 0.8),
+      rate:  voiceState.speed * 0.97,
+    };
+  }
+
+  // Only one voice for this language (very common for Indian langs in Chrome/Edge)
+  // Use the same voice but DRASTICALLY lower pitch → clearly male-sounding
+  return {
+    voice: girlVoice,
+    pitch: isIndian ? 0.55 : 0.6,   // deep enough to sound male
+    rate:  voiceState.speed * 0.93, // slightly slower = more masculine feel
+  };
+}
+
+// Legacy helper kept for compatibility
+function getVoiceForLang(langCode, persona) {
+  return getVoiceParams(langCode, persona).voice;
 }
 
 // ── Get BCP47 recognition lang ────────────────────────────
@@ -2721,34 +2812,27 @@ function speakVoice(text, langCode) {
     showTranscript(text, 'ai');
 
     const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = voiceState.speed;
     utter.volume = 1;
 
-    // Pick voice: prefer language-specific, fall back to English persona voice
-    const chosenVoice = getVoiceForLang(langCode, voiceState.persona);
-    if (chosenVoice) utter.voice = chosenVoice;
+    // Get voice + pitch params — this handles the gender differentiation
+    const params = getVoiceParams(langCode || 'en', voiceState.persona);
+    if (params.voice) utter.voice = params.voice;
+    utter.pitch = params.pitch;
+    utter.rate  = params.rate;
 
-    // Pitch: girl slightly higher, boy slightly lower
-    // For Indian langs, pitch adjustment feels more natural at near-neutral
-    const isIndian = ['hi','bn','ta','te','kn','ml','mr','gu','pa'].includes(langCode);
-    utter.pitch = voiceState.persona === 'girl'
-      ? (isIndian ? 1.05 : 1.1)
-      : (isIndian ? 0.92 : 0.88);
+    // Set utterance lang so the engine uses correct phonemes
+    const bcp47 = voiceState.detectedLang?.bcp47;
+    if (bcp47 && langCode && langCode !== 'en') utter.lang = bcp47;
 
-    // Set utterance lang to match
-    if (langCode && langCode !== 'en') {
-      const bcp47 = voiceState.detectedLang?.bcp47;
-      if (bcp47) utter.lang = bcp47;
-    }
-
-    utter.onend = () => { voiceState.isSpeaking = false; if (voiceState.active) setVoiceOrbState('idle'); resolve(); };
-    utter.onerror = () => { voiceState.isSpeaking = false; if (voiceState.active) setVoiceOrbState('idle'); resolve(); };
+    utter.onend  = () => { voiceState.isSpeaking = false; if (voiceState.active) setVoiceOrbState('idle'); resolve(); };
+    utter.onerror= () => { voiceState.isSpeaking = false; if (voiceState.active) setVoiceOrbState('idle'); resolve(); };
     voiceState.currentUtterance = utter;
 
+    // Chrome needs small delay after cancel() before speak()
     setTimeout(() => {
       if (voiceState.active) window.speechSynthesis.speak(utter);
       else resolve();
-    }, 80);
+    }, 100);
   });
 }
 (function(){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';document.head.appendChild(s);})();

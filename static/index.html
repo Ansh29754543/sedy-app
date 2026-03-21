@@ -957,6 +957,53 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   width:1px;height:14px;background:rgba(255,255,255,.1);
 }
 
+/* Language badge */
+.voice-lang-badge{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:20px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:rgba(255,255,255,.8);z-index:5;
+  animation:langBadgeIn .3s ease;
+  margin-bottom:8px;
+}
+@keyframes langBadgeIn{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}
+.voice-lang-flag{font-size:16px;}
+.voice-lang-name{font-weight:700;letter-spacing:.3px;}
+.voice-lang-auto{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:.5px;text-transform:uppercase;}
+
+/* Conversation history strip */
+.voice-history-row{
+  display:flex;flex-direction:column;gap:6px;
+  max-width:340px;width:100%;z-index:5;
+  max-height:120px;overflow-y:auto;
+  padding:0 4px;margin-top:4px;
+  scrollbar-width:none;
+}
+.voice-history-row::-webkit-scrollbar{display:none;}
+.voice-hist-bubble{
+  padding:7px 12px;border-radius:14px;
+  font-family:'DM Sans',sans-serif;font-size:12px;
+  line-height:1.5;color:rgba(255,255,255,.65);
+  max-width:100%;word-break:break-word;
+  animation:histBubbleIn .2s ease;
+  flex-shrink:0;
+}
+@keyframes histBubbleIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+.voice-hist-bubble.user{
+  background:rgba(255,105,180,.1);
+  border:1px solid rgba(255,105,180,.2);
+  align-self:flex-end;text-align:right;
+  border-bottom-right-radius:3px;
+}
+.voice-hist-bubble.ai{
+  background:rgba(100,149,237,.1);
+  border:1px solid rgba(100,149,237,.2);
+  align-self:flex-start;
+  border-bottom-left-radius:3px;
+}
+
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
   :root{--sidebar-w:240px;}
@@ -1199,8 +1246,18 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- Status line -->
   <div class="voice-status" id="voice-status">Hold the mic to speak</div>
 
+  <!-- Language detected badge -->
+  <div class="voice-lang-badge" id="voice-lang-badge" style="display:none">
+    <span id="voice-lang-flag"></span>
+    <span id="voice-lang-name"></span>
+    <span class="voice-lang-auto">auto-detected</span>
+  </div>
+
   <!-- Transcript bubble -->
   <div class="voice-transcript" id="voice-transcript"></div>
+
+  <!-- Conversation history pills -->
+  <div class="voice-history-row" id="voice-history-row"></div>
 
   <!-- Bottom controls -->
   <div class="voice-controls">
@@ -1989,455 +2046,338 @@ async function ideAiExplain(){const code=document.getElementById('ide-textarea')
 function ideSendToChat(){const code=document.getElementById('ide-textarea').value;const out=document.getElementById('ide-output').textContent;closeIde();document.getElementById('chat-input').value=`Here is my ${ideCurrentLang} code:\n\`\`\`${ideCurrentLang}\n${code}\n\`\`\`\nOutput: ${out}`;autoResize(document.getElementById('chat-input'));}
 
 // ══════════════════════════════════════════════════════
-// VOICE CHAT SYSTEM
+// VOICE CHAT SYSTEM — MULTILINGUAL
 // ══════════════════════════════════════════════════════
 
 /*
-  VOICE SELECTION STRATEGY
-  ------------------------
-  We use the Web Speech API (SpeechSynthesis) with careful voice selection.
-  
-  Best human-sounding voices available in browsers:
-  
-  GIRL (Aria / female):
-  - "Microsoft Aria Online" (Edge/Windows) — very natural, warm
-  - "Google UK English Female" (Chrome) — clear British accent
-  - "Samantha" (macOS/iOS Safari) — warm American
-  - "Karen" (macOS) — Australian, clear
-  - Fallback: any voice with "female" in name or index 0
+  LANGUAGE-AWARE VOICE SYSTEM
+  ─────────────────────────────
+  1. User speaks → browser SpeechRecognition captures text
+  2. detectLanguage() identifies the language from the transcript
+  3. Recognition language is updated to match for next turn
+  4. AI replies in the same language (system prompt enforces it)
+  5. speakVoice() picks the best TTS voice for that language
+  6. History carries full multilingual context across turns
 
-  BOY (Nova / male):
-  - "Microsoft Guy Online" (Edge/Windows) — natural male
-  - "Google UK English Male" (Chrome) — calm British
-  - "Daniel" (macOS) — British male
-  - "Alex" (macOS) — American male
-  - Fallback: any voice with "male" in name or index 1
-  
-  The system scores available voices and picks the best match.
+  SUPPORTED LANGUAGES (auto-detected):
+  Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam,
+  Marathi, Gujarati, Punjabi, Urdu, English, Hinglish,
+  Japanese, Chinese, Arabic, French, Spanish, German,
+  Portuguese, Korean, Russian, Italian
+
+  BEST HUMAN-SOUNDING VOICES BY BROWSER:
+  ─────────────────────────────────────
+  Edge/Windows (best overall):
+    Girl → Microsoft Aria Online (English), language-specific MS voices
+    Boy  → Microsoft Guy Online, language-specific MS voices
+
+  Chrome/Android:
+    Girl → Google UK English Female, language Google voices
+    Boy  → Google UK English Male, language Google voices
+
+  macOS/iOS:
+    Girl → Samantha (en), language system voices
+    Boy  → Daniel (en), language system voices
 */
 
+// ── Language database ──────────────────────────────────
+const LANG_DB = {
+  // script-based detection (Unicode ranges)
+  devanagari: {
+    regex: /[\u0900-\u097F]/,
+    // Distinguish Hindi vs Marathi vs Nepali by common words
+    variants: [
+      { lang: 'hi', name: 'Hindi',   flag: '🇮🇳', bcp47: 'hi-IN',
+        girlVoice: [/microsoft swara/i, /hindi.*female/i, /google.*hindi/i, /lekha/i],
+        boyVoice:  [/microsoft hemant/i, /hindi.*male/i, /google.*hindi/i] },
+      { lang: 'mr', name: 'Marathi', flag: '🇮🇳', bcp47: 'mr-IN',
+        girlVoice: [/marathi.*female/i, /google.*marathi/i, /google.*mr/i],
+        boyVoice:  [/marathi.*male/i,   /google.*marathi/i] },
+    ],
+    default: 'hi',
+  },
+  bengali: {
+    regex: /[\u0980-\u09FF]/,
+    lang: 'bn', name: 'Bengali', flag: '🇧🇩', bcp47: 'bn-IN',
+    girlVoice: [/bengali.*female/i, /google.*bengali/i, /google.*bn/i],
+    boyVoice:  [/bengali.*male/i,   /google.*bengali/i],
+  },
+  tamil: {
+    regex: /[\u0B80-\u0BFF]/,
+    lang: 'ta', name: 'Tamil', flag: '🇮🇳', bcp47: 'ta-IN',
+    girlVoice: [/microsoft valluvar/i, /tamil.*female/i, /google.*tamil/i, /latha/i],
+    boyVoice:  [/tamil.*male/i, /google.*tamil/i],
+  },
+  telugu: {
+    regex: /[\u0C00-\u0C7F]/,
+    lang: 'te', name: 'Telugu', flag: '🇮🇳', bcp47: 'te-IN',
+    girlVoice: [/microsoft chitra/i, /telugu.*female/i, /google.*telugu/i],
+    boyVoice:  [/telugu.*male/i, /google.*telugu/i],
+  },
+  kannada: {
+    regex: /[\u0C80-\u0CFF]/,
+    lang: 'kn', name: 'Kannada', flag: '🇮🇳', bcp47: 'kn-IN',
+    girlVoice: [/kannada.*female/i, /google.*kannada/i],
+    boyVoice:  [/kannada.*male/i,   /google.*kannada/i],
+  },
+  malayalam: {
+    regex: /[\u0D00-\u0D7F]/,
+    lang: 'ml', name: 'Malayalam', flag: '🇮🇳', bcp47: 'ml-IN',
+    girlVoice: [/malayalam.*female/i, /google.*malayalam/i],
+    boyVoice:  [/malayalam.*male/i,   /google.*malayalam/i],
+  },
+  gujarati: {
+    regex: /[\u0A80-\u0AFF]/,
+    lang: 'gu', name: 'Gujarati', flag: '🇮🇳', bcp47: 'gu-IN',
+    girlVoice: [/gujarati.*female/i, /google.*gujarati/i],
+    boyVoice:  [/gujarati.*male/i,   /google.*gujarati/i],
+  },
+  punjabi: {
+    regex: /[\u0A00-\u0A7F]/,
+    lang: 'pa', name: 'Punjabi', flag: '🇮🇳', bcp47: 'pa-IN',
+    girlVoice: [/punjabi.*female/i, /google.*punjabi/i],
+    boyVoice:  [/punjabi.*male/i,   /google.*punjabi/i],
+  },
+  arabic: {
+    regex: /[\u0600-\u06FF]/,
+    lang: 'ar', name: 'Arabic/Urdu', flag: '🌙', bcp47: 'ur-PK',
+    girlVoice: [/microsoft zira.*ar/i, /microsoft hoda/i, /arabic.*female/i, /urdu.*female/i, /google.*ar/i],
+    boyVoice:  [/arabic.*male/i, /urdu.*male/i, /google.*ar/i],
+  },
+  japanese: {
+    regex: /[\u3040-\u30FF\u4E00-\u9FFF]/,
+    lang: 'ja', name: 'Japanese', flag: '🇯🇵', bcp47: 'ja-JP',
+    girlVoice: [/microsoft haruka/i, /kyoko/i, /japanese.*female/i, /google.*ja/i],
+    boyVoice:  [/japanese.*male/i, /otoya/i, /google.*ja/i],
+  },
+  chinese: {
+    regex: /[\u4E00-\u9FFF]/,
+    lang: 'zh', name: 'Chinese', flag: '🇨🇳', bcp47: 'zh-CN',
+    girlVoice: [/microsoft xiaoxiao/i, /ting-ting/i, /chinese.*female/i, /google.*zh/i],
+    boyVoice:  [/microsoft yunxi/i, /chinese.*male/i, /google.*zh/i],
+  },
+  korean: {
+    regex: /[\uAC00-\uD7AF]/,
+    lang: 'ko', name: 'Korean', flag: '🇰🇷', bcp47: 'ko-KR',
+    girlVoice: [/microsoft sunhi/i, /korean.*female/i, /google.*ko/i],
+    boyVoice:  [/korean.*male/i, /google.*ko/i],
+  },
+  // Latin-script languages detected by keywords
+};
+
+// Latin-script language patterns
+const LATIN_LANG_PATTERNS = [
+  { lang: 'fr', name: 'French',     flag: '🇫🇷', bcp47: 'fr-FR',
+    keywords: /\b(je|tu|il|nous|vous|ils|est|sont|avec|pour|dans|sur|mais|donc|que|qui|une|les|des|du|au)\b/i,
+    girlVoice: [/microsoft julie/i, /aurelie/i, /french.*female/i, /google.*fr/i],
+    boyVoice:  [/microsoft paul/i, /french.*male/i, /google.*fr/i] },
+  { lang: 'es', name: 'Spanish',    flag: '🇪🇸', bcp47: 'es-ES',
+    keywords: /\b(yo|tu|el|ella|nosotros|es|son|con|para|en|pero|que|quien|una|los|las|del|al|muy|como|este|esta)\b/i,
+    girlVoice: [/microsoft helena/i, /sabina/i, /spanish.*female/i, /google.*es/i],
+    boyVoice:  [/microsoft pablo/i, /spanish.*male/i, /google.*es/i] },
+  { lang: 'de', name: 'German',     flag: '🇩🇪', bcp47: 'de-DE',
+    keywords: /\b(ich|du|er|sie|wir|ihr|ist|sind|mit|für|in|auf|aber|dass|der|die|das|den|ein|eine|nicht|auch)\b/i,
+    girlVoice: [/microsoft katja/i, /german.*female/i, /google.*de/i],
+    boyVoice:  [/microsoft stefan/i, /german.*male/i, /google.*de/i] },
+  { lang: 'pt', name: 'Portuguese', flag: '🇧🇷', bcp47: 'pt-BR',
+    keywords: /\b(eu|tu|ele|ela|nós|vocês|é|são|com|para|em|mas|que|quem|uma|os|as|do|da|muito)\b/i,
+    girlVoice: [/microsoft francisca/i, /portuguese.*female/i, /google.*pt/i],
+    boyVoice:  [/microsoft antonio/i, /portuguese.*male/i, /google.*pt/i] },
+  { lang: 'it', name: 'Italian',    flag: '🇮🇹', bcp47: 'it-IT',
+    keywords: /\b(io|tu|lui|lei|noi|voi|loro|è|sono|con|per|in|ma|che|chi|una|gli|le|del|della|molto)\b/i,
+    girlVoice: [/microsoft elsa/i, /italian.*female/i, /google.*it/i],
+    boyVoice:  [/microsoft cosimo/i, /italian.*male/i, /google.*it/i] },
+  { lang: 'ru', name: 'Russian',    flag: '🇷🇺', bcp47: 'ru-RU',
+    keywords: /[\u0400-\u04FF]/,
+    girlVoice: [/microsoft irina/i, /russian.*female/i, /google.*ru/i],
+    boyVoice:  [/microsoft pavel/i, /russian.*male/i, /google.*ru/i] },
+];
+
+// Default English voices
+const EN_GIRL_PREFS = [
+  /microsoft aria online/i, /microsoft zira/i, /google uk english female/i,
+  /samantha/i, /karen/i, /moira/i, /tessa/i, /victoria/i, /veena/i,
+  /female/i, /hazel/i,
+];
+const EN_BOY_PREFS = [
+  /microsoft guy online/i, /microsoft david/i, /google uk english male/i,
+  /daniel/i, /alex/i, /fred/i, /lee/i, /rishi/i, /male/i,
+];
+
+// ── State ─────────────────────────────────────────────
 let voiceState = {
   active: false,
-  persona: 'girl',        // 'girl' | 'boy'
+  persona: 'girl',
   speed: 1.0,
   isHolding: false,
   isSpeaking: false,
   isThinking: false,
-  history: [],            // short context [{role,content}]
-  girlVoice: null,
-  boyVoice: null,
+  history: [],           // [{role, content, lang}]
+  detectedLang: null,    // current language object
+  recognitionLang: 'en-US',
   recognition: null,
   currentUtterance: null,
+  // Cached voices per language+gender
+  voiceCache: {},        // key: `${lang}_${gender}` → SpeechSynthesisVoice
+  enGirlVoice: null,
+  enBoyVoice: null,
 };
+let voiceKeepAwakeInterval = null;
 
-// ── Voice scoring — pick the most human-sounding voice ──
-const GIRL_VOICE_PREFS = [
-  /microsoft aria/i, /google uk english female/i, /samantha/i,
-  /karen/i, /moira/i, /tessa/i, /victoria/i, /veena/i,
-  /female/i, /zira/i, /hazel/i,
-];
-const BOY_VOICE_PREFS = [
-  /microsoft guy/i, /google uk english male/i, /daniel/i,
-  /alex/i, /fred/i, /lee/i, /male/i, /rishi/i,
-];
-
-function scoreVoice(voice, prefs) {
-  const name = voice.name.toLowerCase();
-  for (let i = 0; i < prefs.length; i++) {
-    if (prefs[i].test(name)) return prefs.length - i;
-  }
-  return 0;
-}
-
+// ── Load & cache all voices ────────────────────────────
 function loadVoices() {
-  const voices = window.speechSynthesis.getVoices();
-  if (!voices.length) return;
+  const all = window.speechSynthesis.getVoices();
+  if (!all.length) return;
 
-  // Score all voices
-  const scored = voices.map(v => ({
-    voice: v,
-    girlScore: scoreVoice(v, GIRL_VOICE_PREFS),
-    boyScore: scoreVoice(v, BOY_VOICE_PREFS),
-  }));
+  // Cache English voices
+  function scoreVoice(v, prefs) {
+    const n = v.name.toLowerCase();
+    for (let i = 0; i < prefs.length; i++) if (prefs[i].test(n)) return prefs.length - i;
+    return 0;
+  }
+  const scored = all.map(v => ({ v, gs: scoreVoice(v, EN_GIRL_PREFS), bs: scoreVoice(v, EN_BOY_PREFS) }));
+  const bG = scored.reduce((b, x) => x.gs > b.gs ? x : b, scored[0]);
+  const bB = scored.filter(x => x.v !== bG.v).reduce((b, x) => x.bs > b.bs ? x : b, scored.find(x => x.v !== bG.v) || scored[0]);
+  voiceState.enGirlVoice = bG.v;
+  voiceState.enBoyVoice = bB.v;
 
-  // Best girl voice
-  const bestGirl = scored.reduce((best, v) =>
-    v.girlScore > best.girlScore ? v : best, scored[0]);
-  // Best boy voice — must be different from girl
-  const bestBoy = scored
-    .filter(v => v.voice !== bestGirl.voice)
-    .reduce((best, v) => v.boyScore > best.boyScore ? v : best,
-      scored.find(v => v.voice !== bestGirl.voice) || scored[0]);
+  // Pre-cache per-language voices
+  function findVoice(prefs, langBcp47, gender) {
+    // 1. Try prefs match
+    for (const pref of prefs) {
+      const found = all.find(v => pref.test(v.name));
+      if (found) return found;
+    }
+    // 2. Try BCP47 language code match
+    const prefix = langBcp47.split('-')[0].toLowerCase();
+    const byLang = all.filter(v => v.lang && v.lang.toLowerCase().startsWith(prefix));
+    if (byLang.length) {
+      if (gender === 'girl') return byLang[0];
+      return byLang[byLang.length > 1 ? 1 : 0];
+    }
+    return null;
+  }
 
-  voiceState.girlVoice = bestGirl.voice;
-  voiceState.boyVoice = bestBoy.voice;
-
-  console.log('🎙 Girl voice:', voiceState.girlVoice?.name);
-  console.log('🎙 Boy voice:', voiceState.boyVoice?.name);
+  // Script-based languages
+  for (const [key, entry] of Object.entries(LANG_DB)) {
+    if (entry.variants) {
+      for (const v of entry.variants) {
+        const gKey = `${v.lang}_girl`;
+        const bKey = `${v.lang}_boy`;
+        if (!voiceState.voiceCache[gKey]) voiceState.voiceCache[gKey] = findVoice(v.girlVoice, v.bcp47, 'girl');
+        if (!voiceState.voiceCache[bKey]) voiceState.voiceCache[bKey] = findVoice(v.boyVoice, v.bcp47, 'boy');
+      }
+    } else if (entry.lang) {
+      const gKey = `${entry.lang}_girl`;
+      const bKey = `${entry.lang}_boy`;
+      if (!voiceState.voiceCache[gKey]) voiceState.voiceCache[gKey] = findVoice(entry.girlVoice, entry.bcp47, 'girl');
+      if (!voiceState.voiceCache[bKey]) voiceState.voiceCache[bKey] = findVoice(entry.boyVoice, entry.bcp47, 'boy');
+    }
+  }
+  // Latin patterns
+  for (const lp of LATIN_LANG_PATTERNS) {
+    const gKey = `${lp.lang}_girl`;
+    const bKey = `${lp.lang}_boy`;
+    if (!voiceState.voiceCache[gKey]) voiceState.voiceCache[gKey] = findVoice(lp.girlVoice, lp.bcp47, 'girl');
+    if (!voiceState.voiceCache[bKey]) voiceState.voiceCache[bKey] = findVoice(lp.boyVoice, lp.bcp47, 'boy');
+  }
+  console.log('🎙 Voices loaded. En-Girl:', voiceState.enGirlVoice?.name, '| En-Boy:', voiceState.enBoyVoice?.name);
 }
 
-// Voices load async in most browsers
 if (window.speechSynthesis) {
   loadVoices();
   window.speechSynthesis.onvoiceschanged = loadVoices;
 }
 
-// ── Open / Close ──
+// ── Language detection ─────────────────────────────────
+function detectLanguage(text) {
+  if (!text || text.trim().length < 2) return null;
+
+  // Script detection (most reliable)
+  for (const [key, entry] of Object.entries(LANG_DB)) {
+    if (!entry.regex) continue;
+    if (entry.regex.test(text)) {
+      // Devanagari: distinguish Hindi vs Marathi
+      if (entry.variants) {
+        const marWords = /\b(आहे|आहेत|होते|करतो|करते|माझ्या|तुमच्या|नाही|तर|पण)\b/;
+        const variant = marWords.test(text) ? 'mr' : 'hi';
+        const v = entry.variants.find(x => x.lang === variant) || entry.variants[0];
+        return { ...v, bcp47: v.bcp47 };
+      }
+      return { lang: entry.lang, name: entry.name, flag: entry.flag, bcp47: entry.bcp47 };
+    }
+  }
+
+  // Latin: keyword-based
+  for (const lp of LATIN_LANG_PATTERNS) {
+    if (lp.keywords instanceof RegExp && lp.keywords.test(text)) {
+      return { lang: lp.lang, name: lp.name, flag: lp.flag, bcp47: lp.bcp47 };
+    }
+  }
+
+  // Hinglish detection: mix of English + Devanagari-ish romanised words
+  const hinglishWords = /\b(kya|hai|hoon|tum|aap|mera|meri|tera|teri|yaar|bhai|didi|kaise|kahan|kab|kyun|matlab|sahi|bilkul|theek|achha|thoda|bahut|samajh|padh|likh|baat)\b/i;
+  if (hinglishWords.test(text)) {
+    return { lang: 'hi', name: 'Hinglish', flag: '🇮🇳', bcp47: 'hi-IN', isHinglish: true };
+  }
+
+  // Default: English
+  return { lang: 'en', name: 'English', flag: '🇬🇧', bcp47: 'en-US' };
+}
+
+// ── Update language UI ─────────────────────────────────
+function updateLangUI(langObj) {
+  if (!langObj) return;
+  voiceState.detectedLang = langObj;
+  voiceState.recognitionLang = langObj.bcp47;
+
+  const badge = document.getElementById('voice-lang-badge');
+  const flag = document.getElementById('voice-lang-flag');
+  const name = document.getElementById('voice-lang-name');
+  flag.textContent = langObj.flag;
+  name.textContent = langObj.name + (langObj.isHinglish ? ' 🔀' : '');
+  badge.style.display = 'flex';
+
+  // Update topbar mini indicator
+  const topLang = document.getElementById('voice-toplang');
+  if (topLang) topLang.textContent = langObj.flag + ' ' + langObj.name;
+}
+
+// ── Get voice for language + persona ─────────────────────
+function getVoiceForLang(langCode, persona) {
+  if (!langCode || langCode === 'en') {
+    return persona === 'girl' ? voiceState.enGirlVoice : voiceState.enBoyVoice;
+  }
+  const cacheKey = `${langCode}_${persona}`;
+  const cached = voiceState.voiceCache[cacheKey];
+  if (cached) return cached;
+  // Fallback to English
+  return persona === 'girl' ? voiceState.enGirlVoice : voiceState.enBoyVoice;
+}
+
+// ── Get BCP47 recognition lang ────────────────────────────
+function getRecognitionLang() {
+  return voiceState.detectedLang?.bcp47 || 'en-US';
+}
+
+// ── Open / Close ──────────────────────────────────────────
 function openVoiceChat() {
   voiceState.active = true;
   voiceState.history = [];
+  voiceState.detectedLang = null;
   document.getElementById('voice-overlay').classList.add('active');
+  document.getElementById('voice-lang-badge').style.display = 'none';
+  document.getElementById('voice-history-row').innerHTML = '';
   document.getElementById('voice-live-indicator').style.display = 'flex';
   if (window.innerWidth < 768) closeSidebar();
-  // Load voices if not yet
-  if (!voiceState.girlVoice) loadVoices();
-  // Greet the user after a short delay
-  setTimeout(() => voiceGreet(), 600);
-}
-
-function closeVoiceChat() {
-  voiceState.active = false;
-  voiceState.isSpeaking = false;
-  voiceState.isHolding = false;
-  voiceState.isThinking = false;
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-  stopVoiceRecognition();
-  document.getElementById('voice-overlay').classList.remove('active');
-  document.getElementById('voice-live-indicator').style.display = 'none';
-  setVoiceOrbState('idle');
-}
-
-// ── Persona selection ──
-function selectPersona(persona) {
-  voiceState.persona = persona;
-  const orb = document.getElementById('voice-main-orb');
-  const icon = document.getElementById('voice-orb-icon');
-  const nameDisplay = document.getElementById('voice-name-display');
-
-  document.getElementById('vpersona-girl').classList.toggle('active', persona === 'girl');
-  document.getElementById('vpersona-boy').classList.toggle('active', persona === 'boy');
-
-  orb.className = 'voice-main-orb ' + persona;
-  if (persona === 'girl') {
-    icon.textContent = '🎙';
-    nameDisplay.textContent = 'Aria';
-    nameDisplay.style.color = '#ff69b4';
-  } else {
-    icon.textContent = '🎙';
-    nameDisplay.textContent = 'Nova';
-    nameDisplay.style.color = '#6495ed';
-  }
-
-  // Interrupt any speaking and regreet with new voice
-  if (voiceState.isSpeaking) {
-    window.speechSynthesis.cancel();
-    voiceState.isSpeaking = false;
-  }
-}
-
-function setVoiceSpeed(speed, btn) {
-  voiceState.speed = speed;
-  document.querySelectorAll('.voice-speed-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-// ── Orb visual states ──
-function setVoiceOrbState(state) {
-  const orb = document.getElementById('voice-main-orb');
-  const statusEl = document.getElementById('voice-status');
-  const wave = document.getElementById('voice-wave');
-  const icon = document.getElementById('voice-orb-icon');
-  const hint = document.getElementById('voice-hold-hint');
-  const holdBtn = document.getElementById('voice-hold-btn');
-
-  orb.classList.remove('listening', 'speaking');
-  statusEl.classList.remove('listening', 'speaking', 'thinking');
-  wave.classList.remove('visible');
-
-  switch (state) {
-    case 'idle':
-      statusEl.textContent = 'Hold the mic to speak';
-      icon.textContent = '🎙';
-      hint.textContent = 'Hold to speak · Release to send';
-      hint.classList.remove('pressed');
-      holdBtn.classList.remove('pressed', 'ai-talking');
-      break;
-    case 'listening':
-      orb.classList.add('listening');
-      statusEl.classList.add('listening');
-      statusEl.textContent = 'Listening…';
-      icon.textContent = '🎤';
-      hint.textContent = 'Release when done speaking';
-      hint.classList.add('pressed');
-      holdBtn.classList.add('pressed');
-      holdBtn.classList.remove('ai-talking');
-      break;
-    case 'thinking':
-      statusEl.classList.add('thinking');
-      statusEl.textContent = 'Thinking…';
-      icon.textContent = '⏳';
-      hint.textContent = 'Getting response…';
-      hint.classList.remove('pressed');
-      holdBtn.classList.remove('pressed', 'ai-talking');
-      break;
-    case 'speaking':
-      orb.classList.add('speaking');
-      statusEl.classList.add('speaking');
-      statusEl.textContent = 'Speaking…';
-      icon.textContent = '🔊';
-      wave.classList.add('visible');
-      hint.textContent = 'Hold mic to interrupt';
-      hint.classList.remove('pressed');
-      holdBtn.classList.remove('pressed');
-      holdBtn.classList.add('ai-talking');
-      break;
-  }
-}
-
-// ── Transcript bubble ──
-function showTranscript(text, type) {
-  const el = document.getElementById('voice-transcript');
-  el.textContent = text;
-  el.className = 'voice-transcript visible ' + type;
-}
-function hideTranscript() {
-  document.getElementById('voice-transcript').classList.remove('visible');
-}
-
-// ── Greeting ──
-async function voiceGreet() {
-  const greetings = voiceState.persona === 'girl'
-    ? ["Hey! I'm Aria. What are we studying today?",
-       "Hi there! Aria here. What do you need help with?",
-       "Hey! Ready to learn something cool?"]
-    : ["Hey! I'm Nova. What's up, what do you wanna learn?",
-       "Yo! Nova here. What subject are we tackling?",
-       "Hey! Nova here. Let's get into it!"];
-  const msg = greetings[Math.floor(Math.random() * greetings.length)];
-  voiceState.history = [{ role: 'assistant', content: msg }];
-  await speakVoice(msg);
-}
-
-// ── Hold-to-talk handlers ──
-function voiceHoldStart(e) {
-  if (e) e.preventDefault();
-  if (voiceState.isHolding || voiceState.isThinking) return;
-  voiceState.isHolding = true;
-  // Interrupt AI if speaking
-  if (voiceState.isSpeaking) {
-    window.speechSynthesis.cancel();
-    voiceState.isSpeaking = false;
-  }
-  setVoiceOrbState('listening');
-  startVoiceRecognition();
-}
-
-function voiceHoldEnd(e) {
-  if (e) e.preventDefault();
-  if (!voiceState.isHolding) return;
-  voiceState.isHolding = false;
-  stopVoiceRecognition();
-  // Recognition onend will handle sending
-}
-
-// ── Speech recognition ──
-let voiceRecResult = '';
-
-function startVoiceRecognition() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    showTranscript("Sorry, voice not supported in this browser. Try Chrome!", 'ai');
-    setVoiceOrbState('idle');
-    return;
-  }
-  voiceRecResult = '';
-  voiceState.recognition = new SR();
-  const rec = voiceState.recognition;
-  rec.lang = 'en-US';
-  rec.continuous = true;
-  rec.interimResults = true;
-
-  rec.onresult = (event) => {
-    let interim = '', final = '';
-    for (const result of event.results) {
-      if (result.isFinal) final += result[0].transcript;
-      else interim += result[0].transcript;
-    }
-    voiceRecResult = final || interim;
-    if (voiceRecResult.trim()) showTranscript(voiceRecResult, 'user');
-  };
-
-  rec.onerror = (e) => {
-    if (e.error !== 'no-speech') {
-      showTranscript('Microphone error. Please try again.', 'ai');
-    }
-    setVoiceOrbState('idle');
-    voiceState.isHolding = false;
-  };
-
-  rec.onend = () => {
-    if (!voiceState.isHolding && voiceRecResult.trim()) {
-      processVoiceInput(voiceRecResult.trim());
-    } else if (!voiceRecResult.trim()) {
-      setVoiceOrbState('idle');
-    }
-  };
-
-  try { rec.start(); } catch(e) {}
-}
-
-function stopVoiceRecognition() {
-  if (voiceState.recognition) {
-    try { voiceState.recognition.stop(); } catch(e) {}
-    voiceState.recognition = null;
-  }
-}
-
-// ── Process & respond ──
-async function processVoiceInput(text) {
-  setVoiceOrbState('thinking');
-  voiceState.isThinking = true;
-  showTranscript(text, 'user');
-
-  // Push user message
-  voiceState.history.push({ role: 'user', content: text });
-  // Also push to main chat history
-  pushHistory('user', '[Voice] ' + text);
-
-  // Build system prompt for casual voice conversation
-  const voiceName = voiceState.persona === 'girl' ? 'Aria' : 'Nova';
-  const systemPrompt = `You are ${voiceName}, a friendly AI study buddy having a casual voice conversation with a student.
-Keep responses SHORT — 1 to 3 sentences max, like texting a friend.
-Be warm, natural and conversational. No bullet points, no markdown, no lists.
-If explaining something complex, break it into tiny bite-sized pieces across turns.
-Use simple everyday language. Be encouraging and fun.
-Never say "I" at the start of every sentence — vary your sentence starters.
-Detect the student's language and respond in the same language naturally.`;
-
-  try {
-    // Build messages for API
-    const apiMessages = [
-      ...voiceState.history.slice(-10).map(m => ({ role: m.role, content: m.content }))
-    ];
-
-    const res = await fetch(API_URL + '/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: text,
-        model: 'flash', // fast for voice
-        history: [
-          { role: 'user', content: systemPrompt },
-          { role: 'assistant', content: `Sure! I'm ${voiceName}, ready to help.` },
-          ...voiceState.history.slice(-8).slice(0, -1) // exclude last (current) user msg
-        ]
-      })
-    });
-
-    voiceState.isThinking = false;
-
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    let reply = (data.reply || 'Hmm, not sure about that one!').trim();
-
-    // Strip markdown for speech
-    reply = reply
-      .replace(/#{1,3}\s+/g, '')
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/\*([^*]+)\*/g, '$1')
-      .replace(/`[^`]+`/g, '')
-      .replace(/\$\$?[^$]+\$\$?/g, 'this formula')
-      .replace(/\n+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    // Cap length for natural feel
-    if (reply.length > 300) {
-      const sentences = reply.match(/[^.!?]+[.!?]+/g) || [reply];
-      reply = sentences.slice(0, 3).join(' ').trim();
-    }
-
-    voiceState.history.push({ role: 'assistant', content: reply });
-    pushHistory('assistant', '[Voice] ' + reply);
-
-    await speakVoice(reply);
-
-  } catch (err) {
-    voiceState.isThinking = false;
-    const errMsg = "Oops, something went wrong! Try again?";
-    await speakVoice(errMsg);
-  }
-}
-
-// ── TTS speak ──
-function speakVoice(text) {
-  return new Promise((resolve) => {
-    if (!window.speechSynthesis) {
-      showTranscript(text, 'ai');
-      setVoiceOrbState('idle');
-      resolve();
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    voiceState.isSpeaking = true;
-    setVoiceOrbState('speaking');
-    showTranscript(text, 'ai');
-
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = voiceState.speed;
-    utter.pitch = voiceState.persona === 'girl' ? 1.1 : 0.9;
-    utter.volume = 1;
-
-    // Assign the best voice
-    const chosenVoice = voiceState.persona === 'girl'
-      ? voiceState.girlVoice
-      : voiceState.boyVoice;
-    if (chosenVoice) utter.voice = chosenVoice;
-
-    utter.onend = () => {
-      voiceState.isSpeaking = false;
-      if (voiceState.active) setVoiceOrbState('idle');
-      resolve();
-    };
-    utter.onerror = () => {
-      voiceState.isSpeaking = false;
-      if (voiceState.active) setVoiceOrbState('idle');
-      resolve();
-    };
-
-    voiceState.currentUtterance = utter;
-
-    // Chrome fix — voices sometimes need a tiny delay
-    setTimeout(() => {
-      if (voiceState.active) window.speechSynthesis.speak(utter);
-      else resolve();
-    }, 80);
-  });
-}
-
-// ── Prevent page sleep during voice chat (Chrome workaround) ──
-let voiceKeepAwakeInterval = null;
-const origOpenVoiceChat = openVoiceChat;
-// patch to add keep-awake
-function openVoiceChat() {
-  voiceState.active = true;
-  voiceState.history = [];
-  document.getElementById('voice-overlay').classList.add('active');
-  document.getElementById('voice-live-indicator').style.display = 'flex';
-  if (window.innerWidth < 768) closeSidebar();
-  if (!voiceState.girlVoice) loadVoices();
-  // Chrome: keep speech synthesis alive
+  if (!voiceState.enGirlVoice) loadVoices();
   voiceKeepAwakeInterval = setInterval(() => {
-    if (voiceState.active && !voiceState.isSpeaking && !voiceState.isHolding) {
-      window.speechSynthesis.pause();
-      window.speechSynthesis.resume();
-    }
-  }, 10000);
+    if (voiceState.active && !voiceState.isSpeaking && !voiceState.isHolding)
+      window.speechSynthesis.pause(), window.speechSynthesis.resume();
+  }, 8000);
   setTimeout(() => voiceGreet(), 600);
 }
 
-const origCloseVoiceChat = closeVoiceChat;
 function closeVoiceChat() {
   clearInterval(voiceKeepAwakeInterval);
   voiceState.active = false;
@@ -2449,6 +2389,367 @@ function closeVoiceChat() {
   document.getElementById('voice-overlay').classList.remove('active');
   document.getElementById('voice-live-indicator').style.display = 'none';
   setVoiceOrbState('idle');
+}
+
+// ── Persona ────────────────────────────────────────────────
+function selectPersona(persona) {
+  voiceState.persona = persona;
+  const orb = document.getElementById('voice-main-orb');
+  const icon = document.getElementById('voice-orb-icon');
+  const nameDisplay = document.getElementById('voice-name-display');
+  document.getElementById('vpersona-girl').classList.toggle('active', persona === 'girl');
+  document.getElementById('vpersona-boy').classList.toggle('active', persona === 'boy');
+  orb.className = 'voice-main-orb ' + persona;
+  icon.textContent = '🎙';
+  nameDisplay.textContent = persona === 'girl' ? 'Aria' : 'Nova';
+  nameDisplay.style.color = persona === 'girl' ? '#ff69b4' : '#6495ed';
+  if (voiceState.isSpeaking) { window.speechSynthesis.cancel(); voiceState.isSpeaking = false; }
+}
+
+function setVoiceSpeed(speed, btn) {
+  voiceState.speed = speed;
+  document.querySelectorAll('.voice-speed-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Orb states ─────────────────────────────────────────────
+function setVoiceOrbState(state) {
+  const orb = document.getElementById('voice-main-orb');
+  const statusEl = document.getElementById('voice-status');
+  const wave = document.getElementById('voice-wave');
+  const icon = document.getElementById('voice-orb-icon');
+  const hint = document.getElementById('voice-hold-hint');
+  const holdBtn = document.getElementById('voice-hold-btn');
+  orb.classList.remove('listening','speaking');
+  statusEl.classList.remove('listening','speaking','thinking');
+  wave.classList.remove('visible');
+
+  const lang = voiceState.detectedLang;
+  const idleMsg = lang && lang.lang !== 'en'
+    ? getLocalizedHint('idle', lang.lang)
+    : 'Hold the mic to speak';
+  const listenMsg = lang && lang.lang !== 'en'
+    ? getLocalizedHint('listening', lang.lang)
+    : 'Listening…';
+
+  switch(state) {
+    case 'idle':
+      statusEl.textContent = idleMsg;
+      icon.textContent = '🎙';
+      hint.textContent = lang && lang.lang !== 'en'
+        ? getLocalizedHint('hint_idle', lang.lang)
+        : 'Hold to speak · Release to send';
+      hint.classList.remove('pressed');
+      holdBtn.classList.remove('pressed','ai-talking');
+      break;
+    case 'listening':
+      orb.classList.add('listening');
+      statusEl.classList.add('listening');
+      statusEl.textContent = listenMsg;
+      icon.textContent = '🎤';
+      hint.textContent = lang && lang.lang !== 'en'
+        ? getLocalizedHint('hint_listening', lang.lang)
+        : 'Release when done speaking';
+      hint.classList.add('pressed');
+      holdBtn.classList.add('pressed');
+      holdBtn.classList.remove('ai-talking');
+      break;
+    case 'thinking':
+      statusEl.classList.add('thinking');
+      statusEl.textContent = lang && lang.lang !== 'en'
+        ? getLocalizedHint('thinking', lang.lang) : 'Thinking…';
+      icon.textContent = '⏳';
+      hint.textContent = '…';
+      hint.classList.remove('pressed');
+      holdBtn.classList.remove('pressed','ai-talking');
+      break;
+    case 'speaking':
+      orb.classList.add('speaking');
+      statusEl.classList.add('speaking');
+      statusEl.textContent = lang && lang.lang !== 'en'
+        ? getLocalizedHint('speaking', lang.lang) : 'Speaking…';
+      icon.textContent = '🔊';
+      wave.classList.add('visible');
+      hint.textContent = lang && lang.lang !== 'en'
+        ? getLocalizedHint('hint_speaking', lang.lang) : 'Hold mic to interrupt';
+      hint.classList.remove('pressed');
+      holdBtn.classList.remove('pressed');
+      holdBtn.classList.add('ai-talking');
+      break;
+  }
+}
+
+// Localized UI hints for major languages
+const LOCALIZED_HINTS = {
+  hi: { idle:'माइक दबाकर बोलें', listening:'सुन रहे हैं…', thinking:'सोच रहे हैं…', speaking:'बोल रहे हैं…', hint_idle:'बोलने के लिए दबाएं', hint_listening:'बोलने के बाद छोड़ें', hint_speaking:'रोकने के लिए दबाएं' },
+  bn: { idle:'মাইক ধরে বলুন', listening:'শুনছি…', thinking:'ভাবছি…', speaking:'বলছি…', hint_idle:'বলতে ধরুন', hint_listening:'বলা শেষে ছাড়ুন', hint_speaking:'থামাতে ধরুন' },
+  ta: { idle:'மைக்கை பிடித்து பேசுங்கள்', listening:'கேட்கிறேன்…', thinking:'யோசிக்கிறேன்…', speaking:'பேசுகிறேன்…', hint_idle:'பேச பிடிக்கவும்', hint_listening:'முடிந்ததும் விடுங்கள்', hint_speaking:'நிறுத்த பிடிக்கவும்' },
+  te: { idle:'మైక్ పట్టుకుని మాట్లాడండి', listening:'వింటున్నాను…', thinking:'ఆలోచిస్తున్నాను…', speaking:'మాట్లాడుతున్నాను…', hint_idle:'మాట్లాడటానికి పట్టుకోండి', hint_listening:'మాట్లాడటం అయిన తర్వాత వదలండి', hint_speaking:'ఆపడానికి పట్టుకోండి' },
+  mr: { idle:'मायक दाबून बोला', listening:'ऐकतोय…', thinking:'विचार करतोय…', speaking:'बोलतोय…', hint_idle:'बोलण्यासाठी दाबा', hint_listening:'बोलून झाल्यावर सोडा', hint_speaking:'थांबवण्यासाठी दाबा' },
+  fr: { idle:'Maintenez le micro pour parler', listening:'J\'écoute…', thinking:'Je réfléchis…', speaking:'Je parle…', hint_idle:'Maintenez pour parler', hint_listening:'Relâchez après avoir parlé', hint_speaking:'Maintenez pour interrompre' },
+  es: { idle:'Mantén el micrófono para hablar', listening:'Escuchando…', thinking:'Pensando…', speaking:'Hablando…', hint_idle:'Mantén para hablar', hint_listening:'Suelta cuando termines', hint_speaking:'Mantén para interrumpir' },
+  de: { idle:'Mikrofon halten zum Sprechen', listening:'Höre zu…', thinking:'Denke nach…', speaking:'Spreche…', hint_idle:'Halten zum Sprechen', hint_listening:'Loslassen wenn fertig', hint_speaking:'Halten zum Unterbrechen' },
+  ja: { idle:'マイクを押して話してください', listening:'聞いています…', thinking:'考えています…', speaking:'話しています…', hint_idle:'押して話す', hint_listening:'話し終えたら離す', hint_speaking:'押して止める' },
+  ko: { idle:'마이크를 눌러 말하세요', listening:'듣고 있어요…', thinking:'생각 중…', speaking:'말하는 중…', hint_idle:'눌러서 말하기', hint_listening:'말 끝나면 놓기', hint_speaking:'눌러서 중단' },
+  zh: { idle:'按住麦克风说话', listening:'正在聆听…', thinking:'思考中…', speaking:'正在说话…', hint_idle:'按住说话', hint_listening:'说完松开', hint_speaking:'按住打断' },
+};
+function getLocalizedHint(key, lang) {
+  return LOCALIZED_HINTS[lang]?.[key] || LOCALIZED_HINTS.hi?.[key] || '';
+}
+
+// ── Transcript + History ───────────────────────────────────
+function showTranscript(text, type) {
+  const el = document.getElementById('voice-transcript');
+  el.textContent = text;
+  el.className = 'voice-transcript visible ' + type;
+}
+function addToHistory(text, role) {
+  const row = document.getElementById('voice-history-row');
+  const bubble = document.createElement('div');
+  bubble.className = 'voice-hist-bubble ' + (role === 'user' ? 'user' : 'ai');
+  bubble.textContent = text.length > 80 ? text.slice(0, 80) + '…' : text;
+  row.appendChild(bubble);
+  // Keep only last 6 bubbles visible
+  while (row.children.length > 6) row.removeChild(row.firstChild);
+  row.scrollTop = row.scrollHeight;
+}
+
+// ── Greeting (multilingual based on prior history) ─────────
+async function voiceGreet() {
+  const voiceName = voiceState.persona === 'girl' ? 'Aria' : 'Nova';
+  // Check if there's existing chat history to reference
+  const existingHistory = getChatHistory();
+  let greetMsg;
+
+  if (existingHistory.length > 2) {
+    // Reference the ongoing conversation
+    const lastTopic = existingHistory.slice(-2).find(m => m.role === 'user')?.content?.slice(0, 40) || '';
+    greetMsg = `Hey! ${voiceName} here. Continuing from where we left off — you were asking about ${lastTopic}. What else?`;
+  } else {
+    const greetings = voiceState.persona === 'girl'
+      ? ["Hey! I'm Aria. What are we studying today?",
+         "Hi! Aria here — what do you need help with?",
+         "Hey! Ready to learn? Just talk to me!"]
+      : ["Hey! I'm Nova. What subject today?",
+         "Yo! Nova here. What are we getting into?",
+         "Hey! Nova here — just talk, I'm listening!"];
+    greetMsg = greetings[Math.floor(Math.random() * greetings.length)];
+  }
+
+  voiceState.history = [{ role: 'assistant', content: greetMsg, lang: 'en' }];
+  addToHistory(greetMsg, 'ai');
+  await speakVoice(greetMsg, null);
+}
+
+// ── Hold-to-talk ──────────────────────────────────────────
+function voiceHoldStart(e) {
+  if (e) e.preventDefault();
+  if (voiceState.isHolding || voiceState.isThinking) return;
+  voiceState.isHolding = true;
+  if (voiceState.isSpeaking) { window.speechSynthesis.cancel(); voiceState.isSpeaking = false; }
+  setVoiceOrbState('listening');
+  startVoiceRecognition();
+}
+function voiceHoldEnd(e) {
+  if (e) e.preventDefault();
+  if (!voiceState.isHolding) return;
+  voiceState.isHolding = false;
+  stopVoiceRecognition();
+}
+
+// ── Speech recognition (language-aware) ──────────────────
+let voiceRecResult = '';
+function startVoiceRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showTranscript('Voice not supported. Use Chrome!', 'ai'); setVoiceOrbState('idle'); return; }
+  voiceRecResult = '';
+  voiceState.recognition = new SR();
+  const rec = voiceState.recognition;
+
+  // Use detected language for recognition, fallback to broad multilingual
+  // Chrome supports multiple lang hints via lang property
+  rec.lang = getRecognitionLang();
+  rec.continuous = true;
+  rec.interimResults = true;
+
+  rec.onresult = (event) => {
+    let interim = '', final = '';
+    for (const r of event.results) {
+      if (r.isFinal) final += r[0].transcript;
+      else interim += r[0].transcript;
+    }
+    voiceRecResult = final || interim;
+    if (voiceRecResult.trim()) showTranscript(voiceRecResult, 'user');
+  };
+  rec.onerror = (e) => {
+    if (e.error === 'language-not-supported') {
+      // Fallback to en-US
+      rec.lang = 'en-US';
+    } else if (e.error !== 'no-speech') {
+      showTranscript('Mic error — try again', 'ai');
+    }
+    setVoiceOrbState('idle');
+    voiceState.isHolding = false;
+  };
+  rec.onend = () => {
+    if (!voiceState.isHolding && voiceRecResult.trim()) {
+      processVoiceInput(voiceRecResult.trim());
+    } else if (!voiceRecResult.trim()) {
+      setVoiceOrbState('idle');
+    }
+  };
+  try { rec.start(); } catch(e) {}
+}
+function stopVoiceRecognition() {
+  if (voiceState.recognition) { try { voiceState.recognition.stop(); } catch(e) {} voiceState.recognition = null; }
+}
+
+// ── Process voice input (language-aware) ──────────────────
+async function processVoiceInput(text) {
+  setVoiceOrbState('thinking');
+  voiceState.isThinking = true;
+  showTranscript(text, 'user');
+  addToHistory(text, 'user');
+
+  // Detect language
+  const lang = detectLanguage(text);
+  if (lang) updateLangUI(lang);
+
+  voiceState.history.push({ role: 'user', content: text, lang: lang?.lang });
+  pushHistory('user', '[Voice] ' + text);
+
+  const voiceName = voiceState.persona === 'girl' ? 'Aria' : 'Nova';
+  const langName = lang?.name || 'English';
+  const isHinglish = lang?.isHinglish;
+
+  // Build context from existing chat + voice history
+  const mainCtx = getChatHistory()
+    .slice(-6)
+    .filter(m => !m.content.startsWith('[Voice]'))
+    .map(m => ({ role: m.role, content: m.content }));
+
+  // System prompt enforcing language + casual style
+  const systemMsg = `You are ${voiceName}, a super friendly AI study buddy on a voice call with a student.
+
+LANGUAGE RULE — CRITICAL:
+- The student is speaking in: ${langName}${isHinglish ? ' (mixing Hindi + English)' : ''}
+- YOU MUST respond in the EXACT SAME LANGUAGE: ${langName}
+- If Hinglish, reply in Hinglish naturally — mix Hindi and English like a desi friend
+- NEVER switch to English if they spoke Hindi/Tamil/Bengali/etc
+- Use the native script: Devanagari for Hindi/Marathi, Bengali script, Tamil script, etc.
+
+VOICE STYLE RULES:
+- Keep replies SHORT: 1-2 sentences only, like a quick WhatsApp voice message
+- Super casual and warm, like a close friend
+- No bullet points, no markdown, no headers, no lists
+- No "I" at start of every sentence — vary it
+- If they ask something complex, answer one small piece at a time
+- Be encouraging, use their language's casual filler words naturally
+- Reference earlier conversation context when relevant`;
+
+  try {
+    const historyForApi = [
+      // Inject main chat context first
+      ...mainCtx,
+      // Then voice history (excluding current message)
+      ...voiceState.history.slice(-10).slice(0, -1).map(m => ({
+        role: m.role,
+        content: m.content,
+      }))
+    ];
+
+    const res = await fetch(API_URL + '/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: systemMsg + '\n\nStudent says: ' + text,
+        model: 'flash',
+        history: historyForApi,
+      })
+    });
+
+    voiceState.isThinking = false;
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    let reply = (data.reply || '').trim();
+
+    // Strip markdown for clean speech
+    reply = reply
+      .replace(/#{1,3}\s+/g, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/`[^`]+`/g, '')
+      .replace(/\$\$?[^$]+\$\$?/g, '')
+      .replace(/\n+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!reply) reply = lang?.lang === 'hi' ? 'समझ नहीं आया, फिर से बोलो!' : 'Hmm, say that again?';
+
+    // Cap to 2-3 sentences for natural voice feel
+    const sentences = reply.match(/[^।।!?.]+[।।!?.]+/g) || [reply];
+    if (sentences.length > 3) reply = sentences.slice(0, 3).join(' ').trim();
+
+    voiceState.history.push({ role: 'assistant', content: reply, lang: lang?.lang });
+    pushHistory('assistant', '[Voice] ' + reply);
+    addToHistory(reply, 'ai');
+
+    // Update recognition lang for next turn
+    if (lang) voiceState.recognitionLang = lang.bcp47;
+
+    await speakVoice(reply, lang?.lang);
+
+  } catch (err) {
+    voiceState.isThinking = false;
+    const errMsg = lang?.lang === 'hi' ? 'कुछ गड़बड़ हुई, फिर से कोशिश करो!' : 'Oops, something went wrong! Try again?';
+    await speakVoice(errMsg, lang?.lang);
+  }
+}
+
+// ── TTS speak with language-appropriate voice ─────────────
+function speakVoice(text, langCode) {
+  return new Promise((resolve) => {
+    if (!window.speechSynthesis) {
+      showTranscript(text, 'ai');
+      setVoiceOrbState('idle');
+      resolve();
+      return;
+    }
+    window.speechSynthesis.cancel();
+    voiceState.isSpeaking = true;
+    setVoiceOrbState('speaking');
+    showTranscript(text, 'ai');
+
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = voiceState.speed;
+    utter.volume = 1;
+
+    // Pick voice: prefer language-specific, fall back to English persona voice
+    const chosenVoice = getVoiceForLang(langCode, voiceState.persona);
+    if (chosenVoice) utter.voice = chosenVoice;
+
+    // Pitch: girl slightly higher, boy slightly lower
+    // For Indian langs, pitch adjustment feels more natural at near-neutral
+    const isIndian = ['hi','bn','ta','te','kn','ml','mr','gu','pa'].includes(langCode);
+    utter.pitch = voiceState.persona === 'girl'
+      ? (isIndian ? 1.05 : 1.1)
+      : (isIndian ? 0.92 : 0.88);
+
+    // Set utterance lang to match
+    if (langCode && langCode !== 'en') {
+      const bcp47 = voiceState.detectedLang?.bcp47;
+      if (bcp47) utter.lang = bcp47;
+    }
+
+    utter.onend = () => { voiceState.isSpeaking = false; if (voiceState.active) setVoiceOrbState('idle'); resolve(); };
+    utter.onerror = () => { voiceState.isSpeaking = false; if (voiceState.active) setVoiceOrbState('idle'); resolve(); };
+    voiceState.currentUtterance = utter;
+
+    setTimeout(() => {
+      if (voiceState.active) window.speechSynthesis.speak(utter);
+      else resolve();
+    }, 80);
+  });
 }
 (function(){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';document.head.appendChild(s);})();
 

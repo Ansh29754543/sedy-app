@@ -619,6 +619,344 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .wb-prompt-input{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(167,139,250,.2);border-radius:20px;padding:7px 14px;color:white;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;}
 .wb-prompt-send{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#60a5fa);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:white;flex-shrink:0;}
 
+/* ══════════════════════════════════════════
+   VOICE CHAT
+══════════════════════════════════════════ */
+.voice-chat-btn{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;
+  background:linear-gradient(135deg,rgba(255,105,180,.15),rgba(100,149,237,.15));
+  border:1px solid rgba(255,105,180,.3);
+  border-radius:12px;color:var(--text2);font-size:12px;
+  cursor:pointer;font-family:'DM Mono',monospace;
+  transition:all .22s;width:100%;margin-bottom:2px;
+  position:relative;overflow:hidden;
+}
+.voice-chat-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,105,180,.08),rgba(100,149,237,.08));
+  opacity:0;transition:opacity .2s;
+}
+.voice-chat-btn:hover::before{opacity:1;}
+.voice-chat-btn:hover{border-color:rgba(255,105,180,.55);color:var(--text);}
+.voice-chat-btn-icon{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,#ff69b4,#6495ed);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+  box-shadow:0 0 12px rgba(255,105,180,.35);
+}
+.voice-chat-btn-text{display:flex;flex-direction:column;gap:1px;}
+.voice-chat-btn-label{font-size:12px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;}
+.voice-chat-btn-sub{font-size:9px;color:var(--text3);letter-spacing:.3px;}
+.voice-chat-btn-live{
+  margin-left:auto;display:flex;align-items:center;gap:4px;
+  font-size:9px;color:#ff69b4;font-family:'DM Mono',monospace;
+  letter-spacing:.5px;
+}
+.voice-live-dot{
+  width:5px;height:5px;border-radius:50%;background:#ff69b4;
+  box-shadow:0 0 5px #ff69b4;animation:pulseDot 1.4s infinite;
+}
+
+/* ── VOICE OVERLAY ── */
+.voice-overlay{
+  position:fixed;inset:0;z-index:950;
+  background:#06080f;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.voice-overlay.active{display:flex;}
+
+/* Animated background blobs */
+.voice-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.voice-blob{
+  position:absolute;border-radius:50%;filter:blur(90px);
+  animation:blobFloat 8s ease-in-out infinite alternate;
+}
+.voice-blob-1{
+  width:500px;height:500px;
+  background:radial-gradient(circle,rgba(255,105,180,.18) 0%,transparent 70%);
+  top:-100px;left:-100px;animation-delay:0s;
+}
+.voice-blob-2{
+  width:400px;height:400px;
+  background:radial-gradient(circle,rgba(100,149,237,.18) 0%,transparent 70%);
+  bottom:-80px;right:-80px;animation-delay:-3s;
+}
+.voice-blob-3{
+  width:300px;height:300px;
+  background:radial-gradient(circle,rgba(160,100,255,.12) 0%,transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-5s;
+}
+@keyframes blobFloat{
+  0%{transform:translate(0,0) scale(1);}
+  100%{transform:translate(30px,20px) scale(1.08);}
+}
+.voice-blob-1{animation-name:blobFloat1;}
+.voice-blob-2{animation-name:blobFloat2;}
+@keyframes blobFloat1{0%{transform:translate(0,0);}100%{transform:translate(40px,30px);}}
+@keyframes blobFloat2{0%{transform:translate(0,0);}100%{transform:translate(-30px,-20px);}}
+
+/* Top bar */
+.voice-topbar{
+  position:absolute;top:0;left:0;right:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px;padding-top:calc(18px + var(--safe-t));
+  z-index:10;
+}
+.voice-topbar-brand{
+  font-family:'Syne',sans-serif;font-size:17px;font-weight:800;
+  background:linear-gradient(135deg,#ff69b4,#6495ed);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  display:flex;align-items:center;gap:8px;
+}
+.voice-topbar-brand-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:linear-gradient(135deg,#ff69b4,#6495ed);
+  -webkit-text-fill-color:initial;
+  box-shadow:0 0 8px #ff69b4;animation:pulseDot 1.2s infinite;
+}
+.voice-close-btn{
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.7);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.voice-close-btn:hover{background:rgba(255,79,106,.25);border-color:rgba(255,79,106,.5);color:white;}
+
+/* Voice persona selector */
+.voice-persona-row{
+  display:flex;gap:16px;margin-bottom:48px;
+  z-index:5;
+}
+.voice-persona{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  cursor:pointer;transition:all .2s;
+}
+.voice-persona-orb{
+  width:72px;height:72px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;border:2px solid transparent;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  position:relative;
+}
+.voice-persona-orb::after{
+  content:'';position:absolute;inset:-4px;border-radius:50%;
+  border:2px solid transparent;transition:all .25s;
+}
+.voice-persona.active .voice-persona-orb::after{
+  border-color:currentColor;opacity:.5;
+  animation:orbRing 2s linear infinite;
+}
+@keyframes orbRing{0%{transform:rotate(0);}100%{transform:rotate(360deg);}}
+.voice-persona-girl .voice-persona-orb{
+  background:radial-gradient(circle at 35% 35%,#ffb3d9,#ff69b4,#d1004e);
+  box-shadow:0 0 30px rgba(255,105,180,.4);color:#ff69b4;
+}
+.voice-persona-girl.active .voice-persona-orb{
+  box-shadow:0 0 50px rgba(255,105,180,.7),0 0 100px rgba(255,105,180,.25);
+  transform:scale(1.08);
+}
+.voice-persona-boy .voice-persona-orb{
+  background:radial-gradient(circle at 35% 35%,#b3ccff,#6495ed,#1a4fbf);
+  box-shadow:0 0 30px rgba(100,149,237,.4);color:#6495ed;
+}
+.voice-persona-boy.active .voice-persona-orb{
+  box-shadow:0 0 50px rgba(100,149,237,.7),0 0 100px rgba(100,149,237,.25);
+  transform:scale(1.08);
+}
+.voice-persona-label{
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:rgba(255,255,255,.5);letter-spacing:.8px;text-transform:uppercase;
+  transition:color .2s;
+}
+.voice-persona.active .voice-persona-label{color:rgba(255,255,255,.9);font-weight:700;}
+.voice-persona-name{
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  color:rgba(255,255,255,.35);transition:color .2s;
+}
+.voice-persona.active .voice-persona-name{color:rgba(255,255,255,.85);}
+
+/* Main orb — the speaking visualizer */
+.voice-main-orb-wrap{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  width:200px;height:200px;margin-bottom:40px;z-index:5;
+}
+.voice-main-orb-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.06);
+  animation:ringExpand 3s ease-in-out infinite;
+}
+.voice-main-orb-ring:nth-child(2){animation-delay:.6s;inset:-12px;}
+.voice-main-orb-ring:nth-child(3){animation-delay:1.2s;inset:-24px;}
+@keyframes ringExpand{0%,100%{opacity:.06;transform:scale(1);}50%{opacity:.12;transform:scale(1.02);}}
+.voice-main-orb{
+  width:160px;height:160px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;transition:all .3s cubic-bezier(.4,0,.2,1);
+  cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none;
+}
+.voice-main-orb.girl{
+  background:radial-gradient(circle at 38% 32%,#ffd6ea,#ff69b4 40%,#c2005b 80%,#7a0038);
+  box-shadow:0 0 60px rgba(255,105,180,.5),0 0 120px rgba(255,105,180,.2),inset 0 0 40px rgba(255,255,255,.1);
+}
+.voice-main-orb.boy{
+  background:radial-gradient(circle at 38% 32%,#d6e8ff,#6495ed 40%,#1f5bbf 80%,#0a2e7a);
+  box-shadow:0 0 60px rgba(100,149,237,.5),0 0 120px rgba(100,149,237,.2),inset 0 0 40px rgba(255,255,255,.1);
+}
+.voice-main-orb.listening{
+  animation:orbBreathe .6s ease-in-out infinite alternate;
+}
+.voice-main-orb.speaking{
+  animation:orbSpeak .4s ease-in-out infinite alternate;
+}
+@keyframes orbBreathe{0%{transform:scale(.95);}100%{transform:scale(1.05);}}
+@keyframes orbSpeak{
+  0%{transform:scale(1);}
+  25%{transform:scale(1.07);}
+  50%{transform:scale(.98);}
+  75%{transform:scale(1.05);}
+  100%{transform:scale(.97);}
+}
+.voice-main-orb-shine{
+  position:absolute;width:60px;height:30px;
+  background:rgba(255,255,255,.25);border-radius:50%;
+  top:20%;left:22%;filter:blur(8px);pointer-events:none;
+}
+.voice-main-orb-icon{
+  font-size:40px;pointer-events:none;
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,.3));
+}
+
+/* Waveform bars (shown when speaking) */
+.voice-wave{
+  display:flex;gap:4px;align-items:center;height:48px;
+  opacity:0;transition:opacity .3s;
+  position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+}
+.voice-wave.visible{opacity:1;}
+.voice-wave-bar{
+  width:4px;border-radius:4px;
+  background:rgba(255,255,255,.6);
+  animation:waveBarAnim .5s ease-in-out infinite;
+}
+.voice-wave-bar:nth-child(1){animation-delay:0s;}
+.voice-wave-bar:nth-child(2){animation-delay:.07s;}
+.voice-wave-bar:nth-child(3){animation-delay:.14s;}
+.voice-wave-bar:nth-child(4){animation-delay:.21s;}
+.voice-wave-bar:nth-child(5){animation-delay:.28s;}
+.voice-wave-bar:nth-child(6){animation-delay:.21s;}
+.voice-wave-bar:nth-child(7){animation-delay:.14s;}
+.voice-wave-bar:nth-child(8){animation-delay:.07s;}
+.voice-wave-bar:nth-child(9){animation-delay:0s;}
+@keyframes waveBarAnim{0%,100%{height:6px;}50%{height:32px;}}
+
+/* Status text */
+.voice-status{
+  font-family:'DM Mono',monospace;font-size:12px;
+  color:rgba(255,255,255,.4);letter-spacing:.5px;
+  margin-bottom:32px;z-index:5;min-height:18px;
+  transition:all .25s;text-align:center;
+}
+.voice-status.listening{color:rgba(255,105,180,.9);}
+.voice-status.speaking{color:rgba(100,149,237,.9);}
+.voice-status.thinking{color:rgba(160,100,255,.9);animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* Last spoken text bubble */
+.voice-transcript{
+  max-width:320px;text-align:center;
+  font-family:'DM Sans',sans-serif;font-size:14px;
+  color:rgba(255,255,255,.7);line-height:1.6;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:18px;padding:12px 18px;
+  z-index:5;min-height:52px;
+  transition:all .3s;
+  opacity:0;transform:translateY(6px);
+}
+.voice-transcript.visible{opacity:1;transform:translateY(0);}
+.voice-transcript.user{
+  background:rgba(255,105,180,.12);
+  border-color:rgba(255,105,180,.25);
+  color:rgba(255,255,255,.85);
+}
+.voice-transcript.ai{
+  background:rgba(100,149,237,.12);
+  border-color:rgba(100,149,237,.25);
+}
+
+/* Hold mic button */
+.voice-controls{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:24px 24px;padding-bottom:calc(24px + var(--safe-b));
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  background:linear-gradient(0deg,rgba(6,8,15,.95) 0%,transparent 100%);
+  z-index:10;
+}
+.voice-hold-btn{
+  width:80px;height:80px;border-radius:50%;
+  background:rgba(255,255,255,.1);
+  border:2px solid rgba(255,255,255,.2);
+  color:white;font-size:30px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .18s cubic-bezier(.4,0,.2,1);
+  user-select:none;-webkit-user-select:none;touch-action:none;
+  position:relative;overflow:hidden;
+}
+.voice-hold-btn::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,105,180,.3),transparent 70%);
+  opacity:0;transition:opacity .18s;
+}
+.voice-hold-btn.pressed{
+  background:rgba(255,105,180,.25);
+  border-color:rgba(255,105,180,.7);
+  transform:scale(.93);
+  box-shadow:0 0 40px rgba(255,105,180,.5);
+}
+.voice-hold-btn.pressed::before{opacity:1;}
+.voice-hold-btn.ai-talking{
+  background:rgba(100,149,237,.2);
+  border-color:rgba(100,149,237,.6);
+  box-shadow:0 0 40px rgba(100,149,237,.4);
+  animation:holdBtnAI 1s ease-in-out infinite alternate;
+}
+@keyframes holdBtnAI{0%{box-shadow:0 0 30px rgba(100,149,237,.3);}100%{box-shadow:0 0 60px rgba(100,149,237,.6);}}
+.voice-hold-hint{
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:rgba(255,255,255,.3);letter-spacing:.5px;
+  text-align:center;
+}
+.voice-hold-hint.pressed{color:rgba(255,105,180,.7);}
+
+/* Voice settings row */
+.voice-settings-row{
+  display:flex;gap:10px;align-items:center;
+  padding:8px 14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:24px;font-size:11px;
+  font-family:'DM Mono',monospace;
+  color:rgba(255,255,255,.4);
+}
+.voice-speed-btn{
+  background:none;border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;padding:3px 9px;font-size:10px;
+  color:rgba(255,255,255,.4);cursor:pointer;font-family:'DM Mono',monospace;
+  transition:all .18s;
+}
+.voice-speed-btn.active{
+  background:rgba(255,255,255,.1);
+  border-color:rgba(255,255,255,.25);
+  color:rgba(255,255,255,.9);
+}
+.voice-settings-sep{
+  width:1px;height:14px;background:rgba(255,255,255,.1);
+}
+
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
   :root{--sidebar-w:240px;}
@@ -676,6 +1014,17 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
 
     <div class="sidebar-bottom">
+      <!-- Voice Chat Button -->
+      <button class="voice-chat-btn" onclick="openVoiceChat()" id="voice-sidebar-btn">
+        <div class="voice-chat-btn-icon">🎙</div>
+        <div class="voice-chat-btn-text">
+          <div class="voice-chat-btn-label">Voice Chat</div>
+          <div class="voice-chat-btn-sub">Talk to Sedy hands-free</div>
+        </div>
+        <div class="voice-chat-btn-live" id="voice-live-indicator" style="display:none">
+          <div class="voice-live-dot"></div>LIVE
+        </div>
+      </button>
       <div class="memory-badge-sb">
         <div class="memory-dot"></div>
         <span id="memory-count-sb">0 messages</span>
@@ -786,6 +1135,92 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
       <div class="input-hint">🎤 voice &bull; 📎 files &bull; 📸 screenshot &bull; 🔭 scope &bull; 🖊 whiteboard</div>
     </div>
+  </div>
+</div>
+
+<!-- ══ VOICE CHAT OVERLAY ══ -->
+<div class="voice-overlay" id="voice-overlay">
+  <div class="voice-bg">
+    <div class="voice-blob voice-blob-1"></div>
+    <div class="voice-blob voice-blob-2"></div>
+    <div class="voice-blob voice-blob-3"></div>
+  </div>
+
+  <!-- Top bar -->
+  <div class="voice-topbar">
+    <div class="voice-topbar-brand">
+      <div class="voice-topbar-brand-dot"></div>
+      Sedy Voice
+    </div>
+    <button class="voice-close-btn" onclick="closeVoiceChat()">✕</button>
+  </div>
+
+  <!-- Persona selector -->
+  <div class="voice-persona-row">
+    <div class="voice-persona voice-persona-girl active" id="vpersona-girl" onclick="selectPersona('girl')">
+      <div class="voice-persona-orb">
+        <span style="font-size:28px;">👩</span>
+      </div>
+      <div class="voice-persona-name">Aria</div>
+      <div class="voice-persona-label">Girl</div>
+    </div>
+    <div class="voice-persona voice-persona-boy" id="vpersona-boy" onclick="selectPersona('boy')">
+      <div class="voice-persona-orb">
+        <span style="font-size:28px;">👦</span>
+      </div>
+      <div class="voice-persona-name">Nova</div>
+      <div class="voice-persona-label">Boy</div>
+    </div>
+  </div>
+
+  <!-- Main animated orb -->
+  <div class="voice-main-orb-wrap">
+    <div class="voice-main-orb-ring"></div>
+    <div class="voice-main-orb-ring"></div>
+    <div class="voice-main-orb-ring"></div>
+    <div class="voice-main-orb girl" id="voice-main-orb">
+      <div class="voice-main-orb-shine"></div>
+      <div class="voice-main-orb-icon" id="voice-orb-icon">🎙</div>
+    </div>
+    <!-- Waveform visible while speaking -->
+    <div class="voice-wave" id="voice-wave">
+      <div class="voice-wave-bar"></div>
+      <div class="voice-wave-bar"></div>
+      <div class="voice-wave-bar"></div>
+      <div class="voice-wave-bar"></div>
+      <div class="voice-wave-bar"></div>
+      <div class="voice-wave-bar"></div>
+      <div class="voice-wave-bar"></div>
+      <div class="voice-wave-bar"></div>
+      <div class="voice-wave-bar"></div>
+    </div>
+  </div>
+
+  <!-- Status line -->
+  <div class="voice-status" id="voice-status">Hold the mic to speak</div>
+
+  <!-- Transcript bubble -->
+  <div class="voice-transcript" id="voice-transcript"></div>
+
+  <!-- Bottom controls -->
+  <div class="voice-controls">
+    <!-- Speed + voice settings -->
+    <div class="voice-settings-row">
+      <span>Speed</span>
+      <button class="voice-speed-btn" data-speed="0.85" onclick="setVoiceSpeed(0.85,this)">Slow</button>
+      <button class="voice-speed-btn active" data-speed="1" onclick="setVoiceSpeed(1,this)">Normal</button>
+      <button class="voice-speed-btn" data-speed="1.25" onclick="setVoiceSpeed(1.25,this)">Fast</button>
+      <div class="voice-settings-sep"></div>
+      <span id="voice-name-display" style="color:rgba(255,255,255,.7);font-weight:700;">Aria</span>
+    </div>
+
+    <!-- Hold-to-talk button -->
+    <button class="voice-hold-btn" id="voice-hold-btn"
+      onmousedown="voiceHoldStart()" onmouseup="voiceHoldEnd()" onmouseleave="voiceHoldEnd()"
+      ontouchstart="voiceHoldStart(event)" ontouchend="voiceHoldEnd(event)">
+      🎤
+    </button>
+    <div class="voice-hold-hint" id="voice-hold-hint">Hold to speak · Release to send</div>
   </div>
 </div>
 
@@ -1553,7 +1988,468 @@ function ideClearOutput(){document.getElementById('ide-output').textContent='Run
 async function ideAiExplain(){const code=document.getElementById('ide-textarea').value;const out=document.getElementById('ide-output').textContent;if(!out||out==='Run your code to see output here…')return;const aiRow=document.getElementById('ide-ai-row');aiRow.className='ide-ai-row visible';aiRow.innerHTML='⏳ Explaining…';try{const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:`Explain this output in one sentence:\nOutput: ${out}\nCode: ${code}`,model:'flash',history:[]})});if(res.ok){const d=await res.json();aiRow.innerHTML='<strong>✦</strong> '+(d.reply||'');}}catch(e){aiRow.className='ide-ai-row';}}
 function ideSendToChat(){const code=document.getElementById('ide-textarea').value;const out=document.getElementById('ide-output').textContent;closeIde();document.getElementById('chat-input').value=`Here is my ${ideCurrentLang} code:\n\`\`\`${ideCurrentLang}\n${code}\n\`\`\`\nOutput: ${out}`;autoResize(document.getElementById('chat-input'));}
 
-// ── Chart.js loader ──
+// ══════════════════════════════════════════════════════
+// VOICE CHAT SYSTEM
+// ══════════════════════════════════════════════════════
+
+/*
+  VOICE SELECTION STRATEGY
+  ------------------------
+  We use the Web Speech API (SpeechSynthesis) with careful voice selection.
+  
+  Best human-sounding voices available in browsers:
+  
+  GIRL (Aria / female):
+  - "Microsoft Aria Online" (Edge/Windows) — very natural, warm
+  - "Google UK English Female" (Chrome) — clear British accent
+  - "Samantha" (macOS/iOS Safari) — warm American
+  - "Karen" (macOS) — Australian, clear
+  - Fallback: any voice with "female" in name or index 0
+
+  BOY (Nova / male):
+  - "Microsoft Guy Online" (Edge/Windows) — natural male
+  - "Google UK English Male" (Chrome) — calm British
+  - "Daniel" (macOS) — British male
+  - "Alex" (macOS) — American male
+  - Fallback: any voice with "male" in name or index 1
+  
+  The system scores available voices and picks the best match.
+*/
+
+let voiceState = {
+  active: false,
+  persona: 'girl',        // 'girl' | 'boy'
+  speed: 1.0,
+  isHolding: false,
+  isSpeaking: false,
+  isThinking: false,
+  history: [],            // short context [{role,content}]
+  girlVoice: null,
+  boyVoice: null,
+  recognition: null,
+  currentUtterance: null,
+};
+
+// ── Voice scoring — pick the most human-sounding voice ──
+const GIRL_VOICE_PREFS = [
+  /microsoft aria/i, /google uk english female/i, /samantha/i,
+  /karen/i, /moira/i, /tessa/i, /victoria/i, /veena/i,
+  /female/i, /zira/i, /hazel/i,
+];
+const BOY_VOICE_PREFS = [
+  /microsoft guy/i, /google uk english male/i, /daniel/i,
+  /alex/i, /fred/i, /lee/i, /male/i, /rishi/i,
+];
+
+function scoreVoice(voice, prefs) {
+  const name = voice.name.toLowerCase();
+  for (let i = 0; i < prefs.length; i++) {
+    if (prefs[i].test(name)) return prefs.length - i;
+  }
+  return 0;
+}
+
+function loadVoices() {
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return;
+
+  // Score all voices
+  const scored = voices.map(v => ({
+    voice: v,
+    girlScore: scoreVoice(v, GIRL_VOICE_PREFS),
+    boyScore: scoreVoice(v, BOY_VOICE_PREFS),
+  }));
+
+  // Best girl voice
+  const bestGirl = scored.reduce((best, v) =>
+    v.girlScore > best.girlScore ? v : best, scored[0]);
+  // Best boy voice — must be different from girl
+  const bestBoy = scored
+    .filter(v => v.voice !== bestGirl.voice)
+    .reduce((best, v) => v.boyScore > best.boyScore ? v : best,
+      scored.find(v => v.voice !== bestGirl.voice) || scored[0]);
+
+  voiceState.girlVoice = bestGirl.voice;
+  voiceState.boyVoice = bestBoy.voice;
+
+  console.log('🎙 Girl voice:', voiceState.girlVoice?.name);
+  console.log('🎙 Boy voice:', voiceState.boyVoice?.name);
+}
+
+// Voices load async in most browsers
+if (window.speechSynthesis) {
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+// ── Open / Close ──
+function openVoiceChat() {
+  voiceState.active = true;
+  voiceState.history = [];
+  document.getElementById('voice-overlay').classList.add('active');
+  document.getElementById('voice-live-indicator').style.display = 'flex';
+  if (window.innerWidth < 768) closeSidebar();
+  // Load voices if not yet
+  if (!voiceState.girlVoice) loadVoices();
+  // Greet the user after a short delay
+  setTimeout(() => voiceGreet(), 600);
+}
+
+function closeVoiceChat() {
+  voiceState.active = false;
+  voiceState.isSpeaking = false;
+  voiceState.isHolding = false;
+  voiceState.isThinking = false;
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  stopVoiceRecognition();
+  document.getElementById('voice-overlay').classList.remove('active');
+  document.getElementById('voice-live-indicator').style.display = 'none';
+  setVoiceOrbState('idle');
+}
+
+// ── Persona selection ──
+function selectPersona(persona) {
+  voiceState.persona = persona;
+  const orb = document.getElementById('voice-main-orb');
+  const icon = document.getElementById('voice-orb-icon');
+  const nameDisplay = document.getElementById('voice-name-display');
+
+  document.getElementById('vpersona-girl').classList.toggle('active', persona === 'girl');
+  document.getElementById('vpersona-boy').classList.toggle('active', persona === 'boy');
+
+  orb.className = 'voice-main-orb ' + persona;
+  if (persona === 'girl') {
+    icon.textContent = '🎙';
+    nameDisplay.textContent = 'Aria';
+    nameDisplay.style.color = '#ff69b4';
+  } else {
+    icon.textContent = '🎙';
+    nameDisplay.textContent = 'Nova';
+    nameDisplay.style.color = '#6495ed';
+  }
+
+  // Interrupt any speaking and regreet with new voice
+  if (voiceState.isSpeaking) {
+    window.speechSynthesis.cancel();
+    voiceState.isSpeaking = false;
+  }
+}
+
+function setVoiceSpeed(speed, btn) {
+  voiceState.speed = speed;
+  document.querySelectorAll('.voice-speed-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Orb visual states ──
+function setVoiceOrbState(state) {
+  const orb = document.getElementById('voice-main-orb');
+  const statusEl = document.getElementById('voice-status');
+  const wave = document.getElementById('voice-wave');
+  const icon = document.getElementById('voice-orb-icon');
+  const hint = document.getElementById('voice-hold-hint');
+  const holdBtn = document.getElementById('voice-hold-btn');
+
+  orb.classList.remove('listening', 'speaking');
+  statusEl.classList.remove('listening', 'speaking', 'thinking');
+  wave.classList.remove('visible');
+
+  switch (state) {
+    case 'idle':
+      statusEl.textContent = 'Hold the mic to speak';
+      icon.textContent = '🎙';
+      hint.textContent = 'Hold to speak · Release to send';
+      hint.classList.remove('pressed');
+      holdBtn.classList.remove('pressed', 'ai-talking');
+      break;
+    case 'listening':
+      orb.classList.add('listening');
+      statusEl.classList.add('listening');
+      statusEl.textContent = 'Listening…';
+      icon.textContent = '🎤';
+      hint.textContent = 'Release when done speaking';
+      hint.classList.add('pressed');
+      holdBtn.classList.add('pressed');
+      holdBtn.classList.remove('ai-talking');
+      break;
+    case 'thinking':
+      statusEl.classList.add('thinking');
+      statusEl.textContent = 'Thinking…';
+      icon.textContent = '⏳';
+      hint.textContent = 'Getting response…';
+      hint.classList.remove('pressed');
+      holdBtn.classList.remove('pressed', 'ai-talking');
+      break;
+    case 'speaking':
+      orb.classList.add('speaking');
+      statusEl.classList.add('speaking');
+      statusEl.textContent = 'Speaking…';
+      icon.textContent = '🔊';
+      wave.classList.add('visible');
+      hint.textContent = 'Hold mic to interrupt';
+      hint.classList.remove('pressed');
+      holdBtn.classList.remove('pressed');
+      holdBtn.classList.add('ai-talking');
+      break;
+  }
+}
+
+// ── Transcript bubble ──
+function showTranscript(text, type) {
+  const el = document.getElementById('voice-transcript');
+  el.textContent = text;
+  el.className = 'voice-transcript visible ' + type;
+}
+function hideTranscript() {
+  document.getElementById('voice-transcript').classList.remove('visible');
+}
+
+// ── Greeting ──
+async function voiceGreet() {
+  const greetings = voiceState.persona === 'girl'
+    ? ["Hey! I'm Aria. What are we studying today?",
+       "Hi there! Aria here. What do you need help with?",
+       "Hey! Ready to learn something cool?"]
+    : ["Hey! I'm Nova. What's up, what do you wanna learn?",
+       "Yo! Nova here. What subject are we tackling?",
+       "Hey! Nova here. Let's get into it!"];
+  const msg = greetings[Math.floor(Math.random() * greetings.length)];
+  voiceState.history = [{ role: 'assistant', content: msg }];
+  await speakVoice(msg);
+}
+
+// ── Hold-to-talk handlers ──
+function voiceHoldStart(e) {
+  if (e) e.preventDefault();
+  if (voiceState.isHolding || voiceState.isThinking) return;
+  voiceState.isHolding = true;
+  // Interrupt AI if speaking
+  if (voiceState.isSpeaking) {
+    window.speechSynthesis.cancel();
+    voiceState.isSpeaking = false;
+  }
+  setVoiceOrbState('listening');
+  startVoiceRecognition();
+}
+
+function voiceHoldEnd(e) {
+  if (e) e.preventDefault();
+  if (!voiceState.isHolding) return;
+  voiceState.isHolding = false;
+  stopVoiceRecognition();
+  // Recognition onend will handle sending
+}
+
+// ── Speech recognition ──
+let voiceRecResult = '';
+
+function startVoiceRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    showTranscript("Sorry, voice not supported in this browser. Try Chrome!", 'ai');
+    setVoiceOrbState('idle');
+    return;
+  }
+  voiceRecResult = '';
+  voiceState.recognition = new SR();
+  const rec = voiceState.recognition;
+  rec.lang = 'en-US';
+  rec.continuous = true;
+  rec.interimResults = true;
+
+  rec.onresult = (event) => {
+    let interim = '', final = '';
+    for (const result of event.results) {
+      if (result.isFinal) final += result[0].transcript;
+      else interim += result[0].transcript;
+    }
+    voiceRecResult = final || interim;
+    if (voiceRecResult.trim()) showTranscript(voiceRecResult, 'user');
+  };
+
+  rec.onerror = (e) => {
+    if (e.error !== 'no-speech') {
+      showTranscript('Microphone error. Please try again.', 'ai');
+    }
+    setVoiceOrbState('idle');
+    voiceState.isHolding = false;
+  };
+
+  rec.onend = () => {
+    if (!voiceState.isHolding && voiceRecResult.trim()) {
+      processVoiceInput(voiceRecResult.trim());
+    } else if (!voiceRecResult.trim()) {
+      setVoiceOrbState('idle');
+    }
+  };
+
+  try { rec.start(); } catch(e) {}
+}
+
+function stopVoiceRecognition() {
+  if (voiceState.recognition) {
+    try { voiceState.recognition.stop(); } catch(e) {}
+    voiceState.recognition = null;
+  }
+}
+
+// ── Process & respond ──
+async function processVoiceInput(text) {
+  setVoiceOrbState('thinking');
+  voiceState.isThinking = true;
+  showTranscript(text, 'user');
+
+  // Push user message
+  voiceState.history.push({ role: 'user', content: text });
+  // Also push to main chat history
+  pushHistory('user', '[Voice] ' + text);
+
+  // Build system prompt for casual voice conversation
+  const voiceName = voiceState.persona === 'girl' ? 'Aria' : 'Nova';
+  const systemPrompt = `You are ${voiceName}, a friendly AI study buddy having a casual voice conversation with a student.
+Keep responses SHORT — 1 to 3 sentences max, like texting a friend.
+Be warm, natural and conversational. No bullet points, no markdown, no lists.
+If explaining something complex, break it into tiny bite-sized pieces across turns.
+Use simple everyday language. Be encouraging and fun.
+Never say "I" at the start of every sentence — vary your sentence starters.
+Detect the student's language and respond in the same language naturally.`;
+
+  try {
+    // Build messages for API
+    const apiMessages = [
+      ...voiceState.history.slice(-10).map(m => ({ role: m.role, content: m.content }))
+    ];
+
+    const res = await fetch(API_URL + '/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        model: 'flash', // fast for voice
+        history: [
+          { role: 'user', content: systemPrompt },
+          { role: 'assistant', content: `Sure! I'm ${voiceName}, ready to help.` },
+          ...voiceState.history.slice(-8).slice(0, -1) // exclude last (current) user msg
+        ]
+      })
+    });
+
+    voiceState.isThinking = false;
+
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    let reply = (data.reply || 'Hmm, not sure about that one!').trim();
+
+    // Strip markdown for speech
+    reply = reply
+      .replace(/#{1,3}\s+/g, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/`[^`]+`/g, '')
+      .replace(/\$\$?[^$]+\$\$?/g, 'this formula')
+      .replace(/\n+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // Cap length for natural feel
+    if (reply.length > 300) {
+      const sentences = reply.match(/[^.!?]+[.!?]+/g) || [reply];
+      reply = sentences.slice(0, 3).join(' ').trim();
+    }
+
+    voiceState.history.push({ role: 'assistant', content: reply });
+    pushHistory('assistant', '[Voice] ' + reply);
+
+    await speakVoice(reply);
+
+  } catch (err) {
+    voiceState.isThinking = false;
+    const errMsg = "Oops, something went wrong! Try again?";
+    await speakVoice(errMsg);
+  }
+}
+
+// ── TTS speak ──
+function speakVoice(text) {
+  return new Promise((resolve) => {
+    if (!window.speechSynthesis) {
+      showTranscript(text, 'ai');
+      setVoiceOrbState('idle');
+      resolve();
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    voiceState.isSpeaking = true;
+    setVoiceOrbState('speaking');
+    showTranscript(text, 'ai');
+
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = voiceState.speed;
+    utter.pitch = voiceState.persona === 'girl' ? 1.1 : 0.9;
+    utter.volume = 1;
+
+    // Assign the best voice
+    const chosenVoice = voiceState.persona === 'girl'
+      ? voiceState.girlVoice
+      : voiceState.boyVoice;
+    if (chosenVoice) utter.voice = chosenVoice;
+
+    utter.onend = () => {
+      voiceState.isSpeaking = false;
+      if (voiceState.active) setVoiceOrbState('idle');
+      resolve();
+    };
+    utter.onerror = () => {
+      voiceState.isSpeaking = false;
+      if (voiceState.active) setVoiceOrbState('idle');
+      resolve();
+    };
+
+    voiceState.currentUtterance = utter;
+
+    // Chrome fix — voices sometimes need a tiny delay
+    setTimeout(() => {
+      if (voiceState.active) window.speechSynthesis.speak(utter);
+      else resolve();
+    }, 80);
+  });
+}
+
+// ── Prevent page sleep during voice chat (Chrome workaround) ──
+let voiceKeepAwakeInterval = null;
+const origOpenVoiceChat = openVoiceChat;
+// patch to add keep-awake
+function openVoiceChat() {
+  voiceState.active = true;
+  voiceState.history = [];
+  document.getElementById('voice-overlay').classList.add('active');
+  document.getElementById('voice-live-indicator').style.display = 'flex';
+  if (window.innerWidth < 768) closeSidebar();
+  if (!voiceState.girlVoice) loadVoices();
+  // Chrome: keep speech synthesis alive
+  voiceKeepAwakeInterval = setInterval(() => {
+    if (voiceState.active && !voiceState.isSpeaking && !voiceState.isHolding) {
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }
+  }, 10000);
+  setTimeout(() => voiceGreet(), 600);
+}
+
+const origCloseVoiceChat = closeVoiceChat;
+function closeVoiceChat() {
+  clearInterval(voiceKeepAwakeInterval);
+  voiceState.active = false;
+  voiceState.isSpeaking = false;
+  voiceState.isHolding = false;
+  voiceState.isThinking = false;
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  stopVoiceRecognition();
+  document.getElementById('voice-overlay').classList.remove('active');
+  document.getElementById('voice-live-indicator').style.display = 'none';
+  setVoiceOrbState('idle');
+}
 (function(){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';document.head.appendChild(s);})();
 
 // ══════════════════════════════════════════════════════

@@ -10,24 +10,22 @@
 
 <!-- Firebase SDK -->
 <script type="module">
-  // ── PASTE YOUR FIREBASE CONFIG HERE ──────────────────────────────────────
-  // Go to: console.firebase.google.com → Your project → Project settings → Your apps → Web app → Config
-  const firebaseConfig = {
-    apiKey:            "AIzaSyCtxpf20jeknXotVgBqZsHXpBqceBbw4LY",
-    authDomain:        "sedy-5cafc.firebaseapp.com",
-    projectId:         "sedy-5cafc",
-    storageBucket:     "sedy-5cafc.firebasestorage.app",
-    messagingSenderId: "650333474399",
-    appId:             "1:650333474399:web:f5c8f909bc30a4839695ea"
-  };
-  // ─────────────────────────────────────────────────────────────────────────
-
   import { initializeApp }                         from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
   import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
                                                    from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
   import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
            collection, getDocs, writeBatch, serverTimestamp }
                                                    from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyCtxpf20jeknXotVgBqZsHXpBqceBbw4LY",
+    authDomain:        "sedy-5cafc.firebaseapp.com",
+    projectId:         "sedy-5cafc",
+    storageBucket:     "sedy-5cafc.firebasestorage.app",
+    messagingSenderId: "650333474399",
+    appId:             "1:650333474399:web:f5c8f909bc30a4839695ea",
+    measurementId:     "G-MJ81VXR076"
+  };
 
   const app  = initializeApp(firebaseConfig);
   const auth = getAuth(app);

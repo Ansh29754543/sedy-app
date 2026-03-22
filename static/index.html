@@ -10,12 +10,19 @@
 
 <!-- Firebase SDK -->
 <script type="module">
-  import { initializeApp }                         from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
-                                                   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
-           collection, getDocs, writeBatch, serverTimestamp }
-                                                   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import {
+    getAuth, GoogleAuthProvider, FacebookAuthProvider,
+    signInWithPopup, signOut, onAuthStateChanged,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    sendEmailVerification, updateProfile,
+    PhoneAuthProvider, RecaptchaVerifier, signInWithPhoneNumber,
+    signInWithCredential
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import {
+    getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
+    collection, getDocs, writeBatch, serverTimestamp
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
   const firebaseConfig = {
     apiKey:            "AIzaSyCtxpf20jeknXotVgBqZsHXpBqceBbw4LY",
@@ -31,10 +38,17 @@
   const auth = getAuth(app);
   const db   = getFirestore(app);
 
-  // Expose to global scope so non-module scripts can call them
-  window._fb = { auth, db, GoogleAuthProvider, signInWithPopup, signOut,
-                 onAuthStateChanged, doc, getDoc, setDoc, updateDoc, deleteDoc,
-                 collection, getDocs, writeBatch, serverTimestamp };
+  window._fb = {
+    auth, db,
+    GoogleAuthProvider, FacebookAuthProvider,
+    signInWithPopup, signOut, onAuthStateChanged,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    sendEmailVerification, updateProfile,
+    PhoneAuthProvider, RecaptchaVerifier, signInWithPhoneNumber,
+    signInWithCredential,
+    doc, getDoc, setDoc, updateDoc, deleteDoc,
+    collection, getDocs, writeBatch, serverTimestamp
+  };
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -1192,99 +1206,328 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   .files-btn span{display:none;}
   .clear-header-btn span{display:none;}
 }
+
+/* ══════════════════════════════════════════════════════
+   AUTH & ONBOARDING STYLES
+══════════════════════════════════════════════════════ */
+.auth-card{
+  background:rgba(20,26,40,.88);backdrop-filter:blur(24px);
+  border:1px solid rgba(79,142,255,.18);border-radius:24px;
+  padding:32px 28px;width:100%;max-width:400px;
+  box-shadow:0 24px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.04);
+  position:relative;z-index:1;
+}
+.auth-tab{
+  flex:1;padding:7px 0;border:none;background:none;
+  color:rgba(136,153,187,.5);font-size:13px;font-weight:600;
+  cursor:pointer;border-radius:9px;font-family:'Syne',sans-serif;transition:all .18s;
+}
+.auth-tab.active{background:rgba(79,142,255,.15);color:#e8edf5;border:1px solid rgba(79,142,255,.25);}
+.auth-social-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:12px 16px;border-radius:12px;cursor:pointer;font-size:14px;
+  font-weight:600;font-family:'DM Sans',sans-serif;
+  background:rgba(255,255,255,.06);color:#e8edf5;
+  border:1px solid rgba(255,255,255,.1);transition:all .2s;
+}
+.auth-social-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);transform:scale(1.01);}
+.auth-method-btn{
+  flex:1;padding:8px 0;border-radius:10px;border:1px solid rgba(255,255,255,.08);
+  background:none;color:rgba(136,153,187,.5);font-size:12px;cursor:pointer;
+  font-family:'DM Mono',monospace;transition:all .18s;
+}
+.auth-method-btn.active{background:rgba(79,142,255,.12);border-color:rgba(79,142,255,.3);color:#4f8eff;}
+.auth-input{
+  width:100%;padding:12px 14px;margin-bottom:10px;
+  background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);
+  border-radius:12px;color:#e8edf5;font-size:14px;font-family:'DM Sans',sans-serif;
+  outline:none;box-sizing:border-box;transition:border-color .2s;
+}
+.auth-input:focus{border-color:rgba(79,142,255,.5);}
+.auth-input::placeholder{color:rgba(136,153,187,.4);}
+.auth-submit-btn{
+  width:100%;padding:13px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,#7c5cfc,#4f8eff);
+  color:white;font-size:14px;font-weight:700;cursor:pointer;
+  font-family:'Syne',sans-serif;transition:all .2s;margin-top:4px;
+  box-shadow:0 4px 18px rgba(124,92,252,.35);
+}
+.auth-submit-btn:hover{transform:scale(1.02);box-shadow:0 6px 24px rgba(124,92,252,.5);}
+.auth-submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.auth-otp-box{
+  width:44px;height:52px;text-align:center;font-size:22px;font-weight:800;
+  background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:12px;color:#e8edf5;font-family:'Syne',sans-serif;outline:none;
+  transition:border-color .2s;caret-color:transparent;
+}
+.auth-otp-box:focus{border-color:rgba(79,142,255,.6);background:rgba(79,142,255,.08);}
+.auth-otp-box.filled{border-color:rgba(0,229,192,.5);background:rgba(0,229,192,.06);}
+.auth-error-box{
+  padding:10px 14px;background:rgba(255,79,106,.1);border:1px solid rgba(255,79,106,.3);
+  border-radius:10px;font-size:12px;color:#ff4f6a;font-family:'DM Mono',monospace;text-align:center;
+}
+.auth-loading-box{
+  margin-top:12px;text-align:center;font-size:12px;
+  color:rgba(136,153,187,.6);font-family:'DM Mono',monospace;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.auth-spinner{
+  width:14px;height:14px;border:2px solid rgba(79,142,255,.3);
+  border-top-color:#4f8eff;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;
+}
+.ob-page{display:flex;flex-direction:column;align-items:center;text-align:center;}
+.ob-emoji{font-size:44px;margin-bottom:10px;line-height:1;}
+.ob-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#e8edf5;margin-bottom:4px;}
+.ob-sub{font-size:12px;color:rgba(136,153,187,.6);font-family:'DM Sans',sans-serif;margin-bottom:18px;line-height:1.5;}
+.ob-options-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%;}
+.ob-opt{
+  padding:9px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);color:rgba(136,153,187,.8);font-size:13px;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s;
+}
+.ob-opt:hover{border-color:rgba(79,142,255,.4);color:#e8edf5;background:rgba(79,142,255,.08);}
+.ob-opt.selected{border-color:rgba(79,142,255,.7);background:rgba(79,142,255,.15);color:#e8edf5;}
+.onboard-step-dot{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.1);transition:all .3s;}
+.onboard-step-dot.active{background:linear-gradient(90deg,#7c5cfc,#4f8eff);}
+.onboard-step-dot.done{background:rgba(0,229,192,.5);}
 </style>
 </head>
 <body>
 
 <!-- ══════════════════════════════════════════════════════
-     AUTH SCREEN — shown before login
+     AUTH + ONBOARDING SCREEN
 ════════════════════════════════════════════════════════ -->
 <div id="auth-screen" style="
-  position:fixed;inset:0;z-index:9999;
+  position:fixed;inset:0;z-index:9999;overflow-y:auto;
   background:radial-gradient(ellipse at 20% 50%, rgba(79,142,255,.15) 0%, transparent 60%),
              radial-gradient(ellipse at 80% 20%, rgba(124,92,252,.12) 0%, transparent 50%),
              #080b12;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:24px;gap:0;
+  padding:24px;
 ">
-  <!-- Animated background orbs -->
-  <div style="position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(79,142,255,.08),transparent);top:-100px;left:-100px;pointer-events:none;"></div>
-  <div style="position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,252,.06),transparent);bottom:-80px;right:-80px;pointer-events:none;"></div>
+  <!-- Background orbs -->
+  <div style="position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(79,142,255,.07),transparent);top:-150px;left:-150px;pointer-events:none;"></div>
+  <div style="position:fixed;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,252,.06),transparent);bottom:-100px;right:-100px;pointer-events:none;"></div>
+
+  <!-- recaptcha container (invisible, required for phone auth) -->
+  <div id="recaptcha-container" style="position:fixed;bottom:0;left:0;opacity:0;pointer-events:none;"></div>
 
   <!-- Logo -->
   <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:900;
     background:linear-gradient(135deg,#4f8eff,#7c5cfc,#00e5c0);
     -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-    margin-bottom:8px;letter-spacing:-2px;">
+    margin-bottom:6px;letter-spacing:-2px;text-align:center;">
     Sedy
   </div>
-  <div style="font-size:14px;color:rgba(136,153,187,.7);font-family:'DM Sans',sans-serif;
-    margin-bottom:48px;letter-spacing:.5px;">
+  <div style="font-size:14px;color:rgba(136,153,187,.65);font-family:'DM Sans',sans-serif;
+    margin-bottom:32px;letter-spacing:.5px;text-align:center;">
     Your AI Study Companion
   </div>
 
-  <!-- Card -->
-  <div style="
-    background:rgba(20,26,40,.85);backdrop-filter:blur(24px);
-    border:1px solid rgba(79,142,255,.2);border-radius:24px;
-    padding:36px 32px;width:100%;max-width:380px;
-    box-shadow:0 24px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);
-  ">
-    <div style="text-align:center;margin-bottom:28px;">
-      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#e8edf5;margin-bottom:6px;">
-        Welcome back 👋
-      </div>
-      <div style="font-size:13px;color:rgba(136,153,187,.7);font-family:'DM Sans',sans-serif;line-height:1.6;">
-        Sign in to access your chats, saved notes,<br>and study materials — all in one place.
-      </div>
+  <!-- ── STEP 1: Login / Signup ── -->
+  <div id="auth-step-login" class="auth-card">
+
+    <!-- Tab: Login / Signup -->
+    <div style="display:flex;background:rgba(255,255,255,.05);border-radius:12px;padding:3px;margin-bottom:24px;">
+      <button id="auth-tab-login"  onclick="authSwitchTab('login')"  class="auth-tab active">Sign In</button>
+      <button id="auth-tab-signup" onclick="authSwitchTab('signup')" class="auth-tab">Sign Up</button>
     </div>
 
-    <!-- Google Sign-In Button -->
-    <button id="auth-google-btn" onclick="authSignInGoogle()" style="
-      width:100%;display:flex;align-items:center;justify-content:center;gap:12px;
-      padding:14px 20px;border-radius:14px;cursor:pointer;font-size:15px;
-      font-weight:700;font-family:'DM Sans',sans-serif;
-      background:#fff;color:#1f2937;border:none;
-      box-shadow:0 4px 16px rgba(0,0,0,.3);
-      transition:all .2s;
-    " onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.4)'"
-       onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.3)'">
-      <!-- Google icon SVG -->
-      <svg width="20" height="20" viewBox="0 0 48 48">
-        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-        <path fill="none" d="M0 0h48v48H0z"/>
-      </svg>
-      Continue with Google
-    </button>
+    <div id="auth-tab-title" style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#e8edf5;margin-bottom:4px;text-align:center;">Welcome back 👋</div>
+    <div id="auth-tab-sub"   style="font-size:12px;color:rgba(136,153,187,.6);font-family:'DM Sans',sans-serif;margin-bottom:20px;text-align:center;">Sign in to access your chats and study materials</div>
 
-    <!-- Error message -->
-    <div id="auth-error" style="
-      display:none;margin-top:14px;padding:10px 14px;
-      background:rgba(255,79,106,.1);border:1px solid rgba(255,79,106,.3);
-      border-radius:10px;font-size:12px;color:#ff4f6a;
-      font-family:'DM Mono',monospace;text-align:center;
-    "></div>
+    <!-- ── Social buttons ── -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
 
-    <!-- Loading state -->
-    <div id="auth-loading" style="
-      display:none;margin-top:14px;text-align:center;
-      font-size:12px;color:rgba(136,153,187,.6);font-family:'DM Mono',monospace;
-    ">
-      <div style="display:inline-flex;align-items:center;gap:8px;">
-        <div style="width:14px;height:14px;border:2px solid rgba(79,142,255,.3);border-top-color:#4f8eff;border-radius:50%;animation:spin .8s linear infinite;"></div>
-        Signing in…
+      <!-- Google -->
+      <button class="auth-social-btn" onclick="authSignInGoogle()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+        Continue with Google
+      </button>
+
+      <!-- Facebook -->
+      <button class="auth-social-btn" onclick="authSignInFacebook()" style="background:rgba(24,119,242,.15);border-color:rgba(24,119,242,.35);color:#e8edf5;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.93-1.956 1.886v2.286h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+        Continue with Facebook
+      </button>
+
+    </div>
+
+    <!-- Divider -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
+      <div style="font-size:11px;color:rgba(136,153,187,.4);font-family:'DM Mono',monospace;">or</div>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
+    </div>
+
+    <!-- ── Auth method selector ── -->
+    <div style="display:flex;gap:6px;margin-bottom:16px;">
+      <button id="auth-method-email" onclick="authSelectMethod('email')" class="auth-method-btn active">
+        ✉️ Email
+      </button>
+      <button id="auth-method-phone" onclick="authSelectMethod('phone')" class="auth-method-btn">
+        📱 Phone
+      </button>
+    </div>
+
+    <!-- ── EMAIL FORM ── -->
+    <div id="auth-email-form">
+      <input id="auth-email-input" type="email" class="auth-input" placeholder="Email address"
+        oninput="clearAuthError()" onkeydown="if(event.key==='Enter')document.getElementById('auth-pass-input').focus()">
+      <input id="auth-pass-input" type="password" class="auth-input" placeholder="Password (min 6 chars)"
+        oninput="clearAuthError()" onkeydown="if(event.key==='Enter')authEmailSubmit()">
+      <button class="auth-submit-btn" onclick="authEmailSubmit()" id="auth-email-btn">
+        Continue →
+      </button>
+    </div>
+
+    <!-- ── EMAIL OTP VERIFY ── -->
+    <div id="auth-email-otp-form" style="display:none;">
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="font-size:32px;margin-bottom:8px;">📧</div>
+        <div style="font-size:14px;color:#e8edf5;font-weight:600;font-family:'Syne',sans-serif;">Check your email</div>
+        <div style="font-size:12px;color:rgba(136,153,187,.6);font-family:'DM Sans',sans-serif;margin-top:4px;" id="auth-otp-email-label">We sent a verification link to your email. Click it and then press Continue.</div>
       </div>
+      <button class="auth-submit-btn" onclick="authEmailOtpVerify()">I've verified — Continue →</button>
+      <button onclick="authResendEmail()" style="width:100%;background:none;border:none;color:rgba(136,153,187,.5);font-size:11px;cursor:pointer;margin-top:8px;font-family:'DM Mono',monospace;">Resend email</button>
+    </div>
+
+    <!-- ── PHONE FORM ── -->
+    <div id="auth-phone-form" style="display:none;">
+      <div style="display:flex;gap:8px;">
+        <input id="auth-phone-cc" type="text" class="auth-input" value="+91" style="width:70px;flex-shrink:0;"
+          placeholder="+91">
+        <input id="auth-phone-input" type="tel" class="auth-input" placeholder="Phone number"
+          oninput="clearAuthError()" onkeydown="if(event.key==='Enter')authPhoneSubmit()">
+      </div>
+      <button class="auth-submit-btn" onclick="authPhoneSubmit()" id="auth-phone-btn">
+        Send OTP →
+      </button>
+    </div>
+
+    <!-- ── PHONE OTP ── -->
+    <div id="auth-phone-otp-form" style="display:none;">
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="font-size:32px;margin-bottom:8px;">📱</div>
+        <div style="font-size:14px;color:#e8edf5;font-weight:600;font-family:'Syne',sans-serif;">Enter OTP</div>
+        <div style="font-size:12px;color:rgba(136,153,187,.6);font-family:'DM Sans',sans-serif;margin-top:4px;" id="auth-otp-phone-label">6-digit code sent to your number</div>
+      </div>
+      <!-- OTP boxes -->
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
+        <input class="auth-otp-box" id="otp0" maxlength="1" oninput="otpInput(this,0)" onkeydown="otpKey(event,0)">
+        <input class="auth-otp-box" id="otp1" maxlength="1" oninput="otpInput(this,1)" onkeydown="otpKey(event,1)">
+        <input class="auth-otp-box" id="otp2" maxlength="1" oninput="otpInput(this,2)" onkeydown="otpKey(event,2)">
+        <input class="auth-otp-box" id="otp3" maxlength="1" oninput="otpInput(this,3)" onkeydown="otpKey(event,3)">
+        <input class="auth-otp-box" id="otp4" maxlength="1" oninput="otpInput(this,4)" onkeydown="otpKey(event,4)">
+        <input class="auth-otp-box" id="otp5" maxlength="1" oninput="otpInput(this,5)" onkeydown="otpKey(event,5)">
+      </div>
+      <button class="auth-submit-btn" onclick="authPhoneOtpVerify()" id="auth-otp-verify-btn">Verify →</button>
+      <button onclick="authResendOtp()" style="width:100%;background:none;border:none;color:rgba(136,153,187,.5);font-size:11px;cursor:pointer;margin-top:8px;font-family:'DM Mono',monospace;">Resend OTP</button>
+    </div>
+
+    <!-- Error + Loading -->
+    <div id="auth-error" class="auth-error-box" style="display:none;"></div>
+    <div id="auth-loading" class="auth-loading-box" style="display:none;">
+      <div class="auth-spinner"></div>
+      <span id="auth-loading-text">Please wait…</span>
+    </div>
+
+    <!-- Footer -->
+    <div style="margin-top:20px;font-size:10px;color:rgba(136,153,187,.35);font-family:'DM Mono',monospace;text-align:center;line-height:1.7;">
+      Your data is stored securely · Only you can see it<br>Made by Ansh Verma 🚀
     </div>
   </div>
 
-  <!-- Footer note -->
-  <div style="margin-top:24px;font-size:11px;color:rgba(136,153,187,.4);font-family:'DM Mono',monospace;text-align:center;line-height:1.7;">
-    Your data is stored securely and only visible to you.<br>
-    Made by Ansh Verma 🚀
+  <!-- ── STEP 2: Onboarding (shown after first login) ── -->
+  <div id="auth-step-onboard" class="auth-card" style="display:none;">
+
+    <!-- Progress bar -->
+    <div style="display:flex;gap:6px;margin-bottom:28px;">
+      <div class="onboard-step-dot active" id="ob-dot-0"></div>
+      <div class="onboard-step-dot" id="ob-dot-1"></div>
+      <div class="onboard-step-dot" id="ob-dot-2"></div>
+      <div class="onboard-step-dot" id="ob-dot-3"></div>
+    </div>
+
+    <!-- Step pages -->
+    <div id="ob-page-0" class="ob-page">
+      <div class="ob-emoji">👋</div>
+      <div class="ob-title">What's your name?</div>
+      <div class="ob-sub">How should Sedy greet you?</div>
+      <input id="ob-name" type="text" class="auth-input" placeholder="Your name or nickname"
+        maxlength="30" onkeydown="if(event.key==='Enter')obNext()">
+    </div>
+
+    <div id="ob-page-1" class="ob-page" style="display:none;">
+      <div class="ob-emoji">🎓</div>
+      <div class="ob-title">What class are you in?</div>
+      <div class="ob-sub">Sedy will tailor explanations to your level</div>
+      <div class="ob-options-grid" id="ob-class-grid">
+        <div class="ob-opt" onclick="obSelect(this,'class')">Class 6</div>
+        <div class="ob-opt" onclick="obSelect(this,'class')">Class 7</div>
+        <div class="ob-opt" onclick="obSelect(this,'class')">Class 8</div>
+        <div class="ob-opt" onclick="obSelect(this,'class')">Class 9</div>
+        <div class="ob-opt" onclick="obSelect(this,'class')">Class 10</div>
+        <div class="ob-opt" onclick="obSelect(this,'class')">Class 11</div>
+        <div class="ob-opt" onclick="obSelect(this,'class')">Class 12</div>
+        <div class="ob-opt" onclick="obSelect(this,'class')">College</div>
+        <div class="ob-opt" onclick="obSelect(this,'class')">Other</div>
+      </div>
+    </div>
+
+    <div id="ob-page-2" class="ob-page" style="display:none;">
+      <div class="ob-emoji">📚</div>
+      <div class="ob-title">Favourite subjects?</div>
+      <div class="ob-sub">Pick all that apply — Sedy will focus on these</div>
+      <div class="ob-options-grid" id="ob-subjects-grid">
+        <div class="ob-opt multi" onclick="obToggle(this,'subject')">🔢 Maths</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'subject')">⚛️ Physics</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'subject')">🧪 Chemistry</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'subject')">🌿 Biology</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'subject')">💻 CS/Code</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'subject')">🏛️ History</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'subject')">🌍 Geography</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'subject')">📖 English</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'subject')">🧮 Economics</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'subject')">🎨 Arts</div>
+      </div>
+    </div>
+
+    <div id="ob-page-3" class="ob-page" style="display:none;">
+      <div class="ob-emoji">🗣️</div>
+      <div class="ob-title">Preferred language?</div>
+      <div class="ob-sub">Sedy will reply in your language by default</div>
+      <div class="ob-options-grid" id="ob-lang-grid">
+        <div class="ob-opt" onclick="obSelect(this,'lang')">🇬🇧 English</div>
+        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Hindi</div>
+        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Hinglish</div>
+        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Bengali</div>
+        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Tamil</div>
+        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Telugu</div>
+        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Marathi</div>
+        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Kannada</div>
+        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Gujarati</div>
+      </div>
+    </div>
+
+    <!-- Nav buttons -->
+    <div style="display:flex;gap:10px;margin-top:24px;">
+      <button id="ob-back-btn" onclick="obBack()" style="
+        flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);
+        background:none;color:rgba(136,153,187,.6);font-size:13px;cursor:pointer;
+        font-family:'DM Sans',sans-serif;display:none;
+      ">← Back</button>
+      <button id="ob-next-btn" onclick="obNext()" style="
+        flex:2;padding:12px;border-radius:12px;border:none;
+        background:linear-gradient(135deg,var(--accent2,#7c5cfc),var(--accent,#4f8eff));
+        color:white;font-size:14px;font-weight:700;cursor:pointer;
+        font-family:'Syne',sans-serif;transition:all .2s;
+      ">Next →</button>
+    </div>
+
+    <div id="auth-error" class="auth-error-box" style="display:none;margin-top:12px;"></div>
   </div>
+
 </div>
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
@@ -4572,40 +4815,254 @@ function init() {
 //   }
 // }
 
-let _currentUser = null;   // Firebase User object
-let _fbReady     = false;  // true once Firebase module is loaded
+// ══════════════════════════════════════════════════════
+// AUTH + ONBOARDING — Firebase Multi-Method Login
+// ══════════════════════════════════════════════════════
 
-// ── Wait for Firebase module to be available ──────────────────────────────────
+let _currentUser  = null;
+let _phoneConfirm = null;   // result from signInWithPhoneNumber
+let _obStep       = 0;
+let _obData       = {};     // collected onboarding data
+let _isNewUser    = false;  // true → show onboarding after login
+
+const OB_STEPS = 4;
+
+// ── Wait for Firebase module ──────────────────────────────────────────────────
 function _waitFb() {
   return new Promise(resolve => {
     if (window._fb) { resolve(window._fb); return; }
-    const iv = setInterval(() => {
-      if (window._fb) { clearInterval(iv); resolve(window._fb); }
-    }, 50);
-    // Timeout after 5s — fall back to localStorage-only mode
-    setTimeout(() => { clearInterval(iv); resolve(null); }, 5000);
+    const iv = setInterval(() => { if (window._fb) { clearInterval(iv); resolve(window._fb); } }, 50);
+    setTimeout(() => { clearInterval(iv); resolve(null); }, 6000);
   });
 }
 
-// ── Firestore path helpers ────────────────────────────────────────────────────
-function _userPath(subPath) {
-  return `users/${_currentUser.uid}/${subPath}`;
+// ── Tab: Sign In / Sign Up ────────────────────────────────────────────────────
+function authSwitchTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('auth-tab-login') .classList.toggle('active',  isLogin);
+  document.getElementById('auth-tab-signup').classList.toggle('active', !isLogin);
+  document.getElementById('auth-tab-title').textContent = isLogin ? 'Welcome back 👋' : 'Create account 🚀';
+  document.getElementById('auth-tab-sub').textContent   = isLogin
+    ? 'Sign in to access your chats and study materials'
+    : 'Join Sedy and start learning smarter';
+  clearAuthError();
 }
 
-// ── Sign in with Google ───────────────────────────────────────────────────────
+// ── Auth method: email / phone ────────────────────────────────────────────────
+function authSelectMethod(method) {
+  const isEmail = method === 'email';
+  document.getElementById('auth-method-email').classList.toggle('active',  isEmail);
+  document.getElementById('auth-method-phone').classList.toggle('active', !isEmail);
+  document.getElementById('auth-email-form').style.display        = isEmail ? 'block' : 'none';
+  document.getElementById('auth-phone-form').style.display        = isEmail ? 'none'  : 'block';
+  document.getElementById('auth-email-otp-form').style.display    = 'none';
+  document.getElementById('auth-phone-otp-form').style.display    = 'none';
+  clearAuthError();
+}
+
+// ── GOOGLE ────────────────────────────────────────────────────────────────────
 async function authSignInGoogle() {
   const fb = window._fb;
-  if (!fb) { showAuthError('Firebase not loaded. Check your config.'); return; }
-  showAuthLoading(true);
+  if (!fb) { showAuthError('Firebase not ready. Refresh the page.'); return; }
+  showAuthLoadingMsg('Signing in with Google…');
   try {
-    const provider = new fb.GoogleAuthProvider();
-    await fb.signInWithPopup(fb.auth, provider);
-    // onAuthStateChanged will handle the rest
+    const provider  = new fb.GoogleAuthProvider();
+    const result    = await fb.signInWithPopup(fb.auth, provider);
+    _isNewUser = result._tokenResponse?.isNewUser || false;
   } catch(err) {
-    showAuthLoading(false);
+    hideAuthLoading();
     if (err.code === 'auth/popup-closed-by-user') return;
-    showAuthError(err.message || 'Sign-in failed. Try again.');
+    showAuthError(friendlyError(err.code));
   }
+}
+
+// ── FACEBOOK ──────────────────────────────────────────────────────────────────
+async function authSignInFacebook() {
+  const fb = window._fb;
+  if (!fb) { showAuthError('Firebase not ready. Refresh the page.'); return; }
+  showAuthLoadingMsg('Signing in with Facebook…');
+  try {
+    const provider = new fb.FacebookAuthProvider();
+    const result   = await fb.signInWithPopup(fb.auth, provider);
+    _isNewUser = result._tokenResponse?.isNewUser || false;
+  } catch(err) {
+    hideAuthLoading();
+    if (err.code === 'auth/popup-closed-by-user') return;
+    showAuthError(friendlyError(err.code));
+  }
+}
+
+// ── EMAIL: submit (sign in or sign up) ────────────────────────────────────────
+async function authEmailSubmit() {
+  const fb    = window._fb;
+  const email = document.getElementById('auth-email-input').value.trim();
+  const pass  = document.getElementById('auth-pass-input').value;
+  const isSignup = document.getElementById('auth-tab-signup').classList.contains('active');
+
+  if (!email) { showAuthError('Enter your email address.'); return; }
+  if (!pass || pass.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+
+  showAuthLoadingMsg(isSignup ? 'Creating account…' : 'Signing in…');
+
+  try {
+    if (isSignup) {
+      // Create account
+      const cred = await fb.createUserWithEmailAndPassword(fb.auth, email, pass);
+      // Send verification email
+      await fb.sendEmailVerification(cred.user);
+      _isNewUser = true;
+      // Show OTP (verification link) step
+      hideAuthLoading();
+      document.getElementById('auth-email-form').style.display     = 'none';
+      document.getElementById('auth-email-otp-form').style.display = 'block';
+      document.getElementById('auth-otp-email-label').textContent  =
+        `Verification link sent to ${email}. Click it, then tap Continue.`;
+    } else {
+      // Sign in
+      await fb.signInWithEmailAndPassword(fb.auth, email, pass);
+      _isNewUser = false;
+      // onAuthStateChanged will take over
+    }
+  } catch(err) {
+    hideAuthLoading();
+    showAuthError(friendlyError(err.code));
+  }
+}
+
+// ── EMAIL: check verification ─────────────────────────────────────────────────
+async function authEmailOtpVerify() {
+  const fb   = window._fb;
+  const user = fb.auth.currentUser;
+  if (!user) { showAuthError('Session expired. Please try again.'); return; }
+  showAuthLoadingMsg('Checking verification…');
+  await user.reload();
+  if (user.emailVerified) {
+    hideAuthLoading();
+    // Proceed to onboarding since this is new
+    _afterLogin(user, true);
+  } else {
+    hideAuthLoading();
+    showAuthError('Email not verified yet. Check your inbox and click the link.');
+  }
+}
+
+async function authResendEmail() {
+  const fb   = window._fb;
+  const user = fb.auth.currentUser;
+  if (user) await fb.sendEmailVerification(user);
+  showAuthError('✅ Verification email resent!');
+}
+
+// ── PHONE: init recaptcha + send OTP ─────────────────────────────────────────
+async function authPhoneSubmit() {
+  const fb    = window._fb;
+  const cc    = document.getElementById('auth-phone-cc').value.trim() || '+91';
+  const num   = document.getElementById('auth-phone-input').value.trim();
+  const phone = cc + num.replace(/\D/g,'');
+
+  if (phone.length < 8) { showAuthError('Enter a valid phone number.'); return; }
+  showAuthLoadingMsg('Sending OTP…');
+
+  try {
+    // Setup invisible recaptcha
+    if (!window._recaptchaVerifier) {
+      window._recaptchaVerifier = new fb.RecaptchaVerifier(fb.auth, 'recaptcha-container', {
+        size: 'invisible',
+        callback: () => {}
+      });
+    }
+    _phoneConfirm = await fb.signInWithPhoneNumber(fb.auth, phone, window._recaptchaVerifier);
+    hideAuthLoading();
+    document.getElementById('auth-phone-form').style.display     = 'none';
+    document.getElementById('auth-phone-otp-form').style.display = 'block';
+    document.getElementById('auth-otp-phone-label').textContent  = `6-digit OTP sent to ${phone}`;
+    setTimeout(() => document.getElementById('otp0')?.focus(), 100);
+  } catch(err) {
+    hideAuthLoading();
+    // Reset recaptcha on error
+    if (window._recaptchaVerifier) {
+      try { window._recaptchaVerifier.clear(); } catch(e) {}
+      window._recaptchaVerifier = null;
+    }
+    showAuthError(friendlyError(err.code));
+  }
+}
+
+// ── PHONE: verify OTP ─────────────────────────────────────────────────────────
+async function authPhoneOtpVerify() {
+  const otp = [0,1,2,3,4,5].map(i => document.getElementById('otp'+i)?.value || '').join('');
+  if (otp.length < 6) { showAuthError('Enter the full 6-digit OTP.'); return; }
+  if (!_phoneConfirm) { showAuthError('Session expired. Please request OTP again.'); return; }
+  showAuthLoadingMsg('Verifying OTP…');
+  try {
+    const result = await _phoneConfirm.confirm(otp);
+    _isNewUser   = result._tokenResponse?.isNewUser || false;
+    // onAuthStateChanged handles the rest
+  } catch(err) {
+    hideAuthLoading();
+    showAuthError(friendlyError(err.code));
+  }
+}
+
+async function authResendOtp() {
+  document.getElementById('auth-phone-otp-form').style.display = 'none';
+  document.getElementById('auth-phone-form').style.display     = 'block';
+  if (window._recaptchaVerifier) {
+    try { window._recaptchaVerifier.clear(); } catch(e) {}
+    window._recaptchaVerifier = null;
+  }
+  _phoneConfirm = null;
+}
+
+// ── OTP box keyboard nav ──────────────────────────────────────────────────────
+function otpInput(el, idx) {
+  el.classList.toggle('filled', el.value.length > 0);
+  if (el.value && idx < 5) document.getElementById('otp'+(idx+1))?.focus();
+  // Auto verify when all 6 filled
+  const otp = [0,1,2,3,4,5].map(i => document.getElementById('otp'+i)?.value || '').join('');
+  if (otp.length === 6) authPhoneOtpVerify();
+}
+function otpKey(e, idx) {
+  if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+    const prev = document.getElementById('otp'+(idx-1));
+    if (prev) { prev.value = ''; prev.classList.remove('filled'); prev.focus(); }
+  }
+}
+
+// ── Error messages ────────────────────────────────────────────────────────────
+function friendlyError(code) {
+  const map = {
+    'auth/user-not-found':         'No account with this email. Sign up instead.',
+    'auth/wrong-password':         'Wrong password. Try again.',
+    'auth/email-already-in-use':   'This email is already registered. Sign in instead.',
+    'auth/invalid-email':          'Invalid email address.',
+    'auth/weak-password':          'Password too weak — use at least 6 characters.',
+    'auth/too-many-requests':      'Too many attempts. Wait a moment and try again.',
+    'auth/network-request-failed': 'Network error. Check your internet.',
+    'auth/invalid-verification-code': 'Wrong OTP. Check and try again.',
+    'auth/code-expired':           'OTP expired. Request a new one.',
+    'auth/account-exists-with-different-credential': 'Account exists with another sign-in method.',
+    'auth/popup-blocked':          'Popup blocked. Allow popups for this site.',
+  };
+  return map[code] || 'Something went wrong. Please try again.';
+}
+
+// ── Auth UI helpers ───────────────────────────────────────────────────────────
+function showAuthError(msg) {
+  const els = document.querySelectorAll('.auth-error-box');
+  els.forEach(el => { el.textContent = msg; el.style.display = 'block'; });
+  hideAuthLoading();
+}
+function clearAuthError() {
+  document.querySelectorAll('.auth-error-box').forEach(el => { el.style.display='none'; el.textContent=''; });
+}
+function showAuthLoadingMsg(msg) {
+  const el = document.getElementById('auth-loading');
+  if (el) { el.style.display='flex'; el.querySelector('span').textContent = msg || 'Please wait…'; }
+}
+function hideAuthLoading() {
+  const el = document.getElementById('auth-loading');
+  if (el) el.style.display='none';
 }
 
 // ── Sign out ──────────────────────────────────────────────────────────────────
@@ -4613,211 +5070,254 @@ async function authSignOut() {
   hideUserMenu();
   const fb = window._fb;
   if (!fb) return;
-  try {
-    // Clear local state
-    _currentUser = null;
-    chats = {};
-    activeChatId = null;
-    try { localStorage.clear(); } catch(e) {}
-    // Sign out from Firebase
-    await fb.signOut(fb.auth);
-    // Show auth screen
-    document.getElementById('auth-screen').style.display = 'flex';
-  } catch(err) {
-    console.error('Sign out error:', err);
-  }
+  _currentUser = null;
+  chats = {}; activeChatId = null;
+  try { localStorage.clear(); } catch(e) {}
+  await fb.signOut(fb.auth);
+  location.reload(); // cleanest way to reset all state
 }
 
-// ── Auth state observer — fires on login/logout ───────────────────────────────
+// ── onAuthStateChanged ────────────────────────────────────────────────────────
 async function authInit() {
   const fb = await _waitFb();
   if (!fb) {
-    // Firebase failed to load — run in offline/localStorage mode
     console.warn('Firebase not available — running in local mode');
-    hideAuthScreen();
-    init();
-    return;
+    hideAuthScreen(); init(); return;
   }
 
   fb.onAuthStateChanged(fb.auth, async (user) => {
     if (user) {
-      // ── USER LOGGED IN ──
-      _currentUser = user;
-      showAuthLoading(true);
-
-      try {
-        await loadUserDataFromFirestore();
-      } catch(e) {
-        console.warn('Firestore load failed, using localStorage:', e);
+      if (user.providerData[0]?.providerId === 'password' && !user.emailVerified) {
+        // Email user who hasn't verified yet — keep them on OTP screen
+        return;
       }
+      _currentUser = user;
+      showAuthLoadingMsg('Loading your data…');
 
-      hideAuthScreen();
-      showAuthLoading(false);
+      try { await loadUserDataFromFirestore(); } catch(e) {}
 
-      // Update sidebar avatar
-      const avatar = document.getElementById('sb-avatar');
-      const sbUser = document.getElementById('sb-user');
-      if (avatar && user.photoURL) avatar.src = user.photoURL;
-      if (sbUser) sbUser.style.display = 'flex';
-
-      // Update user menu
-      const umAvatar = document.getElementById('um-avatar');
-      const umName   = document.getElementById('um-name');
-      const umEmail  = document.getElementById('um-email');
-      if (umAvatar && user.photoURL) umAvatar.src = user.photoURL;
-      if (umName)  umName.textContent  = user.displayName || 'Student';
-      if (umEmail) umEmail.textContent = user.email || '';
-
-      init();
+      // Check if this user has completed onboarding
+      const profile = await _getProfile();
+      if (!profile || !profile.name) {
+        // New user or incomplete profile — show onboarding
+        _isNewUser = true;
+        hideAuthLoading();
+        _showOnboarding();
+      } else {
+        _afterLogin(user, false);
+      }
     } else {
-      // ── USER LOGGED OUT ──
       _currentUser = null;
-      document.getElementById('auth-screen').style.display = 'flex';
-      showAuthLoading(false);
+      const screen = document.getElementById('auth-screen');
+      if (screen) screen.style.display = 'flex';
+      hideAuthLoading();
     }
   });
 }
 
-// ── Load all user data from Firestore into local state ────────────────────────
+async function _getProfile() {
+  if (!_currentUser || !window._fb) return null;
+  try {
+    const fb  = window._fb;
+    const ref = fb.doc(fb.db, 'users', _currentUser.uid, 'profile', 'data');
+    const snap= await fb.getDoc(ref);
+    return snap.exists() ? snap.data() : null;
+  } catch(e) { return null; }
+}
+
+function _afterLogin(user, isNew) {
+  hideAuthScreen();
+  hideAuthLoading();
+
+  // Sidebar avatar
+  const sbUser = document.getElementById('sb-user');
+  const avatar = document.getElementById('sb-avatar');
+  if (sbUser) sbUser.style.display = 'flex';
+  if (avatar && user.photoURL) avatar.src = user.photoURL;
+
+  // User menu
+  const umAvatar = document.getElementById('um-avatar');
+  const umName   = document.getElementById('um-name');
+  const umEmail  = document.getElementById('um-email');
+  if (umAvatar && user.photoURL) umAvatar.src = user.photoURL;
+  if (umName)  umName.textContent  = user.displayName || _obData.name || 'Student';
+  if (umEmail) umEmail.textContent = user.email || user.phoneNumber || '';
+
+  init();
+}
+
+function hideAuthScreen() {
+  const screen = document.getElementById('auth-screen');
+  if (!screen) return;
+  screen.style.transition = 'opacity .4s ease';
+  screen.style.opacity = '0';
+  setTimeout(() => { screen.style.display = 'none'; screen.style.opacity = '1'; }, 400);
+}
+
+// ══════════════════════════════════════════════════════
+// ONBOARDING FLOW
+// ══════════════════════════════════════════════════════
+
+function _showOnboarding() {
+  document.getElementById('auth-step-login').style.display   = 'none';
+  document.getElementById('auth-step-onboard').style.display = 'block';
+  _obStep = 0; _obData = {};
+  _obRenderStep(0);
+}
+
+function _obRenderStep(step) {
+  // Show/hide pages
+  for (let i = 0; i < OB_STEPS; i++) {
+    const page = document.getElementById('ob-page-'+i);
+    if (page) page.style.display = i === step ? 'flex' : 'none';
+  }
+  // Dots
+  for (let i = 0; i < OB_STEPS; i++) {
+    const dot = document.getElementById('ob-dot-'+i);
+    if (!dot) continue;
+    dot.className = 'onboard-step-dot' + (i < step ? ' done' : i === step ? ' active' : '');
+  }
+  // Back button
+  const backBtn = document.getElementById('ob-back-btn');
+  if (backBtn) backBtn.style.display = step > 0 ? 'block' : 'none';
+  // Next button label
+  const nextBtn = document.getElementById('ob-next-btn');
+  if (nextBtn) nextBtn.textContent = step === OB_STEPS - 1 ? "Let's go 🚀" : 'Next →';
+}
+
+function obSelect(el, key) {
+  el.closest('.ob-options-grid').querySelectorAll('.ob-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  _obData[key] = el.textContent.replace(/^[\p{Emoji}\s]+/u,'').trim();
+}
+
+function obToggle(el, key) {
+  el.classList.toggle('selected');
+  if (!_obData[key]) _obData[key] = [];
+  const val = el.textContent.replace(/^[\p{Emoji}\s]+/u,'').trim();
+  if (el.classList.contains('selected')) {
+    if (!_obData[key].includes(val)) _obData[key].push(val);
+  } else {
+    _obData[key] = _obData[key].filter(v => v !== val);
+  }
+}
+
+async function obNext() {
+  clearAuthError();
+  // Validate current step
+  if (_obStep === 0) {
+    const name = document.getElementById('ob-name')?.value.trim();
+    if (!name) { showAuthError('Please enter your name.'); return; }
+    _obData.name = name;
+  }
+  if (_obStep < OB_STEPS - 1) {
+    _obStep++;
+    _obRenderStep(_obStep);
+    return;
+  }
+  // Final step — save and proceed
+  await _obSave();
+}
+
+function obBack() {
+  if (_obStep > 0) { _obStep--; _obRenderStep(_obStep); }
+}
+
+async function _obSave() {
+  const btn = document.getElementById('ob-next-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  const fb  = window._fb;
+  const uid = _currentUser?.uid;
+  if (fb && uid) {
+    const profileData = {
+      name:     _obData.name || '',
+      class:    _obData.class || '',
+      subjects: _obData.subject || [],
+      language: _obData.lang || 'English',
+      email:    _currentUser.email || '',
+      phone:    _currentUser.phoneNumber || '',
+      photoURL: _currentUser.photoURL || '',
+      createdAt: Date.now(),
+    };
+    try {
+      await fb.setDoc(fb.doc(fb.db, 'users', uid, 'profile', 'data'), profileData);
+      // Update Firebase display name
+      await fb.updateProfile(_currentUser, { displayName: _obData.name });
+    } catch(e) { console.warn('Profile save failed:', e); }
+  }
+  _afterLogin(_currentUser, true);
+}
+
+// ══════════════════════════════════════════════════════
+// FIRESTORE: load + save user data
+// ══════════════════════════════════════════════════════
+
 async function loadUserDataFromFirestore() {
   const fb  = window._fb;
   const uid = _currentUser.uid;
-
-  // Load chats
   const chatsSnap = await fb.getDocs(fb.collection(fb.db, 'users', uid, 'chats'));
-  const firestoreChats = {};
-  chatsSnap.forEach(doc => { firestoreChats[doc.id] = doc.data(); });
-  if (Object.keys(firestoreChats).length > 0) {
-    chats = firestoreChats;
+  const fsChats   = {};
+  chatsSnap.forEach(d => { fsChats[d.id] = d.data(); });
+  if (Object.keys(fsChats).length > 0) {
+    chats = fsChats;
     try { localStorage.setItem(CHATS_KEY, JSON.stringify(chats)); } catch(e) {}
   }
-
-  // Load files
   const filesSnap = await fb.getDocs(fb.collection(fb.db, 'users', uid, 'files'));
-  const firestoreFiles = [];
-  filesSnap.forEach(doc => firestoreFiles.push(doc.data()));
-  if (firestoreFiles.length > 0) {
-    firestoreFiles.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
-    try { localStorage.setItem(FILES_KEY, JSON.stringify(firestoreFiles)); } catch(e) {}
+  const fsFiles   = [];
+  filesSnap.forEach(d => fsFiles.push(d.data()));
+  if (fsFiles.length > 0) {
+    fsFiles.sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
+    try { localStorage.setItem(FILES_KEY, JSON.stringify(fsFiles)); } catch(e) {}
   }
-
-  // Load scope memories
   const memSnap = await fb.getDocs(fb.collection(fb.db, 'users', uid, 'scopeMemories'));
-  const firestoreMems = [];
-  memSnap.forEach(doc => firestoreMems.push(doc.data()));
-  if (firestoreMems.length > 0) {
-    firestoreMems.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
-    scopeMemory = firestoreMems;
+  const fsMems  = [];
+  memSnap.forEach(d => fsMems.push(d.data()));
+  if (fsMems.length > 0) {
+    fsMems.sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
+    scopeMemory = fsMems;
     try { localStorage.setItem(SCOPE_MEMORY_KEY, JSON.stringify(scopeMemory)); } catch(e) {}
   }
-
-  console.log(`✅ Loaded from Firestore: ${Object.keys(chats).length} chats, ${firestoreFiles.length} files, ${firestoreMems.length} memories`);
 }
 
-// ── Override saveChats to also write to Firestore ─────────────────────────────
-const _origSaveChats = saveChats;
+// ── Override storage functions to sync Firestore ──────────────────────────────
 function saveChats() {
-  // Always write localStorage (fast, sync)
   try { localStorage.setItem(CHATS_KEY, JSON.stringify(chats)); } catch(e) {}
-  // Firestore write (async, non-blocking)
-  if (_currentUser && window._fb) {
-    const fb  = window._fb;
-    const uid = _currentUser.uid;
-    // Only write the active chat to avoid writing the whole object every keystroke
-    if (activeChatId && chats[activeChatId]) {
-      fb.setDoc(
-        fb.doc(fb.db, 'users', uid, 'chats', activeChatId),
-        chats[activeChatId]
-      ).catch(e => console.warn('Firestore chat save failed:', e));
-    }
+  if (_currentUser && window._fb && activeChatId && chats[activeChatId]) {
+    const fb = window._fb;
+    fb.setDoc(fb.doc(fb.db,'users',_currentUser.uid,'chats',activeChatId), chats[activeChatId])
+      .catch(e => console.warn('Firestore chat save failed:',e));
   }
 }
 
-// ── Override deleteChat Firestore sync ────────────────────────────────────────
-function _deleteChatFromFirestore(chatId) {
-  if (!_currentUser || !window._fb) return;
-  const fb = window._fb;
-  fb.deleteDoc(fb.doc(fb.db, 'users', _currentUser.uid, 'chats', chatId))
-    .catch(e => console.warn('Firestore chat delete failed:', e));
-}
-
-// Patch deleteChat to also remove from Firestore
-const _origDeleteChat = window.deleteChat;
-window.deleteChat = function(id) {
-  _deleteChatFromFirestore(id);
-  if (typeof _origDeleteChat === 'function') _origDeleteChat(id);
-  else {
-    // Inline delete logic
-    if (!chats[id]) return;
-    delete chats[id];
-    saveChats();
-    if (activeChatId === id) {
-      const remaining = Object.keys(chats);
-      if (remaining.length) { switchChat(remaining[0]); }
-      else { const nid = createNewChat(false); activeChatId = nid; renderChatMessages(); }
-    }
-    renderChatList();
-  }
-};
-
-// ── Override saveFiles to also write to Firestore ─────────────────────────────
-const _origSaveFiles = saveFiles;
 function saveFiles(files) {
   try { localStorage.setItem(FILES_KEY, JSON.stringify(files)); } catch(e) {}
   if (_currentUser && window._fb) {
-    const fb  = window._fb;
-    const uid = _currentUser.uid;
-    // Write each file as a separate Firestore document
+    const fb = window._fb;
     files.forEach(file => {
-      fb.setDoc(fb.doc(fb.db, 'users', uid, 'files', file.id), file)
-        .catch(e => console.warn('Firestore file save failed:', e));
+      fb.setDoc(fb.doc(fb.db,'users',_currentUser.uid,'files',file.id), file)
+        .catch(e => console.warn('Firestore file save:',e));
     });
   }
 }
 
-// ── Override scopeSaveMemoryStore to also write to Firestore ──────────────────
-const _origScopeSaveMemoryStore = scopeSaveMemoryStore;
 function scopeSaveMemoryStore() {
   try { localStorage.setItem(SCOPE_MEMORY_KEY, JSON.stringify(scopeMemory)); } catch(e) {}
   scopeUpdateMemBadge();
   if (_currentUser && window._fb) {
-    const fb  = window._fb;
-    const uid = _currentUser.uid;
+    const fb = window._fb;
     scopeMemory.forEach(mem => {
-      // Don't store huge thumbnail data in Firestore — strip it
-      const { thumb, ...memWithoutThumb } = mem;
-      fb.setDoc(fb.doc(fb.db, 'users', uid, 'scopeMemories', mem.id), memWithoutThumb)
-        .catch(e => console.warn('Firestore memory save failed:', e));
+      const { thumb, ...m } = mem; // don't store large thumbnail in Firestore
+      fb.setDoc(fb.doc(fb.db,'users',_currentUser.uid,'scopeMemories',mem.id), m)
+        .catch(e => console.warn('Firestore memory save:',e));
     });
   }
 }
 
-// ── Auth UI helpers ───────────────────────────────────────────────────────────
-function hideAuthScreen() {
-  const screen = document.getElementById('auth-screen');
-  if (screen) {
-    screen.style.transition = 'opacity .4s ease';
-    screen.style.opacity = '0';
-    setTimeout(() => { screen.style.display = 'none'; screen.style.opacity = '1'; }, 400);
-  }
-}
-function showAuthLoading(show) {
-  const el = document.getElementById('auth-loading');
-  const btn = document.getElementById('auth-google-btn');
-  if (el)  el.style.display  = show ? 'block' : 'none';
-  if (btn) btn.style.opacity = show ? '0.5'  : '1';
-  if (btn) btn.style.pointerEvents = show ? 'none' : '';
-}
-function showAuthError(msg) {
-  const el = document.getElementById('auth-error');
-  if (el) { el.textContent = msg; el.style.display = 'block'; }
-  showAuthLoading(false);
-}
-
+// ── User menu ─────────────────────────────────────────────────────────────────
 function showUserMenu() {
-  const avatar = document.getElementById('sb-avatar');
-  const menu   = document.getElementById('user-menu');
-  const overlay= document.getElementById('user-menu-overlay');
+  const avatar  = document.getElementById('sb-avatar');
+  const menu    = document.getElementById('user-menu');
+  const overlay = document.getElementById('user-menu-overlay');
   if (!menu || !avatar) return;
   const rect = avatar.getBoundingClientRect();
   menu.style.top  = (rect.bottom + 8) + 'px';
@@ -4826,10 +5326,15 @@ function showUserMenu() {
   overlay.style.display = 'block';
 }
 function hideUserMenu() {
-  const menu   = document.getElementById('user-menu');
-  const overlay= document.getElementById('user-menu-overlay');
+  const menu    = document.getElementById('user-menu');
+  const overlay = document.getElementById('user-menu-overlay');
   if (menu)    menu.style.display    = 'none';
   if (overlay) overlay.style.display = 'none';
+}
+
+// ── Firestore path helper ─────────────────────────────────────────────────────
+function _userPath(subPath) {
+  return `users/${_currentUser.uid}/${subPath}`;
 }
 
 // ── Start ─────────────────────────────────────────────────────────────────────

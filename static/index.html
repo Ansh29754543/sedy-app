@@ -2099,7 +2099,7 @@ const CHATS_KEY='sedy_chats_v2';
 
 // ── User preferred language (set from onboarding profile) ──
 // This is injected into every /chat API call so AI always responds in this language by default.
-let _userPreferredLang = '';  // e.g. "Hindi", "Tamil", "English". Empty = auto-detect.
+let _userPreferredLang = 'English';  // Default English. Set from profile on login.
 const ACTIVE_CHAT_KEY='sedy_active_chat';
 const FILES_KEY='sedy_files';
 const FREEMODE_KEY='sedy_free_mode';
@@ -2769,16 +2769,14 @@ async function sendMessage(){
 
 async function _sendChat(text){
   try{
-    // Inject language instruction based on user's saved preference.
-    // _userPreferredLang is '' for English (no override needed — AI auto-detects)
-    // _userPreferredLang is e.g. 'Hindi' for non-English (must enforce)
-    let msgToSend = text;
-    if (_userPreferredLang && _userPreferredLang !== 'English') {
-      // Non-English preference — tell AI to always respond in that language
-      msgToSend = `[SYSTEM: The user's preferred language is ${_userPreferredLang}. Always respond in ${_userPreferredLang} regardless of what language the user types in. Do not switch to English unless the user explicitly says "reply in English" or "answer in English".]\n\n${text}`;
-    }
-    // If _userPreferredLang is '' or 'English' — send text as-is, let AI auto-detect
-    const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msgToSend,model:activeModel,history:getChatHistory().slice(-20)})});
+    // Send preferred_language as a proper API field — backend uses it to override system prompt.
+    // Empty string = auto-detect (default). 'English', 'Hindi', 'Tamil' etc = enforce that language.
+    const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      message: text,
+      model: activeModel,
+      history: getChatHistory().slice(-20),
+      preferred_language: _userPreferredLang || 'English',
+    })});
     if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();hideTyping();
@@ -5009,12 +5007,9 @@ async function authInit() {
         if (screen) screen.style.display = 'flex';
         _showOnboarding();
       } else {
-        // Returning user — always apply their saved language (including English = no instruction)
+        // Returning user — always set language from profile (including English)
         _userProfile = profile;
-        // Always set from profile — English means '' (no language override)
-        _userPreferredLang = (profile.language && profile.language !== 'English')
-          ? profile.language
-          : '';
+        _userPreferredLang = profile.language || 'English';
         hideSessionLoader();
         _afterLogin(user, false);
       }
@@ -5057,15 +5052,8 @@ function _afterLogin(user, isNew) {
   if (umName)  umName.textContent  = user.displayName || _obData.name || 'Student';
   if (umEmail) umEmail.textContent = user.email || user.phoneNumber || '';
 
-  // _userPreferredLang is already set correctly before _afterLogin is called:
-  // - New users: set in _obSave() from onboarding selection
-  // - Returning users: set from profile.language in onAuthStateChanged
-  // Do NOT re-derive it here from _obData — that causes stale onboarding data to override Settings changes.
-  if (_obData.lang && _obData.lang !== 'English' && !_userPreferredLang) {
-    // Only use _obData.lang as fallback if nothing is set yet (first-time new user path)
-    _userPreferredLang = _obData.lang;
-  }
-
+  // _userPreferredLang is already correctly set before _afterLogin is called.
+  // Don't override it here.
   init();
 }
 
@@ -5168,9 +5156,7 @@ async function _obSave() {
     } catch(e) { console.warn('Profile save failed:', e); }
   }
   // Set preferred language immediately so first session uses it
-  if (_obData.lang && _obData.lang !== 'English') {
-    _userPreferredLang = _obData.lang;
-  }
+  _userPreferredLang = _obData.lang || 'English';
   // Store profile for greeting and settings
   _userProfile = {
     name:     _obData.name || '',
@@ -5424,9 +5410,8 @@ async function settingsSave() {
   const name = document.getElementById('settings-name-input').value.trim() || _userProfile?.name || '';
   const lang = document.getElementById('settings-lang-select').value;
 
-  // Apply language immediately
-  if (lang && lang !== 'English') _userPreferredLang = lang;
-  else _userPreferredLang = '';
+  // Apply language immediately — always store the actual value including 'English'
+  _userPreferredLang = lang || 'English';
 
   // Update profile object
   _userProfile = {

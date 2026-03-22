@@ -1057,7 +1057,92 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   border-bottom-left-radius:3px;
 }
 
-/* ── RESPONSIVE ── */
+/* ── Practice Card (in chat) ── */
+.practice-card{background:linear-gradient(135deg,rgba(124,92,252,.12),rgba(79,142,255,.08));border:1.5px solid rgba(124,92,252,.3);border-radius:16px;overflow:hidden;}
+.practice-card-header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(124,92,252,.15);}
+.practice-card-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.practice-card-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);}
+.practice-card-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;}
+.practice-card-body{padding:12px 16px;display:flex;flex-direction:column;gap:10px;}
+.practice-card-topic{font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.5;}
+.practice-card-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.practice-card-tag{padding:3px 10px;border-radius:10px;font-size:11px;font-family:'DM Mono',monospace;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.2);color:var(--accent2);}
+.practice-open-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:12px;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;box-shadow:0 4px 18px rgba(124,92,252,.35);width:100%;}
+.practice-open-btn:hover{transform:scale(1.02);box-shadow:0 6px 24px rgba(124,92,252,.5);}
+.practice-open-btn .btn-arrow{font-size:18px;transition:transform .2s;}
+.practice-open-btn:hover .btn-arrow{transform:translateX(4px);}
+
+.wb-tabs{display:flex;gap:4px;background:rgba(255,255,255,.06);border-radius:10px;padding:3px;}
+.wb-tab{padding:5px 14px;border-radius:8px;border:none;background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;transition:all .18s;}
+.wb-tab.active{background:var(--card2);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3);}
+
+/* Setup screen */
+.wbp-setup{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:32px 24px;gap:14px;text-align:center;}
+.wbp-setup-icon{font-size:52px;line-height:1;}
+.wbp-setup-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--text);}
+.wbp-setup-sub{font-size:14px;color:var(--text2);max-width:340px;line-height:1.6;}
+.wbp-topic-row{display:flex;gap:8px;width:100%;max-width:440px;flex-wrap:wrap;}
+.wbp-topic-input{flex:1;min-width:200px;padding:12px 16px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+.wbp-topic-input:focus{border-color:var(--accent2);}
+.wbp-diff-select{padding:12px 14px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer;}
+.wbp-start-btn{padding:13px 32px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:14px;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;box-shadow:0 4px 20px rgba(124,92,252,.35);}
+.wbp-start-btn:hover{transform:scale(1.03);}
+.wbp-start-btn:disabled{opacity:.5;transform:none;cursor:not-allowed;}
+
+/* Question card */
+.wbp-question-card{background:linear-gradient(135deg,rgba(124,92,252,.12),rgba(79,142,255,.08));border:1px solid rgba(124,92,252,.25);border-radius:0;padding:12px 18px;flex-shrink:0;}
+.wbp-q-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+.wbp-q-num{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--accent2);}
+.wbp-q-topic{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:8px;padding:2px 8px;}
+.wbp-q-diff{font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:8px;text-transform:uppercase;letter-spacing:.5px;}
+.wbp-q-diff.easy{background:rgba(0,229,160,.1);color:var(--success);border:1px solid rgba(0,229,160,.2);}
+.wbp-q-diff.medium{background:rgba(255,181,71,.1);color:var(--warning);border:1px solid rgba(255,181,71,.2);}
+.wbp-q-diff.hard{background:rgba(255,79,106,.08);color:var(--danger);border:1px solid rgba(255,79,106,.2);}
+.wbp-skip-btn{margin-left:auto;padding:3px 12px;background:none;border:1px solid var(--border2);border-radius:8px;color:var(--text3);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .18s;}
+.wbp-skip-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+.wbp-q-text{font-size:15px;color:var(--text);line-height:1.6;font-family:'DM Sans',sans-serif;font-weight:500;}
+
+/* Practice canvas */
+#wbp-canvas{display:block;width:100%;height:100%;touch-action:none;background:#141928;}
+.wbp-hint-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;color:rgba(255,255,255,.12);font-family:'DM Mono',monospace;pointer-events:none;text-align:center;}
+
+/* Action buttons (bottom-right) */
+.wbp-actions{position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
+.wbp-check-btn{padding:11px 22px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:14px;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;box-shadow:0 4px 18px rgba(124,92,252,.4);}
+.wbp-check-btn:hover{transform:scale(1.04);}
+.wbp-check-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.wbp-see-btn{padding:9px 18px;background:rgba(255,181,71,.15);border:1px solid rgba(255,181,71,.35);border-radius:12px;color:var(--warning);font-size:13px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;}
+.wbp-see-btn:hover{background:rgba(255,181,71,.25);}
+
+/* Result badge */
+.wbp-result-badge{position:absolute;top:14px;left:50%;transform:translateX(-50%);padding:8px 22px;border-radius:30px;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;animation:badgeIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes badgeIn{from{transform:translateX(-50%) scale(.6);opacity:0;}to{transform:translateX(-50%) scale(1);opacity:1;}}
+.wbp-result-badge.correct{background:rgba(0,229,160,.2);border:2px solid var(--success);color:var(--success);}
+.wbp-result-badge.wrong{background:rgba(255,79,106,.12);border:2px solid var(--danger);color:var(--danger);}
+
+/* Flash overlay */
+.wbp-flash{position:absolute;inset:0;pointer-events:none;z-index:50;opacity:0;transition:opacity .15s;}
+.wbp-flash.green{box-shadow:inset 0 0 0 5px rgba(0,229,160,.9),inset 0 0 60px rgba(0,229,160,.25);}
+.wbp-flash.red{box-shadow:inset 0 0 0 5px rgba(255,79,106,.9),inset 0 0 60px rgba(255,79,106,.25);}
+.wbp-flash.show{opacity:1;}
+
+/* Step-by-step explain panel */
+.wbp-explain-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(14,18,32,.97);backdrop-filter:blur(20px);border-top:1.5px solid rgba(124,92,252,.3);max-height:60%;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:20;}
+.wbp-explain-panel.visible{transform:translateY(0);}
+.wbp-explain-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;}
+.wbp-explain-body{overflow-y:auto;padding:14px;font-size:14px;color:var(--text);line-height:1.8;flex:1;}
+.wbp-explain-body .step{display:flex;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.06);}
+.wbp-explain-body .step:last-child{border-bottom:none;margin-bottom:0;}
+.wbp-explain-body .step-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white;flex-shrink:0;margin-top:2px;}
+.wbp-explain-body .step-text{flex:1;color:var(--text);}
+.wbp-explain-body .step-text strong{color:var(--accent2);}
+.wbp-next-btn{padding:9px 22px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:12px;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;}
+.wbp-next-btn:hover{transform:scale(1.03);}
+
+/* Tool bar */
+.wbp-tool-bar{display:flex;align-items:center;gap:8px;padding:6px 14px;background:#141928;border-top:1px solid var(--border);flex-wrap:wrap;flex-shrink:0;}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+
 @media(max-width:768px){
   :root{--sidebar-w:240px;}
   .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:10;transform:translateX(-100%);}
@@ -1442,9 +1527,19 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 <!-- Whiteboard overlay -->
 <div class="wb-overlay" id="wb-overlay">
+
+  <!-- ── Top bar with two tabs ── -->
   <div class="wb-topbar">
-    <div class="wb-logo">🖊 Whiteboard</div>
-    <div class="wb-tools">
+    <div style="display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap;">
+      <div class="wb-logo">🖊 Whiteboard</div>
+      <!-- Tab switcher -->
+      <div class="wb-tabs">
+        <button class="wb-tab active" id="wb-tab-draw" onclick="wbSwitchTab('draw')">✏️ Draw</button>
+        <button class="wb-tab" id="wb-tab-practice" onclick="wbSwitchTab('practice')">🧠 Practice</button>
+      </div>
+    </div>
+    <!-- Draw tools (only in draw tab) -->
+    <div class="wb-tools" id="wb-draw-tools">
       <div class="wb-color-row">
         <div class="wb-color active" style="background:#e8edf5" data-color="#e8edf5" onclick="setWbColor(this)"></div>
         <div class="wb-color" style="background:#4f8eff" data-color="#4f8eff" onclick="setWbColor(this)"></div>
@@ -1456,25 +1551,121 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <button class="wb-btn" onclick="setWbEraser()" id="wb-eraser-btn">⌫ Erase</button>
       <button class="wb-btn" onclick="wbUndo()">↩ Undo</button>
       <button class="wb-btn" onclick="wbClear()">🗑 Clear</button>
-      <button class="wb-btn" onclick="closeWhiteboard()">✕ Close</button>
     </div>
+    <button class="wb-btn" onclick="closeWhiteboard()" style="flex-shrink:0;">✕ Close</button>
   </div>
-  <div class="wb-canvas-wrap" id="wb-canvas-wrap">
-    <canvas id="wb-canvas"></canvas>
-    <button class="wb-ask-btn" id="wb-ask-btn" onclick="wbAsk()">✦ Ask AI about this</button>
-  </div>
-  <div class="wb-answer-panel" id="wb-answer-panel">
-    <div class="wb-panel-handle" onclick="collapseWbPanel()">
-      <div class="wb-ans-badge"><div class="wb-ans-badge-dot"></div>Whiteboard AI</div>
+
+  <!-- ══ DRAW TAB ══ -->
+  <div id="wb-draw-pane" style="flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden;">
+    <div class="wb-canvas-wrap" id="wb-canvas-wrap">
+      <canvas id="wb-canvas"></canvas>
+      <button class="wb-ask-btn" id="wb-ask-btn" onclick="wbAsk()">✦ Ask AI about this</button>
     </div>
-    <div class="wb-panel-body">
-      <div class="wb-ans-body" id="wb-ans-body"></div>
-      <div class="wb-prompt-row">
-        <input class="wb-prompt-input" id="wb-prompt-input" placeholder="Ask a follow-up…" onkeydown="if(event.key==='Enter')wbAskPrompt()">
-        <button class="wb-prompt-send" onclick="wbAskPrompt()">➤</button>
+    <div class="wb-answer-panel" id="wb-answer-panel">
+      <div class="wb-panel-handle" onclick="collapseWbPanel()">
+        <div class="wb-ans-badge"><div class="wb-ans-badge-dot"></div>Whiteboard AI</div>
+      </div>
+      <div class="wb-panel-body">
+        <div class="wb-ans-body" id="wb-ans-body"></div>
+        <div class="wb-prompt-row">
+          <input class="wb-prompt-input" id="wb-prompt-input" placeholder="Ask a follow-up…" onkeydown="if(event.key==='Enter')wbAskPrompt()">
+          <button class="wb-prompt-send" onclick="wbAskPrompt()">➤</button>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- ══ PRACTICE TAB ══ -->
+  <div id="wb-practice-pane" style="flex:1;display:none;flex-direction:column;overflow:hidden;position:relative;">
+
+    <!-- Topic input screen (shown when no question loaded) -->
+    <div class="wbp-setup" id="wbp-setup">
+      <div class="wbp-setup-icon">🧠</div>
+      <div class="wbp-setup-title">Practice Mode</div>
+      <div class="wbp-setup-sub">Enter a topic and AI will give you questions to solve step-by-step on the whiteboard</div>
+      <div class="wbp-topic-row">
+        <input type="text" class="wbp-topic-input" id="wbp-topic-input"
+          placeholder="e.g. Quadratic equations, Newton's laws, Trigonometry…"
+          onkeydown="if(event.key==='Enter')wbpStartPractice()">
+        <select class="wbp-diff-select" id="wbp-diff-select">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+      <button class="wbp-start-btn" onclick="wbpStartPractice()">Start Practice ➤</button>
+    </div>
+
+    <!-- Practice canvas area (shown when question loaded) -->
+    <div class="wbp-session" id="wbp-session" style="display:none;flex:1;flex-direction:column;">
+
+      <!-- Question card at top -->
+      <div class="wbp-question-card" id="wbp-question-card">
+        <div class="wbp-q-meta">
+          <span class="wbp-q-num" id="wbp-q-num">Q1</span>
+          <span class="wbp-q-topic" id="wbp-q-topic">Topic</span>
+          <span class="wbp-q-diff" id="wbp-q-diff">Medium</span>
+          <button class="wbp-skip-btn" onclick="wbpNextQuestion()">Skip ›</button>
+        </div>
+        <div class="wbp-q-text" id="wbp-q-text">Loading question…</div>
+      </div>
+
+      <!-- Canvas for writing solution -->
+      <div class="wb-canvas-wrap" id="wbp-canvas-wrap" style="flex:1;">
+        <canvas id="wbp-canvas"></canvas>
+        <div class="wbp-hint-label">Write your steps here ✍️</div>
+
+        <!-- Bottom-right action buttons -->
+        <div class="wbp-actions" id="wbp-actions">
+          <button class="wbp-check-btn" id="wbp-check-btn" onclick="wbpCheckAnswer()">
+            ✓ Check Answer
+          </button>
+          <button class="wbp-see-btn" id="wbp-see-btn" style="display:none;" onclick="wbpSeeAnswer()">
+            👁 See Answer
+          </button>
+        </div>
+
+        <!-- Result badge (correct / wrong) -->
+        <div class="wbp-result-badge" id="wbp-result-badge" style="display:none;"></div>
+      </div>
+
+      <!-- Step-by-step explanation panel -->
+      <div class="wbp-explain-panel" id="wbp-explain-panel">
+        <div class="wbp-explain-header">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="wb-ans-badge-dot" style="background:var(--accent2);box-shadow:0 0 5px var(--accent2);"></div>
+            <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--accent2);letter-spacing:.8px;text-transform:uppercase;">Step-by-step Solution</span>
+          </div>
+          <button onclick="wbpCloseExplain()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;">✕</button>
+        </div>
+        <div class="wbp-explain-body" id="wbp-explain-body"></div>
+        <div style="padding:8px 14px;border-top:1px solid rgba(255,255,255,.06);">
+          <button class="wbp-next-btn" onclick="wbpNextQuestion()">Next Question ➤</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tools bar for practice canvas -->
+    <div class="wbp-tool-bar" id="wbp-tool-bar" style="display:none;">
+      <div class="wb-color-row">
+        <div class="wb-color active" style="background:#e8edf5" data-color="#e8edf5" onclick="setWbpColor(this)"></div>
+        <div class="wb-color" style="background:#4f8eff" data-color="#4f8eff" onclick="setWbpColor(this)"></div>
+        <div class="wb-color" style="background:#00e5c0" data-color="#00e5c0" onclick="setWbpColor(this)"></div>
+        <div class="wb-color" style="background:#ffb547" data-color="#ffb547" onclick="setWbpColor(this)"></div>
+        <div class="wb-color" style="background:#ff4f6a" data-color="#ff4f6a" onclick="setWbpColor(this)"></div>
+      </div>
+      <input type="range" style="width:70px;accent-color:#a78bfa;" id="wbp-size" min="2" max="24" value="4" oninput="wbpSize=parseInt(this.value)">
+      <button class="wb-btn" onclick="setWbpEraser()" id="wbp-eraser-btn">⌫</button>
+      <button class="wb-btn" onclick="wbpUndo()">↩</button>
+      <button class="wb-btn" onclick="wbpClear()">🗑</button>
+    </div>
+
+  </div>
+
+  <!-- Flash overlay (green=correct, red=wrong) -->
+  <div class="wbp-flash" id="wbp-flash"></div>
+
 </div>
 
 <!-- IDE overlay -->
@@ -1937,6 +2128,73 @@ function removeCtx(i){selectedContexts.splice(i,1);renderContextChips();}
 // ── Notes/Formula/Flashcard/Quiz renderers ──
 function renderNotesMsg(notes,topic){const cardId='notes_'+Date.now();const wrap=document.getElementById('chat-messages');const div=document.createElement('div');div.className='msg ai';div.innerHTML=`<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble" style="padding:0;background:none;border:none;"><div class="notes-card"><div class="notes-header"><div class="notes-badge"><div class="notes-badge-dot"></div>📝 Study Notes — ${_esc(topic)}</div><div style="display:flex;gap:5px;"><button class="notes-save-btn" id="save_${cardId}" onclick="saveFile('${cardId}','notes','${_esc(topic)}')">💾 Save</button><button class="notes-copy-btn" onclick="copyNotes('${cardId}')">⎘ Copy</button></div></div><div class="notes-body" id="${cardId}">${parseMarkdown(notes)}</div></div></div><div class="msg-actions"><button class="speak-btn" id="spk${cardId}" onclick="speakMsg('spk${cardId}')">🔊 Speak</button></div></div>`;div._rawText=notes;wrap.appendChild(div);const body=document.getElementById(cardId);if(body)renderMath(body);scrollBottom();}
 function renderFormulaMsg(sheet,topic){const cardId='formula_'+Date.now();const wrap=document.getElementById('chat-messages');const div=document.createElement('div');div.className='msg ai';div.innerHTML=`<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble" style="padding:0;background:none;border:none;"><div class="formula-card"><div class="formula-header"><div class="formula-badge"><div class="formula-badge-dot"></div>📐 Formula Sheet — ${_esc(topic)}</div><div style="display:flex;gap:5px;"><button class="formula-save-btn" id="save_${cardId}" onclick="saveFile('${cardId}','formula','${_esc(topic)}')">💾 Save</button><button class="formula-copy-btn" onclick="copyFormula('${cardId}')">⎘ Copy</button></div></div><div class="formula-body" id="${cardId}">${parseMarkdown(sheet)}</div></div></div><div class="msg-actions"><button class="speak-btn" id="spk${cardId}" onclick="speakMsg('spk${cardId}')">🔊 Speak</button></div></div>`;div._rawText=sheet;wrap.appendChild(div);const body=document.getElementById(cardId);if(body)renderMath(body);scrollBottom();}
+
+// ── Practice Card — shown in chat when intent = practice ──────────────────────
+function renderPracticeCard(topic, difficulty) {
+  const wrap = document.getElementById('chat-messages');
+  const div  = document.createElement('div');
+  div.className = 'msg ai';
+
+  const diffLabel = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+  const diffColors = { easy: 'var(--success)', medium: 'var(--warning)', hard: 'var(--danger)' };
+  const diffColor  = diffColors[difficulty] || diffColors.medium;
+
+  div.innerHTML = `
+    <div class="msg-avatar">✦</div>
+    <div class="msg-content">
+      <div class="msg-bubble" style="padding:0;background:none;border:none;">
+        <div class="practice-card">
+          <div class="practice-card-header">
+            <div class="practice-card-icon">🧠</div>
+            <div>
+              <div class="practice-card-title">Practice Mode Ready</div>
+              <div class="practice-card-sub">Solve step-by-step on the whiteboard</div>
+            </div>
+          </div>
+          <div class="practice-card-body">
+            <div class="practice-card-topic">
+              <strong style="color:var(--accent2);">Topic:</strong> ${_esc(topic)}
+            </div>
+            <div class="practice-card-meta">
+              <span class="practice-card-tag">🧠 Whiteboard Practice</span>
+              <span class="practice-card-tag" style="color:${diffColor};border-color:${diffColor}33;background:${diffColor}18;">
+                ${diffLabel}
+              </span>
+              <span class="practice-card-tag">✍️ Step-by-step</span>
+            </div>
+            <button class="practice-open-btn" onclick="openPracticeFromChat('${_esc(topic)}','${difficulty}')">
+              Open Whiteboard & Start
+              <span class="btn-arrow">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  wrap.appendChild(div);
+  scrollBottom();
+}
+
+// Called when user clicks the practice card button
+function openPracticeFromChat(topic, difficulty) {
+  // Pre-fill the practice session state
+  wbpState.topic      = topic;
+  wbpState.difficulty = difficulty || 'medium';
+
+  // Open whiteboard and switch to practice tab
+  document.getElementById('wb-overlay').classList.add('active');
+  initWbCanvas();
+  wbSwitchTab('practice');
+
+  // Pre-fill topic input and auto-start
+  const topicInput = document.getElementById('wbp-topic-input');
+  const diffSelect = document.getElementById('wbp-diff-select');
+  if (topicInput) topicInput.value = topic;
+  if (diffSelect) diffSelect.value = difficulty || 'medium';
+
+  // Small delay so DOM is ready, then auto-start
+  setTimeout(() => wbpStartPractice(), 200);
+}
+
 function renderFlashcards(cards,topic){const wrap=document.getElementById('chat-messages');const div=document.createElement('div');div.className='msg ai';const cardsHtml=cards.map((_,i)=>{const fid='fc'+Date.now()+'_'+i;return`<div class="fc-flip-card" id="${fid}" onclick="this.classList.toggle('flipped')"><div class="fc-inner"><div class="fc-front"><div class="fc-tag">Question</div><div class="fc-text">${_esc(cards[i].question)}</div><div class="fc-hint-small">tap to flip</div></div><div class="fc-back"><div class="fc-tag">Answer</div><div class="fc-text">${_esc(cards[i].answer)}</div><div class="fc-hint-small">tap to flip back</div></div></div></div>`;}).join('');div.innerHTML=`<div class="msg-avatar">✦</div><div class="msg-content" style="max-width:100%"><div class="msg-bubble"><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--accent);margin-bottom:8px;">✦ ${cards.length} Flashcards — ${_esc(topic)}</div><div class="fc-grid">${cardsHtml}</div></div></div>`;wrap.appendChild(div);scrollBottom();}
 function renderQuiz(questions,topic,difficulty){activeQuiz={questions,topic,difficulty,current:0,score:0,total:questions.length};showQuizQuestion();}
 function showQuizQuestion(){if(!activeQuiz)return;const{questions,current,total}=activeQuiz;if(current>=total){showQuizResult();return;}const q=questions[current];const wrap=document.getElementById('chat-messages');const div=document.createElement('div');div.className='msg ai';div.id='quiz-msg';const pct=Math.round(current/total*100);const optsHtml=q.options.map((opt,i)=>{const letter=String.fromCharCode(65+i);return`<div class="quiz-opt" id="qopt_${i}" onclick="answerQuiz(${i})"><div class="opt-l">${letter}</div>${_esc(opt)}</div>`;}).join('');div.innerHTML=`<div class="msg-avatar">✦</div><div class="msg-content" style="max-width:90%"><div class="msg-bubble"><div class="quiz-wrap"><div class="quiz-prog"><div class="quiz-fill" style="width:${pct}%"></div></div><div class="quiz-qnum">Question ${current+1} of ${total}</div><div class="quiz-q">${_esc(q.question)}</div><div class="quiz-opts">${optsHtml}</div><div class="quiz-exp" id="quiz-exp">${_esc(q.explanation||'')}</div><button class="quiz-next" id="quiz-next" onclick="nextQuestion()">Next →</button></div></div></div>`;wrap.appendChild(div);scrollBottom();}
@@ -2068,6 +2326,24 @@ async function sendMessage(){
   if(intent==='formula'){try{const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Formula: '+data.topic+']');renderFormulaMsg(data.sheet,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate formula sheet.');}return;}
   if(intent==='flashcard'||intent==='both'){try{const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();if(intent==='both'){const qres=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(!qres.ok)throw new Error('HTTP '+qres.status);const qdata=await qres.json();hideTyping();pushHistory('assistant','[Flashcards+Quiz: '+data.topic+']');renderFlashcards(data.cards,data.topic);renderQuiz(qdata.questions,qdata.topic,qdata.difficulty);}else{hideTyping();pushHistory('assistant','[Flashcards: '+data.topic+']');renderFlashcards(data.cards,data.topic);}}catch(err){hideTyping();addMsg('ai','Could not generate flashcards.');}return;}
   if(intent==='quiz'){try{const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Quiz: '+data.topic+']');renderQuiz(data.questions,data.topic,data.difficulty);}catch(err){hideTyping();addMsg('ai','Could not generate quiz.');}return;}
+
+  if(intent==='practice'){
+    // Extract topic — strip practice/solve/exercise trigger words
+    const practiceStopWords = /\b(practice|practise|solve|exercise|problems?|questions?|on|for|about|me|want|to|i|let|give|whiteboard|do|some|a|an|the|please)\b/gi;
+    let topic = text.replace(practiceStopWords,'').replace(/\s+/g,' ').trim();
+    if(!topic || topic.length < 3) topic = text.trim(); // fallback to full text
+
+    // Detect difficulty from message
+    let difficulty = 'medium';
+    if(/\b(easy|simple|basic|beginner|आसान|सरल)\b/i.test(text)) difficulty = 'easy';
+    else if(/\b(hard|difficult|advanced|tough|challenging|कठिन|मुश्किल)\b/i.test(text)) difficulty = 'hard';
+
+    hideTyping();
+    pushHistory('assistant', '[Practice: '+topic+']');
+    renderPracticeCard(topic, difficulty);
+    return;
+  }
+
   await _sendChat(text);
 }
 
@@ -2714,7 +2990,12 @@ function stopScopeVoice() {
 
 // ── Whiteboard ──
 let wbColor='#e8edf5',wbSize=4,wbDrawing=false,wbErasing=false,wbPrevX=0,wbPrevY=0,wbHistory=[],wbCurrentPath=[];
-function openWhiteboard(){document.getElementById('wb-overlay').classList.add('active');initWbCanvas();}
+function openWhiteboard(){
+  document.getElementById('wb-overlay').classList.add('active');
+  // Ensure draw tab is active by default
+  wbSwitchTab('draw');
+  initWbCanvas();
+}
 function closeWhiteboard(){document.getElementById('wb-overlay').classList.remove('active');stopSpeaking();}
 function initWbCanvas(){const canvas=document.getElementById('wb-canvas');const wrap=document.getElementById('wb-canvas-wrap');canvas.width=wrap.clientWidth||window.innerWidth;canvas.height=wrap.clientHeight||600;canvas.addEventListener('mousedown',wbDown);canvas.addEventListener('touchstart',wbTouchStart,{passive:false});document.addEventListener('mousemove',wbMove);document.addEventListener('mouseup',wbUp);document.addEventListener('touchmove',wbTouchMove,{passive:false});document.addEventListener('touchend',wbUp);}
 function wbPos(e,canvas){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height};}
@@ -2730,6 +3011,475 @@ function setWbEraser(){wbErasing=!wbErasing;document.getElementById('wb-eraser-b
 async function wbAsk(){const canvas=document.getElementById('wb-canvas');const btn=document.getElementById('wb-ask-btn');const dataUrl=canvas.toDataURL('image/jpeg',.92);const base64=dataUrl.split(',')[1];btn.textContent='⏳ Analysing…';try{const res=await fetch(API_URL+'/image-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'Analyse this whiteboard drawing. Explain what it shows, solve any equations, and describe the diagrams.',images:[base64],image_names:['whiteboard.jpg'],history:[]})});if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();const panel=document.getElementById('wb-answer-panel');const body=document.getElementById('wb-ans-body');body.innerHTML=parseMarkdown(data.reply||'');renderMath(body);panel.classList.add('visible');}catch(err){addMsg('ai','Could not analyse whiteboard.');}finally{btn.textContent='✦ Ask AI about this';}}
 async function wbAskPrompt(){const prompt=document.getElementById('wb-prompt-input').value.trim();if(!prompt)return;const canvas=document.getElementById('wb-canvas');const dataUrl=canvas.toDataURL('image/jpeg',.92);const base64=dataUrl.split(',')[1];document.getElementById('wb-prompt-input').value='';try{const res=await fetch(API_URL+'/image-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:prompt,images:[base64],image_names:['whiteboard.jpg'],history:[]})});if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();const body=document.getElementById('wb-ans-body');body.innerHTML=parseMarkdown(data.reply||'');renderMath(body);}catch(err){}}
 function collapseWbPanel(){document.getElementById('wb-answer-panel').classList.toggle('visible');}
+
+// ══════════════════════════════════════════════════════
+// WHITEBOARD — PRACTICE MODE
+// ══════════════════════════════════════════════════════
+
+let wbCurrentTab = 'draw';
+
+// ── Tab switching ──
+function wbSwitchTab(tab) {
+  wbCurrentTab = tab;
+  document.getElementById('wb-tab-draw').classList.toggle('active', tab === 'draw');
+  document.getElementById('wb-tab-practice').classList.toggle('active', tab === 'practice');
+  document.getElementById('wb-draw-pane').style.display    = tab === 'draw'     ? 'flex' : 'none';
+  document.getElementById('wb-practice-pane').style.display= tab === 'practice' ? 'flex' : 'none';
+  document.getElementById('wb-draw-tools').style.display   = tab === 'draw'     ? 'flex' : 'none';
+  if (tab === 'practice') {
+    // Init practice canvas if session active
+    if (wbpState.sessionActive) wbpInitCanvas();
+  }
+}
+
+// ── Practice State ──
+const wbpState = {
+  topic: '',
+  difficulty: 'medium',
+  questionNum: 0,
+  currentQuestion: null,
+  questions: [],           // prefetched queue
+  sessionActive: false,
+  isChecking: false,
+  color: '#e8edf5',
+  size: 4,
+  erasing: false,
+  drawing: false,
+  prevX: 0, prevY: 0,
+  history: [],
+  currentPath: [],
+};
+let wbpSize = 4;
+
+// ── Start Practice Session ──
+async function wbpStartPractice() {
+  const topic = document.getElementById('wbp-topic-input').value.trim();
+  if (!topic) {
+    document.getElementById('wbp-topic-input').focus();
+    return;
+  }
+  const diff = document.getElementById('wbp-diff-select').value;
+  wbpState.topic      = topic;
+  wbpState.difficulty = diff;
+  wbpState.questionNum= 0;
+  wbpState.questions  = [];
+  wbpState.sessionActive = true;
+
+  const btn = document.querySelector('.wbp-start-btn');
+  btn.disabled = true;
+  btn.textContent = 'Loading…';
+
+  try {
+    await wbpFetchQuestions();
+    wbpShowSession();
+    await wbpLoadNextQuestion();
+  } catch(e) {
+    addMsg('ai', '❌ Could not start practice: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = 'Start Practice ➤';
+  }
+}
+
+// ── Fetch 5 questions at once (so next is instant) ──
+async function wbpFetchQuestions() {
+  const res = await fetch(API_URL + '/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: `Generate 5 ${wbpState.difficulty} practice questions on "${wbpState.topic}".
+Each question should require step-by-step working (not just a one-word answer).
+Include maths, derivations, proofs, or multi-step problems.
+Return ONLY a JSON array of strings, no explanation, no markdown fences:
+["Question 1 text", "Question 2 text", "Question 3 text", "Question 4 text", "Question 5 text"]`,
+      model: 'smart',
+      history: []
+    })
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  const raw = data.reply.trim();
+  // Parse JSON array from reply
+  const match = raw.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error('Bad question format');
+  wbpState.questions = JSON.parse(match[0]).filter(q => typeof q === 'string' && q.trim());
+  if (!wbpState.questions.length) throw new Error('No questions returned');
+}
+
+// ── Show session pane ──
+function wbpShowSession() {
+  document.getElementById('wbp-setup').style.display   = 'none';
+  document.getElementById('wbp-session').style.display = 'flex';
+  document.getElementById('wbp-tool-bar').style.display= 'flex';
+  wbpInitCanvas();
+}
+
+// ── Load next question ──
+async function wbpLoadNextQuestion() {
+  // If queue empty, fetch more
+  if (!wbpState.questions.length) {
+    try { await wbpFetchQuestions(); } catch(e) {}
+  }
+  if (!wbpState.questions.length) {
+    addMsg('ai', '🎉 Great work! You finished all the questions on this topic.');
+    wbpEndSession();
+    return;
+  }
+
+  wbpState.questionNum++;
+  wbpState.currentQuestion = wbpState.questions.shift();
+  wbpState.isChecking = false;
+
+  // Update UI
+  document.getElementById('wbp-q-num').textContent  = 'Q' + wbpState.questionNum;
+  document.getElementById('wbp-q-topic').textContent = wbpState.topic;
+  const diffEl = document.getElementById('wbp-q-diff');
+  diffEl.textContent  = wbpState.difficulty.charAt(0).toUpperCase() + wbpState.difficulty.slice(1);
+  diffEl.className    = 'wbp-q-diff ' + wbpState.difficulty;
+  document.getElementById('wbp-q-text').textContent = wbpState.currentQuestion;
+  renderMath(document.getElementById('wbp-q-text'));
+
+  // Reset canvas and controls
+  wbpClear();
+  document.getElementById('wbp-result-badge').style.display = 'none';
+  document.getElementById('wbp-check-btn').style.display    = 'inline-flex';
+  document.getElementById('wbp-check-btn').disabled         = false;
+  document.getElementById('wbp-check-btn').textContent      = '✓ Check Answer';
+  document.getElementById('wbp-see-btn').style.display      = 'none';
+  wbpCloseExplain();
+
+  // Show hint label only on first question
+  const hint = document.querySelector('.wbp-hint-label');
+  if (hint) hint.style.display = wbpState.questionNum === 1 ? 'block' : 'none';
+}
+
+function wbpNextQuestion() { wbpLoadNextQuestion(); }
+
+function wbpEndSession() {
+  wbpState.sessionActive = false;
+  document.getElementById('wbp-setup').style.display   = 'flex';
+  document.getElementById('wbp-session').style.display = 'none';
+  document.getElementById('wbp-tool-bar').style.display= 'none';
+  document.querySelector('.wbp-start-btn').disabled     = false;
+  document.querySelector('.wbp-start-btn').textContent  = 'Start Practice ➤';
+}
+
+// ── Check Answer ──────────────────────────────────────────────────────────────
+async function wbpCheckAnswer() {
+  if (wbpState.isChecking) return;
+  const canvas = document.getElementById('wbp-canvas');
+  if (!canvas) return;
+
+  // Check if canvas has any content
+  const ctx = canvas.getContext('2d');
+  const blank = ctx.getImageData(0,0,canvas.width,canvas.height).data.every(v => v === 0);
+  if (blank) {
+    // Shake the button
+    const btn = document.getElementById('wbp-check-btn');
+    btn.style.animation = 'shake .4s ease';
+    setTimeout(() => btn.style.animation='', 400);
+    document.getElementById('wbp-result-badge').textContent = '✏️ Write your solution first!';
+    document.getElementById('wbp-result-badge').className   = 'wbp-result-badge wrong';
+    document.getElementById('wbp-result-badge').style.display = 'block';
+    setTimeout(() => { document.getElementById('wbp-result-badge').style.display='none'; }, 2000);
+    return;
+  }
+
+  wbpState.isChecking = true;
+  const btn = document.getElementById('wbp-check-btn');
+  btn.disabled     = true;
+  btn.textContent  = '⏳ Checking…';
+
+  // Capture canvas as image
+  const dataUrl  = canvas.toDataURL('image/jpeg', .88);
+  const base64   = dataUrl.split(',')[1];
+
+  const prompt = `You are checking a student's handwritten solution on a whiteboard.
+
+Question: ${wbpState.currentQuestion}
+
+The image shows the student's handwritten working/steps.
+
+Evaluate if their answer and working is CORRECT or WRONG.
+
+Rules:
+- If the approach is right but minor arithmetic slip: still CORRECT
+- If fundamentally wrong method or wrong answer: WRONG
+- Read ALL handwritten content carefully
+
+Respond ONLY with this exact JSON (no markdown):
+{"correct": true/false, "feedback": "one short sentence of feedback in the student's language"}`;
+
+  try {
+    const res = await fetch(API_URL + '/image-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: prompt,
+        images: [base64],
+        image_names: ['solution.jpg'],
+        history: []
+      })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const raw  = data.reply.trim();
+
+    let correct = false, feedback = '';
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (match) {
+      const parsed = JSON.parse(match[0]);
+      correct  = !!parsed.correct;
+      feedback = parsed.feedback || '';
+    }
+
+    wbpShowResult(correct, feedback);
+
+  } catch(e) {
+    btn.disabled    = false;
+    btn.textContent = '✓ Check Answer';
+    wbpState.isChecking = false;
+  }
+}
+
+// ── Show result with flash + badge ────────────────────────────────────────────
+function wbpShowResult(correct, feedback) {
+  // Flash border
+  const flash = document.getElementById('wbp-flash');
+  flash.className = 'wbp-flash ' + (correct ? 'green' : 'red') + ' show';
+  setTimeout(() => { flash.classList.remove('show'); }, 900);
+
+  // Result badge
+  const badge = document.getElementById('wbp-result-badge');
+  badge.textContent = correct
+    ? '✅ Correct! ' + (feedback || 'Great work!')
+    : '❌ Not quite. ' + (feedback || 'Check your steps.');
+  badge.className   = 'wbp-result-badge ' + (correct ? 'correct' : 'wrong');
+  badge.style.display = 'block';
+
+  // Check button → hide, show See Answer if wrong
+  const checkBtn = document.getElementById('wbp-check-btn');
+  checkBtn.style.display = 'none';
+
+  if (correct) {
+    // Auto next after 2.5s
+    setTimeout(() => wbpNextQuestion(), 2500);
+  } else {
+    // Show "See Answer" button
+    document.getElementById('wbp-see-btn').style.display = 'inline-flex';
+    document.getElementById('wbp-see-btn').style.animation = 'badgeIn .3s cubic-bezier(.34,1.56,.64,1)';
+  }
+
+  wbpState.isChecking = false;
+}
+
+// ── See Answer — step-by-step explanation ─────────────────────────────────────
+async function wbpSeeAnswer() {
+  const seeBtn = document.getElementById('wbp-see-btn');
+  seeBtn.disabled    = true;
+  seeBtn.textContent = '⏳ Loading…';
+
+  try {
+    const res = await fetch(API_URL + '/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Solve this problem with detailed step-by-step working:
+
+"${wbpState.currentQuestion}"
+
+Format your answer EXACTLY like this (use this structure for every step):
+STEP 1: [title]
+[explanation and working for step 1]
+
+STEP 2: [title]
+[explanation and working for step 2]
+
+...continue for all steps...
+
+FINAL ANSWER: [the answer]
+
+Rules:
+- Show every single step clearly
+- Explain WHY each step is done
+- Use LaTeX for maths: $...$ inline, $$...$$ display
+- Keep each step concise but complete`,
+        model: 'pro',
+        history: []
+      })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    wbpRenderExplanation(data.reply || '');
+  } catch(e) {
+    seeBtn.disabled    = false;
+    seeBtn.textContent = '👁 See Answer';
+  }
+}
+
+// ── Render step-by-step explanation ──────────────────────────────────────────
+function wbpRenderExplanation(text) {
+  const panel  = document.getElementById('wbp-explain-panel');
+  const body   = document.getElementById('wbp-explain-body');
+
+  // Parse STEP N: blocks
+  const stepRegex = /STEP\s+(\d+):\s*([^\n]*)\n([\s\S]*?)(?=STEP\s+\d+:|FINAL ANSWER:|$)/gi;
+  const finalRegex = /FINAL ANSWER:\s*([\s\S]*?)$/i;
+
+  let html = '';
+  let match;
+  while ((match = stepRegex.exec(text)) !== null) {
+    const num     = match[1];
+    const title   = match[2].trim();
+    const content = match[3].trim();
+    html += `<div class="step">
+      <div class="step-num">${num}</div>
+      <div class="step-text"><strong>${_esc(title)}</strong><br>${parseMarkdown(content)}</div>
+    </div>`;
+  }
+
+  // Final answer
+  const finalMatch = text.match(finalRegex);
+  if (finalMatch) {
+    html += `<div class="step">
+      <div class="step-num" style="background:linear-gradient(135deg,var(--success),var(--accent3));">✓</div>
+      <div class="step-text"><strong>Final Answer</strong><br>${parseMarkdown(finalMatch[1].trim())}</div>
+    </div>`;
+  }
+
+  // Fallback: no STEP format found
+  if (!html) {
+    html = `<div style="padding:4px 0;">${parseMarkdown(text)}</div>`;
+  }
+
+  body.innerHTML = html;
+  renderMath(body);
+
+  panel.classList.add('visible');
+
+  // Hide see button
+  document.getElementById('wbp-see-btn').style.display = 'none';
+}
+
+function wbpCloseExplain() {
+  document.getElementById('wbp-explain-panel').classList.remove('visible');
+}
+
+// ── Practice Canvas Setup ─────────────────────────────────────────────────────
+function wbpInitCanvas() {
+  const canvas = document.getElementById('wbp-canvas');
+  const wrap   = document.getElementById('wbp-canvas-wrap');
+  if (!canvas || !wrap) return;
+  canvas.width  = wrap.clientWidth  || window.innerWidth;
+  canvas.height = wrap.clientHeight || 500;
+
+  // Remove old listeners then re-add
+  const newCanvas = canvas.cloneNode(false);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+
+  newCanvas.addEventListener('mousedown',  wbpDown);
+  newCanvas.addEventListener('touchstart', wbpTouchStart, { passive: false });
+  document.addEventListener('mousemove',   wbpMove);
+  document.addEventListener('mouseup',     wbpUp);
+  document.addEventListener('touchmove',   wbpTouchMove, { passive: false });
+  document.addEventListener('touchend',    wbpUp);
+}
+
+function wbpPos(e, canvas) {
+  const r = canvas.getBoundingClientRect();
+  return { x: (e.clientX-r.left)*canvas.width/r.width, y: (e.clientY-r.top)*canvas.height/r.height };
+}
+function wbpDown(e) {
+  wbpState.drawing=true; wbpState.currentPath=[];
+  const p = wbpPos(e, document.getElementById('wbp-canvas'));
+  wbpState.prevX=p.x; wbpState.prevY=p.y;
+  // Hide hint on first stroke
+  const hint = document.querySelector('.wbp-hint-label');
+  if (hint) hint.style.display = 'none';
+}
+function wbpTouchStart(e) {
+  e.preventDefault();
+  if (e.touches.length!==1) return;
+  const t=e.touches[0];
+  const canvas=document.getElementById('wbp-canvas');
+  const r=canvas.getBoundingClientRect();
+  wbpState.drawing=true; wbpState.currentPath=[];
+  wbpState.prevX=(t.clientX-r.left)*canvas.width/r.width;
+  wbpState.prevY=(t.clientY-r.top)*canvas.height/r.height;
+  const hint=document.querySelector('.wbp-hint-label');
+  if(hint) hint.style.display='none';
+}
+function wbpMove(e) {
+  if (!wbpState.drawing) return;
+  const canvas=document.getElementById('wbp-canvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const p=wbpPos(e,canvas);
+  ctx.beginPath();
+  ctx.moveTo(wbpState.prevX,wbpState.prevY);
+  ctx.lineTo(p.x,p.y);
+  ctx.strokeStyle=wbpState.erasing?'#141928':wbpState.color;
+  ctx.lineWidth=wbpState.erasing?wbpSize*3:wbpSize;
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.stroke();
+  wbpState.currentPath.push([p.x,p.y]);
+  wbpState.prevX=p.x; wbpState.prevY=p.y;
+}
+function wbpTouchMove(e) {
+  if(!wbpState.drawing||e.touches.length!==1) return;
+  e.preventDefault();
+  const t=e.touches[0];
+  const canvas=document.getElementById('wbp-canvas');
+  const r=canvas.getBoundingClientRect();
+  const x=(t.clientX-r.left)*canvas.width/r.width,y=(t.clientY-r.top)*canvas.height/r.height;
+  const ctx=canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.moveTo(wbpState.prevX,wbpState.prevY);
+  ctx.lineTo(x,y);
+  ctx.strokeStyle=wbpState.erasing?'#141928':wbpState.color;
+  ctx.lineWidth=wbpState.erasing?wbpSize*3:wbpSize;
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.stroke();
+  wbpState.prevX=x; wbpState.prevY=y;
+}
+function wbpUp() {
+  if (!wbpState.drawing) return;
+  wbpState.drawing=false;
+  if(wbpState.currentPath.length>1) {
+    wbpState.history.push({path:[...wbpState.currentPath],color:wbpState.color,size:wbpSize,erasing:wbpState.erasing});
+  }
+  wbpState.currentPath=[];
+}
+function wbpUndo() {
+  if(!wbpState.history.length) return;
+  wbpState.history.pop();
+  const canvas=document.getElementById('wbp-canvas');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  wbpState.history.forEach(h=>{
+    ctx.beginPath();
+    h.path.forEach((p,i)=>{ if(i===0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); });
+    ctx.strokeStyle=h.erasing?'#141928':h.color;
+    ctx.lineWidth=h.erasing?h.size*3:h.size;
+    ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.stroke();
+  });
+}
+function wbpClear() {
+  const canvas=document.getElementById('wbp-canvas');
+  if(canvas) canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+  wbpState.history=[];
+}
+function setWbpColor(el) {
+  wbpState.color=el.dataset.color;
+  wbpState.erasing=false;
+  document.querySelectorAll('#wbp-tool-bar .wb-color').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('wbp-eraser-btn').classList.remove('active');
+}
+function setWbpEraser() {
+  wbpState.erasing=!wbpState.erasing;
+  document.getElementById('wbp-eraser-btn').classList.toggle('active',wbpState.erasing);
+}
 
 // ── IDE ──
 let ideCurrentLang='python';

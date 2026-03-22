@@ -1296,7 +1296,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   background:radial-gradient(ellipse at 20% 50%, rgba(79,142,255,.15) 0%, transparent 60%),
              radial-gradient(ellipse at 80% 20%, rgba(124,92,252,.12) 0%, transparent 50%),
              #080b12;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
   padding:24px;
 ">
   <!-- Background orbs -->
@@ -1434,6 +1434,22 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 </div>
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
+
+<!-- Session loader — shown while Firebase checks if user is already logged in -->
+<div id="session-loader" style="
+  position:fixed;inset:0;z-index:10000;
+  background:#080b12;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+">
+  <div style="font-family:'Syne',sans-serif;font-size:40px;font-weight:900;
+    background:linear-gradient(135deg,#4f8eff,#7c5cfc,#00e5c0);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-2px;">
+    Sedy
+  </div>
+  <div style="width:32px;height:32px;border:3px solid rgba(79,142,255,.2);
+    border-top-color:#4f8eff;border-radius:50%;animation:spin .8s linear infinite;">
+  </div>
+</div>
 
 <!-- Lightbox -->
 <div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
@@ -4819,39 +4835,61 @@ async function authSignOut() {
 // ── onAuthStateChanged ────────────────────────────────────────────────────────
 async function authInit() {
   const fb = await _waitFb();
+
+  // Helper to hide session loader (the full-screen spinner shown on every page load)
+  function hideSessionLoader() {
+    const loader = document.getElementById('session-loader');
+    if (!loader) return;
+    loader.style.transition = 'opacity .3s ease';
+    loader.style.opacity = '0';
+    setTimeout(() => { loader.style.display = 'none'; }, 300);
+  }
+
   if (!fb) {
+    // Firebase failed to load — run in localStorage-only mode
     console.warn('Firebase not available — running in local mode');
-    hideAuthScreen(); init(); return;
+    hideSessionLoader();
+    hideAuthScreen();
+    init();
+    return;
   }
 
   fb.onAuthStateChanged(fb.auth, async (user) => {
     if (user) {
+      // ── USER IS ALREADY LOGGED IN (persistent session) or just logged in ──
       if (user.providerData[0]?.providerId === 'password' && !user.emailVerified) {
-        // Email user who hasn't verified yet — keep them on OTP screen
+        hideSessionLoader();
         return;
       }
+
       _currentUser = user;
-      showAuthLoadingMsg('Loading your data…');
 
-      try { await loadUserDataFromFirestore(); } catch(e) {}
+      try { await loadUserDataFromFirestore(); } catch(e) {
+        console.warn('Firestore load failed, continuing:', e);
+      }
 
-      // Check if this user has completed onboarding
+      // Check onboarding completion
       const profile = await _getProfile();
       if (!profile || !profile.name) {
-        // New user or incomplete profile — show onboarding
+        // New user — show onboarding
         _isNewUser = true;
-        hideAuthLoading();
+        hideSessionLoader();
+        // Show auth screen in onboarding mode
+        const screen = document.getElementById('auth-screen');
+        if (screen) screen.style.display = 'flex';
         _showOnboarding();
       } else {
-        // Returning user — apply their saved preferred language
+        // Returning user — apply language and go straight to app
         if (profile.language && profile.language !== 'English') {
           _userPreferredLang = profile.language;
-          console.log('🌐 Loaded preferred language:', profile.language);
         }
+        hideSessionLoader();
         _afterLogin(user, false);
       }
     } else {
+      // ── NOT LOGGED IN — show login screen ──
       _currentUser = null;
+      hideSessionLoader();
       const screen = document.getElementById('auth-screen');
       if (screen) screen.style.display = 'flex';
       hideAuthLoading();

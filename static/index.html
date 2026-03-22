@@ -7,6 +7,37 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Sedy - AI Study Companion</title>
+
+<!-- Firebase SDK -->
+<script type="module">
+  // ── PASTE YOUR FIREBASE CONFIG HERE ──────────────────────────────────────
+  // Go to: console.firebase.google.com → Your project → Project settings → Your apps → Web app → Config
+  const firebaseConfig = {
+    apiKey:            "PASTE_YOUR_API_KEY",
+    authDomain:        "PASTE_YOUR_AUTH_DOMAIN",
+    projectId:         "PASTE_YOUR_PROJECT_ID",
+    storageBucket:     "PASTE_YOUR_STORAGE_BUCKET",
+    messagingSenderId: "PASTE_YOUR_MESSAGING_SENDER_ID",
+    appId:             "PASTE_YOUR_APP_ID"
+  };
+  // ─────────────────────────────────────────────────────────────────────────
+
+  import { initializeApp }                         from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+                                                   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
+           collection, getDocs, writeBatch, serverTimestamp }
+                                                   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  // Expose to global scope so non-module scripts can call them
+  window._fb = { auth, db, GoogleAuthProvider, signInWithPopup, signOut,
+                 onAuthStateChanged, doc, getDoc, setDoc, updateDoc, deleteDoc,
+                 collection, getDocs, writeBatch, serverTimestamp };
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -1166,6 +1197,97 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════════════════════
+     AUTH SCREEN — shown before login
+════════════════════════════════════════════════════════ -->
+<div id="auth-screen" style="
+  position:fixed;inset:0;z-index:9999;
+  background:radial-gradient(ellipse at 20% 50%, rgba(79,142,255,.15) 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 20%, rgba(124,92,252,.12) 0%, transparent 50%),
+             #080b12;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;gap:0;
+">
+  <!-- Animated background orbs -->
+  <div style="position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(79,142,255,.08),transparent);top:-100px;left:-100px;pointer-events:none;"></div>
+  <div style="position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,252,.06),transparent);bottom:-80px;right:-80px;pointer-events:none;"></div>
+
+  <!-- Logo -->
+  <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:900;
+    background:linear-gradient(135deg,#4f8eff,#7c5cfc,#00e5c0);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:8px;letter-spacing:-2px;">
+    Sedy
+  </div>
+  <div style="font-size:14px;color:rgba(136,153,187,.7);font-family:'DM Sans',sans-serif;
+    margin-bottom:48px;letter-spacing:.5px;">
+    Your AI Study Companion
+  </div>
+
+  <!-- Card -->
+  <div style="
+    background:rgba(20,26,40,.85);backdrop-filter:blur(24px);
+    border:1px solid rgba(79,142,255,.2);border-radius:24px;
+    padding:36px 32px;width:100%;max-width:380px;
+    box-shadow:0 24px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);
+  ">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#e8edf5;margin-bottom:6px;">
+        Welcome back 👋
+      </div>
+      <div style="font-size:13px;color:rgba(136,153,187,.7);font-family:'DM Sans',sans-serif;line-height:1.6;">
+        Sign in to access your chats, saved notes,<br>and study materials — all in one place.
+      </div>
+    </div>
+
+    <!-- Google Sign-In Button -->
+    <button id="auth-google-btn" onclick="authSignInGoogle()" style="
+      width:100%;display:flex;align-items:center;justify-content:center;gap:12px;
+      padding:14px 20px;border-radius:14px;cursor:pointer;font-size:15px;
+      font-weight:700;font-family:'DM Sans',sans-serif;
+      background:#fff;color:#1f2937;border:none;
+      box-shadow:0 4px 16px rgba(0,0,0,.3);
+      transition:all .2s;
+    " onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.4)'"
+       onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.3)'">
+      <!-- Google icon SVG -->
+      <svg width="20" height="20" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        <path fill="none" d="M0 0h48v48H0z"/>
+      </svg>
+      Continue with Google
+    </button>
+
+    <!-- Error message -->
+    <div id="auth-error" style="
+      display:none;margin-top:14px;padding:10px 14px;
+      background:rgba(255,79,106,.1);border:1px solid rgba(255,79,106,.3);
+      border-radius:10px;font-size:12px;color:#ff4f6a;
+      font-family:'DM Mono',monospace;text-align:center;
+    "></div>
+
+    <!-- Loading state -->
+    <div id="auth-loading" style="
+      display:none;margin-top:14px;text-align:center;
+      font-size:12px;color:rgba(136,153,187,.6);font-family:'DM Mono',monospace;
+    ">
+      <div style="display:inline-flex;align-items:center;gap:8px;">
+        <div style="width:14px;height:14px;border:2px solid rgba(79,142,255,.3);border-top-color:#4f8eff;border-radius:50%;animation:spin .8s linear infinite;"></div>
+        Signing in…
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <div style="margin-top:24px;font-size:11px;color:rgba(136,153,187,.4);font-family:'DM Mono',monospace;text-align:center;line-height:1.7;">
+    Your data is stored securely and only visible to you.<br>
+    Made by Ansh Verma 🚀
+  </div>
+</div>
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
 
@@ -1183,6 +1305,14 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div>
           <div class="sidebar-logo">Sedy</div>
           <div class="sidebar-logo-sub">AI Study Companion</div>
+        </div>
+        <!-- User avatar + signout (hidden until logged in) -->
+        <div id="sb-user" style="display:none;align-items:center;gap:8px;margin-left:auto;">
+          <img id="sb-avatar" src="" alt="" style="
+            width:30px;height:30px;border-radius:50%;
+            border:2px solid rgba(79,142,255,.4);
+            object-fit:cover;cursor:pointer;
+          " title="Your account" onclick="showUserMenu()">
         </div>
       </div>
       <button class="new-chat-btn" onclick="createNewChat()">
@@ -4413,7 +4543,327 @@ function init() {
   initVoice();
 }
 
-init();
+// ══════════════════════════════════════════════════════
+// AUTH + FIRESTORE — Firebase Login & Per-User Data
+// ══════════════════════════════════════════════════════
+//
+// ALL user data (chats, files, scope memories) is stored in:
+//   Firestore: users/{uid}/chats/{chatId}
+//              users/{uid}/files/{fileId}
+//              users/{uid}/scopeMemories/{memId}
+//
+// localStorage is used only as a write-through cache for speed.
+// On login, Firestore data overwrites any local cache.
+// On every save, both localStorage AND Firestore are written.
+//
+// SETUP:
+//   1. Go to console.firebase.google.com
+//   2. Create project → Authentication → Sign-in method → Enable Google
+//   3. Firestore Database → Create database → Start in production mode
+//   4. Firestore Rules → paste rules below → Publish
+//   5. Project settings → Your apps → Add web app → Copy config
+//   6. Paste config into the firebaseConfig object at the top of this file
+//
+// FIRESTORE SECURITY RULES (paste in Firebase console):
+// rules_version = '2';
+// service cloud.firestore {
+//   match /databases/{database}/documents {
+//     match /users/{userId}/{document=**} {
+//       allow read, write: if request.auth != null && request.auth.uid == userId;
+//     }
+//   }
+// }
+
+let _currentUser = null;   // Firebase User object
+let _fbReady     = false;  // true once Firebase module is loaded
+
+// ── Wait for Firebase module to be available ──────────────────────────────────
+function _waitFb() {
+  return new Promise(resolve => {
+    if (window._fb) { resolve(window._fb); return; }
+    const iv = setInterval(() => {
+      if (window._fb) { clearInterval(iv); resolve(window._fb); }
+    }, 50);
+    // Timeout after 5s — fall back to localStorage-only mode
+    setTimeout(() => { clearInterval(iv); resolve(null); }, 5000);
+  });
+}
+
+// ── Firestore path helpers ────────────────────────────────────────────────────
+function _userPath(subPath) {
+  return `users/${_currentUser.uid}/${subPath}`;
+}
+
+// ── Sign in with Google ───────────────────────────────────────────────────────
+async function authSignInGoogle() {
+  const fb = window._fb;
+  if (!fb) { showAuthError('Firebase not loaded. Check your config.'); return; }
+  showAuthLoading(true);
+  try {
+    const provider = new fb.GoogleAuthProvider();
+    await fb.signInWithPopup(fb.auth, provider);
+    // onAuthStateChanged will handle the rest
+  } catch(err) {
+    showAuthLoading(false);
+    if (err.code === 'auth/popup-closed-by-user') return;
+    showAuthError(err.message || 'Sign-in failed. Try again.');
+  }
+}
+
+// ── Sign out ──────────────────────────────────────────────────────────────────
+async function authSignOut() {
+  hideUserMenu();
+  const fb = window._fb;
+  if (!fb) return;
+  try {
+    // Clear local state
+    _currentUser = null;
+    chats = {};
+    activeChatId = null;
+    try { localStorage.clear(); } catch(e) {}
+    // Sign out from Firebase
+    await fb.signOut(fb.auth);
+    // Show auth screen
+    document.getElementById('auth-screen').style.display = 'flex';
+  } catch(err) {
+    console.error('Sign out error:', err);
+  }
+}
+
+// ── Auth state observer — fires on login/logout ───────────────────────────────
+async function authInit() {
+  const fb = await _waitFb();
+  if (!fb) {
+    // Firebase failed to load — run in offline/localStorage mode
+    console.warn('Firebase not available — running in local mode');
+    hideAuthScreen();
+    init();
+    return;
+  }
+
+  fb.onAuthStateChanged(fb.auth, async (user) => {
+    if (user) {
+      // ── USER LOGGED IN ──
+      _currentUser = user;
+      showAuthLoading(true);
+
+      try {
+        await loadUserDataFromFirestore();
+      } catch(e) {
+        console.warn('Firestore load failed, using localStorage:', e);
+      }
+
+      hideAuthScreen();
+      showAuthLoading(false);
+
+      // Update sidebar avatar
+      const avatar = document.getElementById('sb-avatar');
+      const sbUser = document.getElementById('sb-user');
+      if (avatar && user.photoURL) avatar.src = user.photoURL;
+      if (sbUser) sbUser.style.display = 'flex';
+
+      // Update user menu
+      const umAvatar = document.getElementById('um-avatar');
+      const umName   = document.getElementById('um-name');
+      const umEmail  = document.getElementById('um-email');
+      if (umAvatar && user.photoURL) umAvatar.src = user.photoURL;
+      if (umName)  umName.textContent  = user.displayName || 'Student';
+      if (umEmail) umEmail.textContent = user.email || '';
+
+      init();
+    } else {
+      // ── USER LOGGED OUT ──
+      _currentUser = null;
+      document.getElementById('auth-screen').style.display = 'flex';
+      showAuthLoading(false);
+    }
+  });
+}
+
+// ── Load all user data from Firestore into local state ────────────────────────
+async function loadUserDataFromFirestore() {
+  const fb  = window._fb;
+  const uid = _currentUser.uid;
+
+  // Load chats
+  const chatsSnap = await fb.getDocs(fb.collection(fb.db, 'users', uid, 'chats'));
+  const firestoreChats = {};
+  chatsSnap.forEach(doc => { firestoreChats[doc.id] = doc.data(); });
+  if (Object.keys(firestoreChats).length > 0) {
+    chats = firestoreChats;
+    try { localStorage.setItem(CHATS_KEY, JSON.stringify(chats)); } catch(e) {}
+  }
+
+  // Load files
+  const filesSnap = await fb.getDocs(fb.collection(fb.db, 'users', uid, 'files'));
+  const firestoreFiles = [];
+  filesSnap.forEach(doc => firestoreFiles.push(doc.data()));
+  if (firestoreFiles.length > 0) {
+    firestoreFiles.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+    try { localStorage.setItem(FILES_KEY, JSON.stringify(firestoreFiles)); } catch(e) {}
+  }
+
+  // Load scope memories
+  const memSnap = await fb.getDocs(fb.collection(fb.db, 'users', uid, 'scopeMemories'));
+  const firestoreMems = [];
+  memSnap.forEach(doc => firestoreMems.push(doc.data()));
+  if (firestoreMems.length > 0) {
+    firestoreMems.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+    scopeMemory = firestoreMems;
+    try { localStorage.setItem(SCOPE_MEMORY_KEY, JSON.stringify(scopeMemory)); } catch(e) {}
+  }
+
+  console.log(`✅ Loaded from Firestore: ${Object.keys(chats).length} chats, ${firestoreFiles.length} files, ${firestoreMems.length} memories`);
+}
+
+// ── Override saveChats to also write to Firestore ─────────────────────────────
+const _origSaveChats = saveChats;
+function saveChats() {
+  // Always write localStorage (fast, sync)
+  try { localStorage.setItem(CHATS_KEY, JSON.stringify(chats)); } catch(e) {}
+  // Firestore write (async, non-blocking)
+  if (_currentUser && window._fb) {
+    const fb  = window._fb;
+    const uid = _currentUser.uid;
+    // Only write the active chat to avoid writing the whole object every keystroke
+    if (activeChatId && chats[activeChatId]) {
+      fb.setDoc(
+        fb.doc(fb.db, 'users', uid, 'chats', activeChatId),
+        chats[activeChatId]
+      ).catch(e => console.warn('Firestore chat save failed:', e));
+    }
+  }
+}
+
+// ── Override deleteChat Firestore sync ────────────────────────────────────────
+function _deleteChatFromFirestore(chatId) {
+  if (!_currentUser || !window._fb) return;
+  const fb = window._fb;
+  fb.deleteDoc(fb.doc(fb.db, 'users', _currentUser.uid, 'chats', chatId))
+    .catch(e => console.warn('Firestore chat delete failed:', e));
+}
+
+// Patch deleteChat to also remove from Firestore
+const _origDeleteChat = window.deleteChat;
+window.deleteChat = function(id) {
+  _deleteChatFromFirestore(id);
+  if (typeof _origDeleteChat === 'function') _origDeleteChat(id);
+  else {
+    // Inline delete logic
+    if (!chats[id]) return;
+    delete chats[id];
+    saveChats();
+    if (activeChatId === id) {
+      const remaining = Object.keys(chats);
+      if (remaining.length) { switchChat(remaining[0]); }
+      else { const nid = createNewChat(false); activeChatId = nid; renderChatMessages(); }
+    }
+    renderChatList();
+  }
+};
+
+// ── Override saveFiles to also write to Firestore ─────────────────────────────
+const _origSaveFiles = saveFiles;
+function saveFiles(files) {
+  try { localStorage.setItem(FILES_KEY, JSON.stringify(files)); } catch(e) {}
+  if (_currentUser && window._fb) {
+    const fb  = window._fb;
+    const uid = _currentUser.uid;
+    // Write each file as a separate Firestore document
+    files.forEach(file => {
+      fb.setDoc(fb.doc(fb.db, 'users', uid, 'files', file.id), file)
+        .catch(e => console.warn('Firestore file save failed:', e));
+    });
+  }
+}
+
+// ── Override scopeSaveMemoryStore to also write to Firestore ──────────────────
+const _origScopeSaveMemoryStore = scopeSaveMemoryStore;
+function scopeSaveMemoryStore() {
+  try { localStorage.setItem(SCOPE_MEMORY_KEY, JSON.stringify(scopeMemory)); } catch(e) {}
+  scopeUpdateMemBadge();
+  if (_currentUser && window._fb) {
+    const fb  = window._fb;
+    const uid = _currentUser.uid;
+    scopeMemory.forEach(mem => {
+      // Don't store huge thumbnail data in Firestore — strip it
+      const { thumb, ...memWithoutThumb } = mem;
+      fb.setDoc(fb.doc(fb.db, 'users', uid, 'scopeMemories', mem.id), memWithoutThumb)
+        .catch(e => console.warn('Firestore memory save failed:', e));
+    });
+  }
+}
+
+// ── Auth UI helpers ───────────────────────────────────────────────────────────
+function hideAuthScreen() {
+  const screen = document.getElementById('auth-screen');
+  if (screen) {
+    screen.style.transition = 'opacity .4s ease';
+    screen.style.opacity = '0';
+    setTimeout(() => { screen.style.display = 'none'; screen.style.opacity = '1'; }, 400);
+  }
+}
+function showAuthLoading(show) {
+  const el = document.getElementById('auth-loading');
+  const btn = document.getElementById('auth-google-btn');
+  if (el)  el.style.display  = show ? 'block' : 'none';
+  if (btn) btn.style.opacity = show ? '0.5'  : '1';
+  if (btn) btn.style.pointerEvents = show ? 'none' : '';
+}
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+  showAuthLoading(false);
+}
+
+function showUserMenu() {
+  const avatar = document.getElementById('sb-avatar');
+  const menu   = document.getElementById('user-menu');
+  const overlay= document.getElementById('user-menu-overlay');
+  if (!menu || !avatar) return;
+  const rect = avatar.getBoundingClientRect();
+  menu.style.top  = (rect.bottom + 8) + 'px';
+  menu.style.left = Math.max(8, rect.left - 160) + 'px';
+  menu.style.display = 'block';
+  overlay.style.display = 'block';
+}
+function hideUserMenu() {
+  const menu   = document.getElementById('user-menu');
+  const overlay= document.getElementById('user-menu-overlay');
+  if (menu)    menu.style.display    = 'none';
+  if (overlay) overlay.style.display = 'none';
+}
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+authInit();
 </script>
+<!-- User menu popup -->
+<div id="user-menu" style="
+  display:none;position:fixed;z-index:8000;
+  background:rgba(20,26,40,.97);backdrop-filter:blur(20px);
+  border:1px solid rgba(79,142,255,.2);border-radius:16px;
+  padding:6px;min-width:220px;
+  box-shadow:0 16px 48px rgba(0,0,0,.6);
+">
+  <div id="user-menu-profile" style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:4px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img id="um-avatar" src="" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(79,142,255,.3);">
+      <div>
+        <div id="um-name" style="font-size:13px;font-weight:700;color:#e8edf5;font-family:'Syne',sans-serif;"></div>
+        <div id="um-email" style="font-size:10px;color:rgba(136,153,187,.6);font-family:'DM Mono',monospace;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;"></div>
+      </div>
+    </div>
+  </div>
+  <button onclick="authSignOut()" style="
+    width:100%;padding:10px 14px;background:none;border:none;
+    color:rgba(255,79,106,.8);font-size:13px;cursor:pointer;
+    font-family:'DM Sans',sans-serif;text-align:left;border-radius:10px;
+    display:flex;align-items:center;gap:8px;transition:background .15s;
+  " onmouseover="this.style.background='rgba(255,79,106,.1)'" onmouseout="this.style.background='none'">
+    <span>⎋</span> Sign out
+  </button>
+</div>
+<div id="user-menu-overlay" onclick="hideUserMenu()" style="display:none;position:fixed;inset:0;z-index:7999;"></div>
+
 </body>
 </html>

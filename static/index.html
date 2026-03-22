@@ -2769,11 +2769,15 @@ async function sendMessage(){
 
 async function _sendChat(text){
   try{
-    // Build message — prepend language instruction if user has a preferred language set
+    // Inject language instruction based on user's saved preference.
+    // _userPreferredLang is '' for English (no override needed — AI auto-detects)
+    // _userPreferredLang is e.g. 'Hindi' for non-English (must enforce)
     let msgToSend = text;
     if (_userPreferredLang && _userPreferredLang !== 'English') {
-      msgToSend = `[LANGUAGE INSTRUCTION: Always respond in ${_userPreferredLang}. Do not switch languages unless the user explicitly asks.]\n\n${text}`;
+      // Non-English preference — tell AI to always respond in that language
+      msgToSend = `[SYSTEM: The user's preferred language is ${_userPreferredLang}. Always respond in ${_userPreferredLang} regardless of what language the user types in. Do not switch to English unless the user explicitly says "reply in English" or "answer in English".]\n\n${text}`;
     }
+    // If _userPreferredLang is '' or 'English' — send text as-is, let AI auto-detect
     const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msgToSend,model:activeModel,history:getChatHistory().slice(-20)})});
     if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}
     if(!res.ok)throw new Error('HTTP '+res.status);
@@ -5005,11 +5009,12 @@ async function authInit() {
         if (screen) screen.style.display = 'flex';
         _showOnboarding();
       } else {
-        // Returning user — apply language and go straight to app
+        // Returning user — always apply their saved language (including English = no instruction)
         _userProfile = profile;
-        if (profile.language && profile.language !== 'English') {
-          _userPreferredLang = profile.language;
-        }
+        // Always set from profile — English means '' (no language override)
+        _userPreferredLang = (profile.language && profile.language !== 'English')
+          ? profile.language
+          : '';
         hideSessionLoader();
         _afterLogin(user, false);
       }
@@ -5052,11 +5057,13 @@ function _afterLogin(user, isNew) {
   if (umName)  umName.textContent  = user.displayName || _obData.name || 'Student';
   if (umEmail) umEmail.textContent = user.email || user.phoneNumber || '';
 
-  // Apply preferred language from onboarding data (new user) or load from profile (returning user)
-  const lang = _obData.lang || _userPreferredLang || '';
-  if (lang && lang !== 'English') {
-    _userPreferredLang = lang;
-    console.log('🌐 Preferred language set to:', lang);
+  // _userPreferredLang is already set correctly before _afterLogin is called:
+  // - New users: set in _obSave() from onboarding selection
+  // - Returning users: set from profile.language in onAuthStateChanged
+  // Do NOT re-derive it here from _obData — that causes stale onboarding data to override Settings changes.
+  if (_obData.lang && _obData.lang !== 'English' && !_userPreferredLang) {
+    // Only use _obData.lang as fallback if nothing is set yet (first-time new user path)
+    _userPreferredLang = _obData.lang;
   }
 
   init();

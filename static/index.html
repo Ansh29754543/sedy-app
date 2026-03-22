@@ -2767,25 +2767,67 @@ async function sendMessage(){
   await _sendChat(text);
 }
 
-async function _sendChat(text){
-  try{
-    // Send preferred_language as a proper API field — backend uses it to override system prompt.
-    // Empty string = auto-detect (default). 'English', 'Hindi', 'Tamil' etc = enforce that language.
-    const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      message: text,
-      model: activeModel,
-      history: getChatHistory().slice(-20),
-      preferred_language: _userPreferredLang || 'English',
-    })});
-    if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const data=await res.json();hideTyping();
-    const reply=data.reply||'Sorry, no response.';pushHistory('assistant',reply);
-    if(reply.includes('```')){const match=reply.match(/```(\w+)\n([\s\S]*?)```/);if(match){const lang=match[1].toLowerCase();const code=match[2].trim();if(['python','javascript','js','html'].includes(lang)){addMsg('ai',reply);showRunPrompt(lang,code);return;}}}
-    const msgDiv=addMsg('ai',reply);msgDiv._rawText=reply;
-    const suggestionTrigger=/\b(explain|tell me|describe|what is|how does)\b/i;
-    if(suggestionTrigger.test(text)&&reply.length>200)showSuggestions(reply,text);
-  }catch(err){hideTyping();addMsg('ai','Could not reach Sedy. Please check your connection.');}
+async function _sendChat(text) {
+  // ── FIX: Always send preferred_language so backend enforces it ──
+  // _userPreferredLang is set from profile on login/onboarding.
+  // Default is 'English'. This value is sent to /chat every single time
+  // so the backend language lock is always active — never rely on auto-detect
+  // when the user has explicitly set a preference.
+  const langToSend = (_userPreferredLang || 'English').trim();
+
+  console.log('[Sedy] _sendChat → preferred_language:', langToSend); // debug
+
+  try {
+    const res = await fetch(API_URL + '/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message:            text,
+        model:              activeModel,
+        history:            getChatHistory().slice(-20),
+        preferred_language: langToSend,  // ← always sent, never empty
+      })
+    });
+
+    if (res.status === 429) {
+      const d = await res.json();
+      hideTyping();
+      showRateLimit(d.detail || {});
+      return;
+    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    const data  = await res.json();
+    hideTyping();
+    const reply = data.reply || 'Sorry, no response.';
+    pushHistory('assistant', reply);
+
+    // Show IDE run prompt for code blocks
+    if (reply.includes('```')) {
+      const match = reply.match(/```(\w+)\n([\s\S]*?)```/);
+      if (match) {
+        const lang = match[1].toLowerCase();
+        const code = match[2].trim();
+        if (['python', 'javascript', 'js', 'html'].includes(lang)) {
+          addMsg('ai', reply);
+          showRunPrompt(lang, code);
+          return;
+        }
+      }
+    }
+
+    const msgDiv = addMsg('ai', reply);
+    msgDiv._rawText = reply;
+
+    // Show follow-up suggestions for explanation-type replies
+    const suggestionTrigger = /\b(explain|tell me|describe|what is|how does)\b/i;
+    if (suggestionTrigger.test(text) && reply.length > 200)
+      showSuggestions(reply, text);
+
+  } catch (err) {
+    hideTyping();
+    addMsg('ai', 'Could not reach Sedy. Please check your connection.');
+  }
 }
 function showRunPrompt(lang,code){const id='run_'+Date.now();const wrap=document.getElementById('chat-messages');const div=document.createElement('div');div.className='msg ai';div.innerHTML=`<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble" style="padding:0;background:none;border:none;">${renderCodeBlock(code,lang,id)}</div></div>`;wrap.appendChild(div);try{hljs.highlightElement(document.getElementById(id));}catch(e){}scrollBottom();}
 
@@ -5007,9 +5049,9 @@ async function authInit() {
         if (screen) screen.style.display = 'flex';
         _showOnboarding();
       } else {
-        // Returning user — always set language from profile (including English)
-        _userProfile = profile;
-        _userPreferredLang = profile.language || 'English';
+        _userProfile        = profile;.
+        _userPreferredLang  = (profile.language || 'English').trim() || 'English';
+        console.log('[Sedy] authInit returning user → _userPreferredLang:', _userPreferredLang);
         hideSessionLoader();
         _afterLogin(user, false);
       }
@@ -5034,17 +5076,18 @@ async function _getProfile() {
   } catch(e) { return null; }
 }
 
+// ── Called after successful login (new or returning user) ──
 function _afterLogin(user, isNew) {
   hideAuthScreen();
   hideAuthLoading();
 
   // Sidebar avatar
-  const sbUser = document.getElementById('sb-user');
-  const avatar = document.getElementById('sb-avatar');
+  const sbUser  = document.getElementById('sb-user');
+  const avatar  = document.getElementById('sb-avatar');
   if (sbUser) sbUser.style.display = 'flex';
   if (avatar && user.photoURL) avatar.src = user.photoURL;
 
-  // User menu
+  // User menu header
   const umAvatar = document.getElementById('um-avatar');
   const umName   = document.getElementById('um-name');
   const umEmail  = document.getElementById('um-email');
@@ -5052,8 +5095,11 @@ function _afterLogin(user, isNew) {
   if (umName)  umName.textContent  = user.displayName || _obData.name || 'Student';
   if (umEmail) umEmail.textContent = user.email || user.phoneNumber || '';
 
-  // _userPreferredLang is already correctly set before _afterLogin is called.
-  // Don't override it here.
+  // ── FIX: _userPreferredLang is set BEFORE _afterLogin is called
+  // (in authInit for returning users, in _obSave for new users).
+  // Log it here so we can verify it's correct.
+  console.log('[Sedy] _afterLogin → _userPreferredLang:', _userPreferredLang);
+
   init();
 }
 
@@ -5134,39 +5180,56 @@ function obBack() {
   if (_obStep > 0) { _obStep--; _obRenderStep(_obStep); }
 }
 
+// ── Onboarding save — called when new user finishes setup ──
 async function _obSave() {
   const btn = document.getElementById('ob-next-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
   const fb  = window._fb;
   const uid = _currentUser?.uid;
+
+  // ── FIX: Ensure language is never empty — default to 'English' ──
+  // _obData.lang comes from the language selection step in onboarding.
+  // If the user skipped it (clicked Next without selecting), it's undefined.
+  // We fall back to 'English' explicitly — never store an empty string.
+  const chosenLang = (_obData.lang || 'English').trim() || 'English';
+
   if (fb && uid) {
     const profileData = {
-      name:     _obData.name || '',
-      class:    _obData.class || '',
-      subjects: _obData.subject || [],
-      language: _obData.lang || 'English',
-      email:    _currentUser.email || '',
-      phone:    _currentUser.phoneNumber || '',
-      photoURL: _currentUser.photoURL || '',
+      name:      _obData.name     || '',
+      class:     _obData.class    || '',
+      subjects:  _obData.subject  || [],
+      language:  chosenLang,           // ← always a non-empty string
+      email:     _currentUser.email    || '',
+      phone:     _currentUser.phoneNumber || '',
+      photoURL:  _currentUser.photoURL || '',
       createdAt: Date.now(),
     };
     try {
-      await fb.setDoc(fb.doc(fb.db, 'users', uid, 'profile', 'data'), profileData);
+      await fb.setDoc(
+        fb.doc(fb.db, 'users', uid, 'profile', 'data'),
+        profileData
+      );
       await fb.updateProfile(_currentUser, { displayName: _obData.name });
-    } catch(e) { console.warn('Profile save failed:', e); }
+    } catch(e) {
+      console.warn('Profile save failed:', e);
+    }
   }
-  // Set preferred language immediately so first session uses it
-  _userPreferredLang = _obData.lang || 'English';
-  // Store profile for greeting and settings
+
+  // ── FIX: Set _userPreferredLang immediately so first session uses it ──
+  _userPreferredLang = chosenLang;
+  console.log('[Sedy] _obSave → _userPreferredLang set to:', _userPreferredLang);
+
   _userProfile = {
-    name:     _obData.name || '',
-    class:    _obData.class || '',
-    subjects: _obData.subject || [],
-    language: _obData.lang || 'English',
-    email:    _currentUser?.email || '',
-    photoURL: _currentUser?.photoURL || '',
+    name:      _obData.name    || '',
+    class:     _obData.class   || '',
+    subjects:  _obData.subject || [],
+    language:  chosenLang,
+    email:     _currentUser?.email    || '',
+    photoURL:  _currentUser?.photoURL || '',
     createdAt: Date.now(),
   };
+
   _afterLogin(_currentUser, true);
 }
 
@@ -5403,43 +5466,59 @@ function settingsChangePic(input) {
   reader.readAsDataURL(file);
 }
 
+// ── Settings save — called when user changes language in Settings panel ──
 async function settingsSave() {
   const btn = document.querySelector('.settings-save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
-  const name = document.getElementById('settings-name-input').value.trim() || _userProfile?.name || '';
-  const lang = document.getElementById('settings-lang-select').value;
+  const name = document.getElementById('settings-name-input').value.trim()
+               || _userProfile?.name || '';
 
-  // Apply language immediately — always store the actual value including 'English'
-  _userPreferredLang = lang || 'English';
+  // ── FIX: Never let lang be empty — default to 'English' ──
+  const rawLang  = document.getElementById('settings-lang-select').value;
+  const lang     = (rawLang || 'English').trim() || 'English';
+
+  // Apply immediately so the very next message uses the new language
+  _userPreferredLang = lang;
+  console.log('[Sedy] settingsSave → _userPreferredLang set to:', _userPreferredLang);
 
   // Update profile object
   _userProfile = {
     ...(_userProfile || {}),
     name,
-    language: lang,
-    subjects: _settingsSubjects,
+    language:  lang,
+    subjects:  _settingsSubjects,
     updatedAt: Date.now(),
   };
 
-  // Save to Firestore
+  // Persist to Firestore
   if (_currentUser && window._fb) {
     const fb = window._fb;
     try {
-      await fb.setDoc(fb.doc(fb.db, 'users', _currentUser.uid, 'profile', 'data'), _userProfile);
+      await fb.setDoc(
+        fb.doc(fb.db, 'users', _currentUser.uid, 'profile', 'data'),
+        _userProfile
+      );
       if (name) await fb.updateProfile(_currentUser, { displayName: name });
-    } catch(e) { console.warn('Settings save failed:', e); }
+    } catch(e) {
+      console.warn('Settings save failed:', e);
+    }
   }
 
-  // Update UI
-  document.getElementById('um-name').textContent = name;
+  // Update visible UI
+  const umName = document.getElementById('um-name');
+  if (umName) umName.textContent = name;
   document.getElementById('settings-user-name').textContent = name;
   const sbAvatar = document.getElementById('sb-avatar');
   if (sbAvatar && _userProfile.photoURL) sbAvatar.src = _userProfile.photoURL;
 
-  if (btn) { btn.disabled = false; btn.textContent = '✓ Saved!'; setTimeout(() => { btn.textContent = 'Save Changes'; }, 2000); }
+  if (btn) {
+    btn.disabled    = false;
+    btn.textContent = '✓ Saved!';
+    setTimeout(() => { btn.textContent = 'Save Changes'; }, 2000);
+  }
 
-  // Refresh empty state if visible
+  // Refresh empty state greeting if visible
   const emptyEl = document.querySelector('.empty-state');
   if (emptyEl) { emptyEl.remove(); showEmptyState(); }
 }

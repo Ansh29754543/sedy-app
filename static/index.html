@@ -1525,7 +1525,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       ">Next →</button>
     </div>
 
-    <div id="auth-error" class="auth-error-box" style="display:none;margin-top:12px;"></div>
+    <div id="auth-error-ob" class="auth-error-box" style="display:none;margin-top:12px;"></div>
   </div>
 
 </div>
@@ -5049,12 +5049,16 @@ function friendlyError(code) {
 
 // ── Auth UI helpers ───────────────────────────────────────────────────────────
 function showAuthError(msg) {
-  const els = document.querySelectorAll('.auth-error-box');
-  els.forEach(el => { el.textContent = msg; el.style.display = 'block'; });
+  const onboardVisible = document.getElementById('auth-step-onboard')?.style.display !== 'none';
+  const box = document.getElementById(onboardVisible ? 'auth-error-ob' : 'auth-error');
+  if (box) { box.textContent = msg; box.style.display = 'block'; }
   hideAuthLoading();
 }
 function clearAuthError() {
-  document.querySelectorAll('.auth-error-box').forEach(el => { el.style.display='none'; el.textContent=''; });
+  ['auth-error','auth-error-ob'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display='none'; el.textContent=''; }
+  });
 }
 function showAuthLoadingMsg(msg) {
   const el = document.getElementById('auth-loading');
@@ -5338,6 +5342,8 @@ function _userPath(subPath) {
 }
 
 // ── Start ─────────────────────────────────────────────────────────────────────
+// Clear any stale error state immediately on load
+clearAuthError();
 authInit();
 </script>
 <!-- User menu popup -->

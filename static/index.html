@@ -65,6 +65,31 @@
   --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
   --sidebar-w:260px;
 }
+
+/* ── Light theme ── */
+[data-theme="light"]{
+  --bg:#f0f4ff;--bg2:#e8edf8;--bg3:#dde4f5;--card:#ffffff;--card2:#f5f7ff;
+  --border:#c8d3ee;--border2:#b8c5e8;--accent:#3b7aef;--accent2:#6c47e8;
+  --accent3:#00b89c;--text:#1a1f35;--text2:#4a5580;--text3:#8892b0;
+  --danger:#e0394f;--success:#00a87a;--warning:#d4900a;--vision:#d4720a;
+  --glow:0 0 40px rgba(59,122,239,0.12);
+}
+[data-theme="light"] body{background:var(--bg);color:var(--text);}
+[data-theme="light"] body::before{background-image:linear-gradient(rgba(59,122,239,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(59,122,239,.04) 1px,transparent 1px);background-size:40px 40px;}
+[data-theme="light"] .orb1{background:rgba(59,122,239,.08);}
+[data-theme="light"] .orb2{background:rgba(108,71,232,.06);}
+[data-theme="light"] .msg-bubble{background:var(--card);border-color:var(--border);color:var(--text);}
+[data-theme="light"] .sidebar{background:var(--bg2);border-right:1px solid var(--border);}
+[data-theme="light"] .chat-header{background:var(--bg2);border-bottom:1px solid var(--border);}
+[data-theme="light"] .chat-input-wrap{background:var(--card);border-color:var(--border);}
+[data-theme="light"] #chat-input{color:var(--text);}
+[data-theme="light"] .chat-item:hover{background:var(--bg3);}
+[data-theme="light"] .chat-item.active{background:rgba(59,122,239,.1);}
+[data-theme="light"] .empty-logo{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+[data-theme="light"] .model-btn{background:var(--card2);border-color:var(--border2);}
+[data-theme="light"] .wb-overlay{background:#f5f7ff;}
+[data-theme="light"] #wb-canvas{background:#fff;}
+[data-theme="light"] #wbp-canvas{background:#f8f9ff;}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
@@ -1180,6 +1205,87 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .wbp-tool-bar{display:flex;align-items:center;gap:8px;padding:6px 14px;background:#141928;border-top:1px solid var(--border);flex-wrap:wrap;flex-shrink:0;}
 @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
 
+/* ══════════════════════════════════════════════════════
+   SETTINGS PANEL
+══════════════════════════════════════════════════════ */
+.settings-overlay{position:fixed;inset:0;z-index:8500;background:rgba(8,11,18,.7);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;}
+.settings-overlay.open{display:flex;}
+.settings-panel{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:24px;
+  width:100%;max-width:460px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 24px 80px rgba(0,0,0,.6);animation:msgIn .25s cubic-bezier(.34,1.56,.64,1);
+  margin:16px;
+}
+.settings-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.settings-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);}
+.settings-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text3);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.settings-close:hover{border-color:var(--danger);color:var(--danger);}
+.settings-body{overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:24px;}
+.settings-section-title{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
+
+/* Profile pic */
+.settings-avatar-row{display:flex;align-items:center;gap:16px;}
+.settings-avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--border2);flex-shrink:0;}
+.settings-avatar-placeholder{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;border:3px solid var(--border2);}
+.settings-avatar-info{flex:1;}
+.settings-avatar-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);}
+.settings-avatar-email{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;}
+.settings-avatar-btn{
+  margin-top:8px;padding:6px 14px;background:none;border:1px solid var(--border2);
+  border-radius:9px;color:var(--text2);font-size:12px;cursor:pointer;
+  font-family:'DM Mono',monospace;transition:all .18s;display:inline-flex;align-items:center;gap:6px;
+}
+.settings-avatar-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Settings rows */
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;}
+.settings-row-label{font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;}
+.settings-row-sub{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;}
+.settings-select{
+  padding:7px 12px;background:var(--bg3);border:1.5px solid var(--border2);
+  border-radius:9px;color:var(--text);font-size:12px;font-family:'DM Mono',monospace;
+  outline:none;cursor:pointer;transition:border-color .18s;
+}
+.settings-select:focus{border-color:var(--accent);}
+
+/* Theme selector */
+.theme-options{display:flex;gap:8px;margin-top:10px;}
+.theme-opt{
+  flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid var(--border2);
+  background:var(--card);cursor:pointer;text-align:center;transition:all .18s;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.theme-opt:hover{border-color:var(--accent2);}
+.theme-opt.active{border-color:var(--accent2);background:rgba(124,92,252,.1);}
+.theme-opt-preview{width:40px;height:28px;border-radius:6px;border:1.5px solid var(--border);overflow:hidden;display:flex;}
+.theme-opt-label{font-size:11px;font-family:'DM Mono',monospace;color:var(--text2);}
+.theme-dark-preview{background:#080b12;flex:1;}
+.theme-light-preview{background:#f0f4ff;flex:1;}
+.theme-preview-sidebar-dark{background:#0d1120;width:35%;}
+.theme-preview-sidebar-light{background:#e8edf8;width:35%;}
+
+/* Subject chips in settings */
+.settings-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.settings-chip{
+  padding:6px 12px;border-radius:20px;border:1.5px solid var(--border2);
+  background:var(--card);color:var(--text2);font-size:12px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;transition:all .18s;
+}
+.settings-chip:hover{border-color:var(--accent2);color:var(--text);}
+.settings-chip.active{border-color:var(--accent2);background:rgba(124,92,252,.12);color:var(--accent2);}
+
+/* Save button */
+.settings-save-btn{
+  width:100%;padding:12px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  color:white;font-size:14px;font-weight:700;cursor:pointer;
+  font-family:'Syne',sans-serif;transition:all .2s;margin-top:4px;
+}
+.settings-save-btn:hover{transform:scale(1.02);}
+
 @media(max-width:768px){
   :root{--sidebar-w:240px;}
   .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:10;transform:translateX(-100%);}
@@ -2094,6 +2200,25 @@ function renderChatMessages() {
 
 function showEmptyState() {
   const wrap = document.getElementById('chat-messages');
+
+  // ── Personalized greeting ──
+  // Pick a random greeting word, then extract first name from profile
+  const greetings = [
+    'Hey', 'Hello', 'Hi', 'Yo', 'Howdy', 'Hiya',
+    'Namaste', 'Salut', 'Ciao', 'Hola',
+    'Wassup', 'Sup', 'Greetings'
+  ];
+  const hindiGreetings = ['नमस्ते', 'हे', 'हेलो', 'कैसे हो'];
+  const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+
+  // Extract first name from stored profile
+  const storedName = _userProfile?.name || _currentUser?.displayName || '';
+  const firstName = storedName.trim().split(/\s+/)[0] || '';
+
+  const greetLine = firstName
+    ? `${greeting}, ${firstName}! 👋`
+    : `${greeting}! 👋`;
+
   const prompts = [
     'Explain photosynthesis simply',
     'Make flashcards on Newton\'s laws',
@@ -2108,6 +2233,7 @@ function showEmptyState() {
   div.className = 'empty-state';
   div.innerHTML = `
     <div class="empty-logo">Sedy</div>
+    <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin-bottom:6px;">${greetLine}</div>
     <div class="empty-tagline">Your AI study companion. Ask anything — from math to history, code to science.</div>
     <div class="empty-chips">${prompts.map(p => `<button class="empty-chip" onclick="usePrompt('${p.replace(/'/g,"\\'")}')">${p}</button>`).join('')}</div>
   `;
@@ -4880,6 +5006,7 @@ async function authInit() {
         _showOnboarding();
       } else {
         // Returning user — apply language and go straight to app
+        _userProfile = profile;
         if (profile.language && profile.language !== 'English') {
           _userPreferredLang = profile.language;
         }
@@ -5037,6 +5164,16 @@ async function _obSave() {
   if (_obData.lang && _obData.lang !== 'English') {
     _userPreferredLang = _obData.lang;
   }
+  // Store profile for greeting and settings
+  _userProfile = {
+    name:     _obData.name || '',
+    class:    _obData.class || '',
+    subjects: _obData.subject || [],
+    language: _obData.lang || 'English',
+    email:    _currentUser?.email || '',
+    photoURL: _currentUser?.photoURL || '',
+    createdAt: Date.now(),
+  };
   _afterLogin(_currentUser, true);
 }
 
@@ -5152,7 +5289,172 @@ function _userPath(subPath) {
   return `users/${_currentUser.uid}/${subPath}`;
 }
 
+// ══════════════════════════════════════════════════════
+// THEME SYSTEM
+// ══════════════════════════════════════════════════════
+
+let _currentTheme = 'dark'; // 'dark' | 'light' | 'system'
+
+function applyTheme(theme) {
+  _currentTheme = theme;
+  const html = document.documentElement;
+
+  if (theme === 'system') {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    html.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+  } else {
+    html.setAttribute('data-theme', theme);
+  }
+
+  // Persist
+  try { localStorage.setItem('sedy_theme', theme); } catch(e) {}
+}
+
+function loadTheme() {
+  let saved = 'dark';
+  try { saved = localStorage.getItem('sedy_theme') || 'dark'; } catch(e) {}
+  applyTheme(saved);
+  // Listen for system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (_currentTheme === 'system') applyTheme('system');
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// SETTINGS PANEL
+// ══════════════════════════════════════════════════════
+
+let _userProfile = null;   // loaded from Firestore profile
+let _settingsSubjects = [];
+
+function openSettings() {
+  const panel = document.getElementById('settings-overlay');
+  if (!panel) return;
+
+  // Populate from current state
+  const name  = _userProfile?.name  || _currentUser?.displayName || '';
+  const email = _userProfile?.email || _currentUser?.email || '';
+  const lang  = _userProfile?.language || _userPreferredLang || 'English';
+  const subs  = _userProfile?.subjects || [];
+  const photo = _currentUser?.photoURL || '';
+
+  document.getElementById('settings-name-input').value = name;
+  document.getElementById('settings-user-name').textContent  = name || 'Student';
+  document.getElementById('settings-user-email').textContent = email;
+
+  const img = document.getElementById('settings-avatar-img');
+  const ph  = document.getElementById('settings-avatar-placeholder');
+  if (photo) { img.src = photo; img.style.display = ''; ph.style.display = 'none'; }
+  else { img.style.display = 'none'; ph.style.display = 'flex'; }
+
+  // Language
+  const langSel = document.getElementById('settings-lang-select');
+  if (langSel) langSel.value = lang;
+
+  // Subjects
+  _settingsSubjects = [...subs];
+  document.querySelectorAll('.settings-chip').forEach(chip => {
+    chip.classList.toggle('active', subs.includes(chip.dataset.sub));
+  });
+
+  // Theme
+  ['dark','light','system'].forEach(t => {
+    document.getElementById('theme-opt-'+t)?.classList.toggle('active', _currentTheme === t);
+  });
+
+  panel.classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settings-overlay')?.classList.remove('open');
+}
+
+function settingsSelectTheme(theme) {
+  ['dark','light','system'].forEach(t => {
+    document.getElementById('theme-opt-'+t)?.classList.toggle('active', t === theme);
+  });
+  applyTheme(theme);
+}
+
+function settingsToggleSubject(el) {
+  el.classList.toggle('active');
+  const sub = el.dataset.sub;
+  if (el.classList.contains('active')) {
+    if (!_settingsSubjects.includes(sub)) _settingsSubjects.push(sub);
+  } else {
+    _settingsSubjects = _settingsSubjects.filter(s => s !== sub);
+  }
+}
+
+function settingsChangePic(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    const img = document.getElementById('settings-avatar-img');
+    const ph  = document.getElementById('settings-avatar-placeholder');
+    img.src = dataUrl; img.style.display = ''; ph.style.display = 'none';
+
+    // Update Firebase profile photo
+    // Note: Firebase Auth photoURL must be a URL, not base64.
+    // We store it in Firestore profile instead.
+    if (_userProfile) _userProfile.photoURL = dataUrl;
+
+    // Update sidebar avatar too
+    const sbAvatar = document.getElementById('sb-avatar');
+    const umAvatar = document.getElementById('um-avatar');
+    if (sbAvatar) sbAvatar.src = dataUrl;
+    if (umAvatar) umAvatar.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function settingsSave() {
+  const btn = document.querySelector('.settings-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  const name = document.getElementById('settings-name-input').value.trim() || _userProfile?.name || '';
+  const lang = document.getElementById('settings-lang-select').value;
+
+  // Apply language immediately
+  if (lang && lang !== 'English') _userPreferredLang = lang;
+  else _userPreferredLang = '';
+
+  // Update profile object
+  _userProfile = {
+    ...(_userProfile || {}),
+    name,
+    language: lang,
+    subjects: _settingsSubjects,
+    updatedAt: Date.now(),
+  };
+
+  // Save to Firestore
+  if (_currentUser && window._fb) {
+    const fb = window._fb;
+    try {
+      await fb.setDoc(fb.doc(fb.db, 'users', _currentUser.uid, 'profile', 'data'), _userProfile);
+      if (name) await fb.updateProfile(_currentUser, { displayName: name });
+    } catch(e) { console.warn('Settings save failed:', e); }
+  }
+
+  // Update UI
+  document.getElementById('um-name').textContent = name;
+  document.getElementById('settings-user-name').textContent = name;
+  const sbAvatar = document.getElementById('sb-avatar');
+  if (sbAvatar && _userProfile.photoURL) sbAvatar.src = _userProfile.photoURL;
+
+  if (btn) { btn.disabled = false; btn.textContent = '✓ Saved!'; setTimeout(() => { btn.textContent = 'Save Changes'; }, 2000); }
+
+  // Refresh empty state if visible
+  const emptyEl = document.querySelector('.empty-state');
+  if (emptyEl) { emptyEl.remove(); showEmptyState(); }
+}
+
 // ── Start ─────────────────────────────────────────────────────────────────────
+// Load theme before anything else renders (prevents flash)
+loadTheme();
 // Clear any stale error state immediately on load
 clearAuthError();
 authInit();
@@ -5160,30 +5462,150 @@ authInit();
 <!-- User menu popup -->
 <div id="user-menu" style="
   display:none;position:fixed;z-index:8000;
-  background:rgba(20,26,40,.97);backdrop-filter:blur(20px);
-  border:1px solid rgba(79,142,255,.2);border-radius:16px;
+  background:var(--bg2);backdrop-filter:blur(20px);
+  border:1px solid var(--border2);border-radius:16px;
   padding:6px;min-width:220px;
   box-shadow:0 16px 48px rgba(0,0,0,.6);
 ">
   <div id="user-menu-profile" style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:4px;">
     <div style="display:flex;align-items:center;gap:10px;">
-      <img id="um-avatar" src="" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(79,142,255,.3);">
+      <img id="um-avatar" src="" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(79,142,255,.3);" onerror="this.style.display='none'">
       <div>
-        <div id="um-name" style="font-size:13px;font-weight:700;color:#e8edf5;font-family:'Syne',sans-serif;"></div>
-        <div id="um-email" style="font-size:10px;color:rgba(136,153,187,.6);font-family:'DM Mono',monospace;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;"></div>
+        <div id="um-name" style="font-size:13px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;"></div>
+        <div id="um-email" style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;"></div>
       </div>
     </div>
   </div>
+  <!-- Settings option -->
+  <button onclick="hideUserMenu();openSettings()" style="
+    width:100%;padding:10px 14px;background:none;border:none;
+    color:var(--text2);font-size:13px;cursor:pointer;
+    font-family:'DM Sans',sans-serif;text-align:left;border-radius:10px;
+    display:flex;align-items:center;gap:8px;transition:background .15s;
+  " onmouseover="this.style.background='rgba(255,255,255,.05)'" onmouseout="this.style.background='none'">
+    ⚙️ Settings
+  </button>
+  <!-- Sign out -->
   <button onclick="authSignOut()" style="
     width:100%;padding:10px 14px;background:none;border:none;
     color:rgba(255,79,106,.8);font-size:13px;cursor:pointer;
     font-family:'DM Sans',sans-serif;text-align:left;border-radius:10px;
     display:flex;align-items:center;gap:8px;transition:background .15s;
   " onmouseover="this.style.background='rgba(255,79,106,.1)'" onmouseout="this.style.background='none'">
-    <span>⎋</span> Sign out
+    ⎋ Sign out
   </button>
 </div>
 <div id="user-menu-overlay" onclick="hideUserMenu()" style="display:none;position:fixed;inset:0;z-index:7999;"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     SETTINGS PANEL
+════════════════════════════════════════════════════════ -->
+<div class="settings-overlay" id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+<div class="settings-panel">
+  <div class="settings-header">
+    <div class="settings-title">⚙️ Settings</div>
+    <button class="settings-close" onclick="closeSettings()">✕</button>
+  </div>
+  <div class="settings-body">
+
+    <!-- Profile -->
+    <div>
+      <div class="settings-section-title">Profile</div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;">
+        <div class="settings-avatar-row">
+          <div id="settings-avatar-wrap">
+            <img id="settings-avatar-img" src="" class="settings-avatar" onerror="this.style.display='none';document.getElementById('settings-avatar-placeholder').style.display='flex'">
+            <div id="settings-avatar-placeholder" class="settings-avatar-placeholder" style="display:none;">🧑</div>
+          </div>
+          <div class="settings-avatar-info">
+            <div class="settings-avatar-name" id="settings-user-name">Student</div>
+            <div class="settings-avatar-email" id="settings-user-email"></div>
+            <label class="settings-avatar-btn" for="settings-pic-input">
+              📷 Change photo
+              <input type="file" id="settings-pic-input" accept="image/*" style="display:none" onchange="settingsChangePic(this)">
+            </label>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:5px;">DISPLAY NAME</div>
+          <input id="settings-name-input" type="text" class="auth-input" placeholder="Your name" style="margin-bottom:0;" maxlength="30">
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme -->
+    <div>
+      <div class="settings-section-title">Theme</div>
+      <div class="theme-options">
+        <div class="theme-opt" id="theme-opt-dark" onclick="settingsSelectTheme('dark')">
+          <div class="theme-opt-preview">
+            <div class="theme-preview-sidebar-dark"></div>
+            <div class="theme-dark-preview"></div>
+          </div>
+          <div class="theme-opt-label">Dark</div>
+        </div>
+        <div class="theme-opt" id="theme-opt-light" onclick="settingsSelectTheme('light')">
+          <div class="theme-opt-preview">
+            <div class="theme-preview-sidebar-light"></div>
+            <div class="theme-light-preview"></div>
+          </div>
+          <div class="theme-opt-label">Light</div>
+        </div>
+        <div class="theme-opt" id="theme-opt-system" onclick="settingsSelectTheme('system')">
+          <div class="theme-opt-preview" style="background:linear-gradient(90deg,#0d1120 50%,#e8edf8 50%);">
+          </div>
+          <div class="theme-opt-label">System</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preferred Language -->
+    <div>
+      <div class="settings-section-title">Preferred Language</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">AI Response Language</div>
+          <div class="settings-row-sub">AI will always reply in this language</div>
+        </div>
+        <select class="settings-select" id="settings-lang-select">
+          <option value="English">🇬🇧 English</option>
+          <option value="Hindi">🇮🇳 Hindi</option>
+          <option value="Hinglish">🇮🇳 Hinglish</option>
+          <option value="Bengali">🇮🇳 Bengali</option>
+          <option value="Tamil">🇮🇳 Tamil</option>
+          <option value="Telugu">🇮🇳 Telugu</option>
+          <option value="Marathi">🇮🇳 Marathi</option>
+          <option value="Kannada">🇮🇳 Kannada</option>
+          <option value="Gujarati">🇮🇳 Gujarati</option>
+          <option value="Punjabi">🇮🇳 Punjabi</option>
+          <option value="Malayalam">🇮🇳 Malayalam</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Preferred Subjects -->
+    <div>
+      <div class="settings-section-title">Favourite Subjects</div>
+      <div style="font-size:12px;color:var(--text3);font-family:'DM Sans',sans-serif;margin-bottom:8px;">Sedy focuses on these in suggestions</div>
+      <div class="settings-chips" id="settings-subjects-chips">
+        <div class="settings-chip" onclick="settingsToggleSubject(this)" data-sub="Maths">🔢 Maths</div>
+        <div class="settings-chip" onclick="settingsToggleSubject(this)" data-sub="Physics">⚛️ Physics</div>
+        <div class="settings-chip" onclick="settingsToggleSubject(this)" data-sub="Chemistry">🧪 Chemistry</div>
+        <div class="settings-chip" onclick="settingsToggleSubject(this)" data-sub="Biology">🌿 Biology</div>
+        <div class="settings-chip" onclick="settingsToggleSubject(this)" data-sub="CS/Code">💻 CS/Code</div>
+        <div class="settings-chip" onclick="settingsToggleSubject(this)" data-sub="History">🏛️ History</div>
+        <div class="settings-chip" onclick="settingsToggleSubject(this)" data-sub="Geography">🌍 Geography</div>
+        <div class="settings-chip" onclick="settingsToggleSubject(this)" data-sub="English">📖 English</div>
+        <div class="settings-chip" onclick="settingsToggleSubject(this)" data-sub="Economics">🧮 Economics</div>
+        <div class="settings-chip" onclick="settingsToggleSubject(this)" data-sub="Arts">🎨 Arts</div>
+      </div>
+    </div>
+
+    <!-- Save button -->
+    <button class="settings-save-btn" onclick="settingsSave()">Save Changes</button>
+  </div>
+</div>
+</div>
 
 </body>
 </html>

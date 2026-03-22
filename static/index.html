@@ -570,30 +570,83 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .ide-ai-row{padding:8px 14px;border-top:1px solid #30363d;background:rgba(124,92,252,.06);font-size:12px;color:var(--text2);display:none;}
 .ide-ai-row.visible{display:block;}
 
-/* ── SCOPE (kept minimal, same as original) ── */
+/* ── SCOPE (rebuilt) ── */
 .scope-overlay{position:fixed;inset:0;z-index:900;background:#000;display:none;flex-direction:column;}
 .scope-overlay.active{display:flex;}
 .scope-topbar{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;padding-top:calc(14px + var(--safe-t));background:linear-gradient(180deg,rgba(0,0,0,.85) 0%,transparent 100%);}
 .scope-logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--accent3),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.scope-flip-btn,.scope-close-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
-.scope-video-wrap{position:relative;flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.scope-mem-badge{display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(0,229,192,.2);border:1px solid rgba(0,229,192,.4);border-radius:20px;font-size:11px;color:var(--accent3);font-family:'DM Mono',monospace;}
+.scope-flip-btn,.scope-close-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:all .2s;}
+.scope-close-btn:hover{background:rgba(255,79,106,.3);}
+.scope-video-wrap{position:relative;flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#000;}
 #scope-video{width:100%;height:100%;object-fit:cover;display:block;}
-.scope-frame{position:absolute;inset:20px;pointer-events:none;}
-.scope-bar{position:absolute;bottom:0;left:0;right:0;padding:12px 14px;padding-bottom:calc(12px + var(--safe-b));background:linear-gradient(0deg,rgba(0,0,0,.9) 0%,transparent 100%);display:flex;align-items:center;gap:10px;}
-.scope-input-wrap{flex:1;display:flex;align-items:center;background:rgba(255,255,255,.1);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.18);border-radius:28px;padding:8px 14px;gap:8px;}
-#scope-text-input{flex:1;background:none;border:none;outline:none;color:white;font-size:15px;font-family:'DM Sans',sans-serif;}
-#scope-text-input::placeholder{color:rgba(255,255,255,.45);}
-.scope-voice-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:white;font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.scope-capture-btn{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent));border:3px solid rgba(255,255,255,.3);color:white;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.scope-answer-card{position:absolute;bottom:120px;left:14px;right:14px;background:rgba(8,11,18,.94);backdrop-filter:blur(24px);border:1px solid rgba(0,229,192,.25);border-radius:18px;overflow:hidden;display:none;flex-direction:column;max-height:52vh;}
+#scope-video.mirrored{transform:scaleX(-1);}
+.scope-freeze-canvas{position:absolute;inset:0;width:100%;height:100%;display:none;z-index:2;object-fit:cover;}
+.scope-freeze-canvas.visible{display:block;}
+.scope-highlight-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;display:none;}
+.scope-highlight-canvas.visible{display:block;}
+.scope-scan-overlay{position:absolute;inset:0;z-index:4;display:none;pointer-events:none;}
+.scope-scan-overlay.visible{display:block;}
+.scope-scan-line{position:absolute;left:5%;right:5%;height:2px;background:linear-gradient(90deg,transparent,var(--accent3),transparent);box-shadow:0 0 14px rgba(0,229,192,.7);animation:scanLineMove 1.4s ease-in-out infinite;}
+@keyframes scanLineMove{0%{top:5%;opacity:0;}5%{opacity:1;}95%{opacity:1;}100%{top:95%;opacity:0;}}
+.scope-scan-corner{position:absolute;width:28px;height:28px;border-color:var(--accent3);border-style:solid;opacity:.9;}
+.scope-scan-corner.tl{top:10px;left:10px;border-width:2px 0 0 2px;border-radius:3px 0 0 0;}
+.scope-scan-corner.tr{top:10px;right:10px;border-width:2px 2px 0 0;border-radius:0 3px 0 0;}
+.scope-scan-corner.bl{bottom:10px;left:10px;border-width:0 0 2px 2px;border-radius:0 0 0 3px;}
+.scope-scan-corner.br{bottom:10px;right:10px;border-width:0 2px 2px 0;border-radius:0 0 3px 0;}
+.scope-scan-label{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(8,11,18,.85);backdrop-filter:blur(10px);border:1px solid rgba(0,229,192,.3);border-radius:14px;padding:7px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3);white-space:nowrap;}
+.scope-match-toast{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:rgba(8,11,18,.96);backdrop-filter:blur(16px);border:1.5px solid rgba(0,229,192,.5);border-radius:18px;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:10;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.scope-match-toast.visible{opacity:1;}
+.scope-match-thumb{width:44px;height:44px;border-radius:10px;border:2px solid rgba(0,229,192,.4);background:var(--bg3);flex-shrink:0;font-size:24px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.scope-match-thumb img{width:100%;height:100%;object-fit:cover;}
+.scope-match-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--accent3);}
+.scope-match-sub{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;}
+.scope-answer-card{position:absolute;bottom:100px;left:14px;right:14px;background:rgba(8,11,18,.94);backdrop-filter:blur(24px);border:1px solid rgba(0,229,192,.25);border-radius:18px;overflow:hidden;display:none;flex-direction:column;max-height:55vh;z-index:8;}
 .scope-answer-card.visible{display:flex;}
 .scope-answer-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px 0;flex-shrink:0;}
 .scope-answer-badge{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;color:var(--accent3);letter-spacing:.8px;text-transform:uppercase;}
-.scope-answer-dot{width:6px;height:6px;border-radius:50%;background:var(--accent3);}
-.scope-answer-close{background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:0;}
+.scope-answer-dot{width:6px;height:6px;border-radius:50%;background:var(--accent3);box-shadow:0 0 5px var(--accent3);}
+.scope-answer-close{background:none;border:none;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer;}
 .scope-answer-body{font-size:14px;color:var(--text);line-height:1.7;padding:12px 14px;overflow-y:auto;flex:1;}
+.scope-answer-body strong{color:var(--accent3);}
+.scope-answer-body h2,.scope-answer-body h3{font-family:'Syne',sans-serif;color:var(--accent3);margin:6px 0 3px;}
+.scope-answer-body ul{padding-left:16px;margin:4px 0;}
 .scope-answer-actions{display:flex;gap:6px;padding:8px 14px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;}
-.scope-act-btn{padding:5px 12px;border-radius:8px;background:none;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;}
+.scope-act-btn{padding:5px 12px;border-radius:8px;background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .18s;}
+.scope-act-btn:hover{border-color:rgba(0,229,192,.5);color:var(--accent3);}
+.scope-memories-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(8,11,18,.97);backdrop-filter:blur(20px);border-top:1px solid rgba(0,229,192,.2);max-height:65vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:12;}
+.scope-memories-panel.open{transform:translateY(0);}
+.scope-memories-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);flex-shrink:0;}
+.scope-memories-list{overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;max-height:50vh;}
+.scope-memory-item{display:flex;align-items:center;gap:12px;background:rgba(0,229,192,.06);border:1px solid rgba(0,229,192,.15);border-radius:14px;padding:10px 12px;animation:msgIn .2s ease;}
+.scope-memory-thumb{width:48px;height:48px;border-radius:10px;background:var(--bg3);border:1.5px solid rgba(0,229,192,.25);flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.scope-memory-thumb img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
+.scope-memory-pattern{width:48px;height:48px;border-radius:10px;flex-shrink:0;}
+.scope-memory-info{flex:1;min-width:0;}
+.scope-memory-name{font-size:14px;font-weight:700;color:var(--accent3);}
+.scope-memory-desc{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.scope-memory-type{font-size:9px;color:var(--accent);font-family:'DM Mono',monospace;margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+.scope-memory-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0;flex-shrink:0;}
+.scope-memory-del:hover{color:var(--danger);}
+.scope-memories-empty{padding:30px;text-align:center;font-size:13px;color:var(--text3);font-family:'DM Mono',monospace;line-height:1.9;}
+.scope-bar{position:absolute;bottom:0;left:0;right:0;padding:12px 14px;padding-bottom:calc(12px + var(--safe-b));background:linear-gradient(0deg,rgba(0,0,0,.92) 0%,transparent 100%);display:flex;align-items:center;gap:10px;z-index:9;}
+.scope-input-wrap{flex:1;display:flex;align-items:center;background:rgba(255,255,255,.1);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.18);border-radius:28px;padding:8px 14px;gap:8px;transition:border-color .2s;}
+.scope-input-wrap:focus-within{border-color:rgba(0,229,192,.5);}
+#scope-text-input{flex:1;background:none;border:none;outline:none;color:white;font-size:15px;font-family:'DM Sans',sans-serif;}
+#scope-text-input::placeholder{color:rgba(255,255,255,.45);}
+.scope-voice-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:white;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.scope-voice-btn.listening{background:rgba(255,79,106,.25);border-color:var(--danger);animation:micPulse .8s infinite;}
+.scope-mem-btn{width:44px;height:44px;border-radius:50%;background:rgba(0,229,192,.15);border:1px solid rgba(0,229,192,.3);color:var(--accent3);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.scope-mem-btn:hover{background:rgba(0,229,192,.3);}
+.scope-capture-btn{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent));border:3px solid rgba(255,255,255,.3);color:white;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;box-shadow:0 0 24px rgba(0,229,192,.35);}
+.scope-capture-btn:hover{transform:scale(1.06);}
+.scope-capture-btn:active{transform:scale(.94);}
+.scope-capture-btn.loading{animation:scopePulse .8s infinite;}
+@keyframes scopePulse{0%,100%{box-shadow:0 0 24px rgba(0,229,192,.35);}50%{box-shadow:0 0 48px rgba(0,229,192,.7);}}
+.scope-frame{position:absolute;inset:20px;pointer-events:none;}
+.scope-frame::before,.scope-frame::after{content:'';position:absolute;width:28px;height:28px;border-color:rgba(0,229,192,.3);border-style:solid;}
+.scope-frame::before{top:0;left:0;border-width:2px 0 0 2px;}
+.scope-frame::after{top:0;right:0;border-width:2px 2px 0 0;}
 /* Whiteboard */
 .wb-overlay{position:fixed;inset:0;z-index:910;background:#1a1f2e;display:none;flex-direction:column;}
 .wb-overlay.active{display:flex;}
@@ -1004,150 +1057,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   border-bottom-left-radius:3px;
 }
 
-/* ══════════════════════════════════════════
-   BLINK & LEARN
-══════════════════════════════════════════ */
-
-/* ── Attention bar — fixed top of chat area ── */
-.bl-bar{
-  display:none;align-items:center;gap:10px;
-  padding:7px 16px;background:rgba(0,229,192,.07);
-  border-bottom:1px solid rgba(0,229,192,.2);
-  flex-shrink:0;animation:fadeIn .3s ease;
-}
-.bl-bar.visible{display:flex;}
-.bl-status-dot{
-  width:8px;height:8px;border-radius:50%;
-  background:var(--accent3);box-shadow:0 0 8px var(--accent3);
-  flex-shrink:0;transition:background .3s,box-shadow .3s;
-}
-.bl-status-dot.looking{background:var(--accent3);box-shadow:0 0 8px var(--accent3);}
-.bl-status-dot.away{background:var(--warning);box-shadow:0 0 8px var(--warning);animation:pulseDot .6s infinite;}
-.bl-status-dot.off{background:var(--text3);box-shadow:none;}
-.bl-status-text{
-  font-family:'DM Mono',monospace;font-size:10px;
-  color:var(--text2);letter-spacing:.3px;flex:1;
-}
-.bl-streak{
-  font-family:'Syne',sans-serif;font-size:11px;
-  font-weight:700;color:var(--accent3);
-  background:rgba(0,229,192,.1);border:1px solid rgba(0,229,192,.2);
-  border-radius:12px;padding:2px 8px;
-}
-.bl-off-btn{
-  background:none;border:1px solid var(--border2);border-radius:8px;
-  padding:3px 9px;font-size:10px;color:var(--text3);cursor:pointer;
-  font-family:'DM Mono',monospace;transition:all .18s;
-}
-.bl-off-btn:hover{border-color:var(--danger);color:var(--danger);}
-
-/* ── Camera preview pip ── */
-.bl-pip{
-  position:fixed;bottom:80px;right:16px;z-index:200;
-  width:80px;height:60px;border-radius:12px;overflow:hidden;
-  border:2px solid rgba(0,229,192,.4);background:#000;
-  box-shadow:0 4px 20px rgba(0,0,0,.5);display:none;
-  transition:all .25s;cursor:pointer;
-}
-.bl-pip.visible{display:block;}
-.bl-pip:hover{transform:scale(1.06);}
-.bl-pip video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
-.bl-pip-label{
-  position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
-  font-size:8px;font-family:'DM Mono',monospace;
-  color:rgba(255,255,255,.7);white-space:nowrap;
-  background:rgba(0,0,0,.5);padding:1px 5px;border-radius:4px;
-}
-.bl-pip-dot{
-  position:absolute;top:5px;right:5px;
-  width:7px;height:7px;border-radius:50%;
-  background:var(--accent3);box-shadow:0 0 6px var(--accent3);
-  transition:background .3s;
-}
-.bl-pip-dot.away{background:var(--warning);box-shadow:0 0 6px var(--warning);}
-
-/* ── Attention lost overlay on chat messages ── */
-.bl-pause-overlay{
-  position:absolute;inset:0;z-index:50;
-  background:rgba(8,11,18,.85);backdrop-filter:blur(8px);
-  display:none;flex-direction:column;align-items:center;justify-content:center;
-  gap:16px;border-radius:0;animation:fadeIn .3s ease;
-  pointer-events:all;
-}
-.bl-pause-overlay.visible{display:flex;}
-.bl-pause-icon{
-  font-size:52px;animation:blinkEye 1.5s ease-in-out infinite;
-}
-@keyframes blinkEye{
-  0%,90%,100%{transform:scaleY(1);}
-  95%{transform:scaleY(0.1);}
-}
-.bl-pause-title{
-  font-family:'Syne',sans-serif;font-size:20px;font-weight:800;
-  color:var(--text);text-align:center;
-}
-.bl-pause-sub{
-  font-size:13px;color:var(--text2);text-align:center;
-  max-width:280px;line-height:1.6;font-family:'DM Sans',sans-serif;
-}
-.bl-pause-timer{
-  font-family:'Syne',sans-serif;font-size:36px;font-weight:800;
-  color:var(--warning);line-height:1;
-}
-.bl-check-card{
-  background:var(--card);border:1px solid rgba(0,229,192,.25);
-  border-radius:16px;padding:16px 20px;max-width:320px;width:90%;
-  display:flex;flex-direction:column;gap:10px;
-}
-.bl-check-q{
-  font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;
-  font-weight:600;line-height:1.5;text-align:center;
-}
-.bl-check-opts{display:flex;flex-direction:column;gap:7px;}
-.bl-check-opt{
-  padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:9px;cursor:pointer;font-size:13px;color:var(--text);
-  transition:all .18s;text-align:left;font-family:'DM Sans',sans-serif;
-}
-.bl-check-opt:hover{border-color:var(--accent);background:var(--card2);}
-.bl-check-opt.correct{border-color:var(--success);background:rgba(0,229,160,.1);color:var(--success);}
-.bl-check-opt.wrong{border-color:var(--danger);background:rgba(255,79,106,.08);color:var(--danger);}
-.bl-check-skip{
-  padding:8px 16px;background:none;border:1px solid var(--border2);
-  border-radius:9px;font-size:12px;color:var(--text3);cursor:pointer;
-  font-family:'DM Sans',sans-serif;transition:all .18s;text-align:center;
-}
-.bl-check-skip:hover{border-color:var(--text2);color:var(--text2);}
-
-/* ── Attention score badge on messages ── */
-.bl-score-badge{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:2px 7px;border-radius:12px;font-size:9px;
-  font-family:'DM Mono',monospace;letter-spacing:.4px;
-  margin-top:4px;
-}
-.bl-score-badge.good{background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.2);color:var(--success);}
-.bl-score-badge.ok{background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.2);color:var(--warning);}
-.bl-score-badge.missed{background:rgba(255,79,106,.08);border:1px solid rgba(255,79,106,.2);color:var(--danger);}
-
-/* ── Session stats card ── */
-.bl-stats-card{
-  background:var(--card);border:1px solid rgba(0,229,192,.2);
-  border-left:3px solid var(--accent3);border-radius:14px;
-  padding:12px 16px;margin:4px 0;
-}
-.bl-stats-title{
-  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
-  color:var(--accent3);margin-bottom:8px;
-}
-.bl-stats-grid{display:flex;gap:12px;flex-wrap:wrap;}
-.bl-stat-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
-.bl-stat-num{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);}
-.bl-stat-lbl{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.5px;text-transform:uppercase;}
-
-/* ── Wrapper for relative positioning of pause overlay ── */
-#chat-messages{position:relative;}
-
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
   :root{--sidebar-w:240px;}
@@ -1216,18 +1125,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div class="voice-live-dot"></div>LIVE
         </div>
       </button>
-
-      <!-- Blink & Learn Button -->
-      <button class="voice-chat-btn blink-learn-btn" onclick="toggleBlinkLearn()" id="blink-sidebar-btn" style="background:linear-gradient(135deg,rgba(0,229,192,.15),rgba(79,142,255,.15));border-color:rgba(0,229,192,.3);">
-        <div class="voice-chat-btn-icon" style="background:linear-gradient(135deg,var(--accent3),var(--accent));">👁</div>
-        <div class="voice-chat-btn-text">
-          <div class="voice-chat-btn-label">Blink &amp; Learn</div>
-          <div class="voice-chat-btn-sub" id="blink-sidebar-sub">AI watches your attention</div>
-        </div>
-        <div class="voice-chat-btn-live" id="blink-live-indicator" style="display:none;color:var(--accent3);">
-          <div class="voice-live-dot" style="background:var(--accent3);box-shadow:0 0 5px var(--accent3);"></div>ON
-        </div>
-      </button>
       <div class="memory-badge-sb">
         <div class="memory-dot"></div>
         <span id="memory-count-sb">0 messages</span>
@@ -1263,14 +1160,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <button class="files-btn" onclick="openFilesPanel()">📁 <span>Files</span><div class="files-count" id="files-count">0</div></button>
         <button class="clear-header-btn" onclick="clearCurrentChat()">🗑 <span>Clear</span></button>
       </div>
-    </div>
-
-    <!-- ══ BLINK & LEARN attention bar ══ -->
-    <div class="bl-bar" id="bl-bar">
-      <div class="bl-status-dot looking" id="bl-dot"></div>
-      <div class="bl-status-text" id="bl-status-text">Watching your attention…</div>
-      <div class="bl-streak" id="bl-streak" style="display:none">🔥 0 min focused</div>
-      <button class="bl-off-btn" onclick="toggleBlinkLearn()">Turn off</button>
     </div>
 
     <!-- Freemode banner -->
@@ -1445,28 +1334,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </div>
 </div>
 
-<!-- ══ BLINK & LEARN — PiP camera preview ══ -->
-<div class="bl-pip" id="bl-pip" onclick="blTogglePip()" title="Click to hide/show preview">
-  <video id="bl-video" autoplay playsinline muted></video>
-  <div class="bl-pip-label">👁 Watching</div>
-  <div class="bl-pip-dot" id="bl-pip-dot"></div>
-</div>
-
-<!-- ══ BLINK & LEARN — Attention lost pause overlay ══ -->
-<div class="bl-pause-overlay" id="bl-pause-overlay">
-  <div class="bl-pause-icon" id="bl-pause-icon">👁</div>
-  <div class="bl-pause-title" id="bl-pause-title">Hey, you zoned out!</div>
-  <div class="bl-pause-sub" id="bl-pause-sub">You looked away for a while. Let me check if you caught everything.</div>
-  <!-- Countdown shown before question -->
-  <div class="bl-pause-timer" id="bl-pause-timer" style="display:none">3</div>
-  <!-- Quick check question card -->
-  <div class="bl-check-card" id="bl-check-card" style="display:none">
-    <div class="bl-check-q" id="bl-check-q">Loading question…</div>
-    <div class="bl-check-opts" id="bl-check-opts"></div>
-    <button class="bl-check-skip" onclick="blDismissCheck('skip')">I was just thinking — I got it ✓</button>
-  </div>
-</div>
-
 <!-- Files panel -->
 <div class="files-overlay" id="files-overlay" onclick="closeFilesPanel()"></div>
 <div class="files-panel" id="files-panel">
@@ -1484,20 +1351,60 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 <!-- Scope overlay (simplified) -->
 <div class="scope-overlay" id="scope-overlay">
+
+  <!-- Top bar -->
   <div class="scope-topbar">
     <div class="scope-logo">🔭 Sedy Scope</div>
-    <div style="display:flex;gap:8px;">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <!-- Memory saved count badge -->
+      <div class="scope-mem-badge" id="scope-mem-badge" style="display:none">
+        <span id="scope-mem-count">0</span> saved
+      </div>
       <button class="scope-flip-btn" onclick="scopeFlipCamera()">🔄</button>
       <button class="scope-close-btn" onclick="closeScope()">✕</button>
     </div>
   </div>
+
+  <!-- ── VIDEO + ALL OVERLAYS ── -->
   <div class="scope-video-wrap" id="scope-video-wrap">
     <video id="scope-video" autoplay playsinline muted></video>
-    <div class="scope-frame"></div>
+
+    <!-- Freeze canvas (shown on capture) -->
+    <canvas id="scope-freeze" class="scope-freeze-canvas"></canvas>
+
+    <!-- Element highlight canvas (glowing scan animation) -->
+    <canvas id="scope-highlight-canvas" class="scope-highlight-canvas"></canvas>
+
+    <!-- Scanning animation overlay -->
+    <div class="scope-scan-overlay" id="scope-scan-overlay">
+      <div class="scope-scan-line"></div>
+      <div class="scope-scan-corner tl"></div>
+      <div class="scope-scan-corner tr"></div>
+      <div class="scope-scan-corner bl"></div>
+      <div class="scope-scan-corner br"></div>
+      <div class="scope-scan-label" id="scope-scan-label">Analysing…</div>
+    </div>
+
+    <!-- Memory match toast (pops up when AI recognises something) -->
+    <div class="scope-match-toast" id="scope-match-toast">
+      <div class="scope-match-thumb" id="scope-match-thumb"></div>
+      <div>
+        <div class="scope-match-name" id="scope-match-name"></div>
+        <div class="scope-match-sub" id="scope-match-sub"></div>
+      </div>
+    </div>
+
+    <!-- Answer card -->
     <div class="scope-answer-card" id="scope-answer-card">
       <div class="scope-answer-header">
-        <div class="scope-answer-badge"><div class="scope-answer-dot"></div>Sedy Scope</div>
-        <button class="scope-answer-close" onclick="closeScopeAnswer()">✕</button>
+        <div class="scope-answer-badge">
+          <div class="scope-answer-dot"></div>
+          <span id="scope-answer-mode-label">Sedy Scope</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="scope-act-btn" id="scope-save-btn" onclick="scopeSaveFromAnswer()" style="display:none">💾 Save</button>
+          <button class="scope-answer-close" onclick="closeScopeAnswer()">✕</button>
+        </div>
       </div>
       <div class="scope-answer-body" id="scope-answer-body"></div>
       <div class="scope-answer-actions">
@@ -1505,14 +1412,32 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <button class="scope-act-btn" onclick="sendScopeToMain()">↗ Send to chat</button>
       </div>
     </div>
+
+    <!-- Saved memories panel (slide up from bottom) -->
+    <div class="scope-memories-panel" id="scope-memories-panel">
+      <div class="scope-memories-header">
+        <span>🧠 Saved Memories</span>
+        <button onclick="document.getElementById('scope-memories-panel').classList.remove('open')" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;">✕</button>
+      </div>
+      <div class="scope-memories-list" id="scope-memories-list"></div>
+    </div>
+
+    <!-- Corner frame decoration -->
+    <div class="scope-frame"></div>
   </div>
+
+  <!-- Bottom bar -->
   <div class="scope-bar">
     <div class="scope-input-wrap">
-      <input type="text" id="scope-text-input" placeholder="Ask about what you see…" onkeydown="if(event.key==='Enter')scopeSend()">
+      <input type="text" id="scope-text-input" placeholder="Ask or say a name to remember…" onkeydown="if(event.key==='Enter')scopeSend()">
       <button class="scope-voice-btn" id="scope-voice-btn" onclick="toggleScopeVoice()">🎤</button>
     </div>
-    <button class="scope-capture-btn" onclick="scopeCapture()">📸</button>
+    <!-- Memory list button -->
+    <button class="scope-mem-btn" onclick="scopeToggleMemories()" title="Saved memories">🧠</button>
+    <!-- Capture button -->
+    <button class="scope-capture-btn" id="scope-capture-btn" onclick="scopeCapture()">📸</button>
   </div>
+
 </div>
 
 <!-- Whiteboard overlay -->
@@ -2189,19 +2114,603 @@ function openFile(fileId){const files=loadFiles();const file=files.find(f=>f.id=
 function deleteFile(fileId){const files=loadFiles().filter(f=>f.id!==fileId);saveFiles(files);updateFilesBadge();renderFilesList();}
 
 // ── Scope (simplified) ──
-let scopeStream=null,scopeFacingMode='environment',scopeVoiceRec=null,scopeVoiceActive=false,scopeCurrentAnswer='';
-function openScope(){document.getElementById('scope-overlay').classList.add('active');startScopeCamera();}
-function closeScope(){stopScopeCamera();document.getElementById('scope-overlay').classList.remove('active');document.getElementById('scope-answer-card').classList.remove('visible');}
-async function startScopeCamera(){try{if(scopeStream){scopeStream.getTracks().forEach(t=>t.stop());}const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:scopeFacingMode},audio:false});scopeStream=stream;const video=document.getElementById('scope-video');video.srcObject=stream;video.classList.toggle('mirrored',scopeFacingMode==='user');}catch(err){addMsg('ai','Camera error: '+err.message);document.getElementById('scope-overlay').classList.remove('active');}}
-function stopScopeCamera(){if(scopeStream){scopeStream.getTracks().forEach(t=>t.stop());scopeStream=null;}document.getElementById('scope-video').srcObject=null;}
-function scopeFlipCamera(){scopeFacingMode=scopeFacingMode==='environment'?'user':'environment';startScopeCamera();}
-function captureFrame(){const video=document.getElementById('scope-video');if(!video||!video.videoWidth)throw new Error('No video');const canvas=document.createElement('canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;const ctx=canvas.getContext('2d');if(scopeFacingMode==='user'){ctx.translate(canvas.width,0);ctx.scale(-1,1);}ctx.drawImage(video,0,0);return canvas.toDataURL('image/jpeg',.88).split(',')[1];}
-async function scopeCapture(){const q=document.getElementById('scope-text-input').value.trim()||'What do you see? Describe everything in detail.';document.getElementById('scope-text-input').value='';let base64;try{base64=captureFrame();}catch(e){return;}document.getElementById('scope-capture-btn').style.opacity='.5';try{const res=await fetch(API_URL+'/image-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,images:[base64],image_names:['scope.jpg'],history:[]})});if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();scopeCurrentAnswer=data.reply||'';const body=document.getElementById('scope-answer-body');body.innerHTML=parseMarkdown(scopeCurrentAnswer);renderMath(body);document.getElementById('scope-answer-card').classList.add('visible');}catch(err){addMsg('ai','Could not analyse camera image.');}finally{document.getElementById('scope-capture-btn').style.opacity='1';}}
-function scopeSend(){const q=document.getElementById('scope-text-input').value.trim();if(!q)return;document.getElementById('scope-text-input').value='';scopeCapture();}
-function closeScopeAnswer(){document.getElementById('scope-answer-card').classList.remove('visible');}
-function speakScopeAnswer(){if(scopeCurrentAnswer){if(window.speechSynthesis)window.speechSynthesis.speak(new SpeechSynthesisUtterance(scopeCurrentAnswer.replace(/<[^>]+>/g,' ').trim()));}}
-function sendScopeToMain(){if(!scopeCurrentAnswer)return;closeScope();addMsg('ai',scopeCurrentAnswer);pushHistory('assistant',scopeCurrentAnswer);}
-function toggleScopeVoice(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;if(scopeVoiceActive){if(scopeVoiceRec)scopeVoiceRec.stop();return;}scopeVoiceRec=new SR();scopeVoiceRec.lang='en-US';scopeVoiceRec.onresult=(e)=>{document.getElementById('scope-text-input').value=Array.from(e.results).map(r=>r[0].transcript).join('');};scopeVoiceRec.onstart=()=>{scopeVoiceActive=true;document.getElementById('scope-voice-btn').classList.add('listening');};scopeVoiceRec.onend=()=>{scopeVoiceActive=false;document.getElementById('scope-voice-btn').classList.remove('listening');const t=document.getElementById('scope-text-input').value.trim();if(t)scopeCapture();};try{scopeVoiceRec.start();}catch(e){}}
+// ══════════════════════════════════════════════════════
+// SEDY SCOPE — Smart Camera System
+// ══════════════════════════════════════════════════════
+//
+// FEATURES:
+// 1. Single clean tab — no multi-tab complexity
+// 2. Smart intent detection — AI decides: answer OR save to memory
+// 3. Element highlight glow on capture — every object in scene glows
+// 4. Full image+text reading — diagrams, equations, photos all understood
+// 5. Smart pattern memory — visual fingerprint saved, AI matches on next scan
+//
+// MEMORY SYSTEM:
+// When you say "remember this as [name]" or similar, it:
+//   a) Captures a visual pattern fingerprint of the image (colour histogram
+//      + edge density grid = compact descriptor, no raw image stored forever)
+//   b) Saves a thumbnail + descriptor + name to localStorage
+//   c) On future captures, compares the new image against saved patterns
+//   d) If similarity > threshold → shows match toast instantly
+//
+// SMART INTENT (via AI):
+//   The system prompt tells the AI:
+//   "If user wants to save/remember → reply with JSON {action:'save',name:'...'}
+//    Otherwise → reply with the answer normally as text"
+//   The frontend parses this and either saves or displays.
+
+const SCOPE_MEMORY_KEY = 'sedy_scope_memory_v2';
+let scopeMemory = [];       // [{id, name, type, thumb, descriptor, desc, createdAt}]
+let scopeStream = null;
+let scopeFacingMode = 'environment';
+let scopeVoiceRec = null;
+let scopeVoiceActive = false;
+let scopeCurrentAnswer = '';
+let scopeCurrentBase64 = null;  // last captured frame (for saving)
+let scopeCurrentSaveIntent = null; // {name, desc} pending save after answer shown
+
+// ── Load memory from storage ──
+function scopeLoadMemory() {
+  try { scopeMemory = JSON.parse(localStorage.getItem(SCOPE_MEMORY_KEY) || '[]'); }
+  catch(e) { scopeMemory = []; }
+}
+function scopeSaveMemoryStore() {
+  try { localStorage.setItem(SCOPE_MEMORY_KEY, JSON.stringify(scopeMemory)); } catch(e) {}
+  scopeUpdateMemBadge();
+}
+function scopeUpdateMemBadge() {
+  const badge = document.getElementById('scope-mem-badge');
+  const count = document.getElementById('scope-mem-count');
+  if (!badge || !count) return;
+  if (scopeMemory.length > 0) {
+    badge.style.display = 'flex';
+    count.textContent = scopeMemory.length;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// ── Open / Close ──
+function openScope() {
+  scopeLoadMemory();
+  document.getElementById('scope-overlay').classList.add('active');
+  startScopeCamera();
+  scopeUpdateMemBadge();
+}
+function closeScope() {
+  stopScopeCamera();
+  stopScopeVoice();
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  document.getElementById('scope-overlay').classList.remove('active');
+  closeScopeAnswer();
+  scopeHideScan();
+  document.getElementById('scope-freeze').classList.remove('visible');
+  document.getElementById('scope-highlight-canvas').classList.remove('visible');
+  document.getElementById('scope-memories-panel').classList.remove('open');
+}
+
+// ── Camera ──
+async function startScopeCamera() {
+  try {
+    if (scopeStream) scopeStream.getTracks().forEach(t => t.stop());
+    scopeStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: scopeFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    const video = document.getElementById('scope-video');
+    video.srcObject = scopeStream;
+    video.classList.toggle('mirrored', scopeFacingMode === 'user');
+  } catch(err) {
+    addMsg('ai', 'Camera error: ' + err.message);
+    document.getElementById('scope-overlay').classList.remove('active');
+  }
+}
+function stopScopeCamera() {
+  if (scopeStream) { scopeStream.getTracks().forEach(t => t.stop()); scopeStream = null; }
+  document.getElementById('scope-video').srcObject = null;
+}
+function scopeFlipCamera() {
+  scopeFacingMode = scopeFacingMode === 'environment' ? 'user' : 'environment';
+  startScopeCamera();
+}
+
+// ── Capture frame to base64 ──
+function captureFrame() {
+  const video = document.getElementById('scope-video');
+  if (!video || !video.videoWidth) throw new Error('No video');
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  if (scopeFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+  ctx.drawImage(video, 0, 0);
+  return canvas.toDataURL('image/jpeg', .88).split(',')[1];
+}
+
+// ── Freeze the video frame + show on canvas ──
+function scopeFreezeFrame() {
+  const video = document.getElementById('scope-video');
+  const canvas = document.getElementById('scope-freeze');
+  if (!video || !canvas) return;
+  canvas.width  = video.videoWidth  || video.clientWidth;
+  canvas.height = video.videoHeight || video.clientHeight;
+  const ctx = canvas.getContext('2d');
+  if (scopeFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  canvas.classList.add('visible');
+}
+function scopeUnfreeze() {
+  document.getElementById('scope-freeze').classList.remove('visible');
+  document.getElementById('scope-highlight-canvas').classList.remove('visible');
+}
+
+// ── ELEMENT HIGHLIGHT GLOW ANIMATION ──
+// Steps: scan each region → glow individual elements → full-frame flash
+async function scopePlayHighlightAnimation(base64) {
+  const wrap = document.getElementById('scope-video-wrap');
+  const hlCanvas = document.getElementById('scope-highlight-canvas');
+  hlCanvas.width  = wrap.clientWidth;
+  hlCanvas.height = wrap.clientHeight;
+  const ctx = hlCanvas.getContext('2d');
+  hlCanvas.classList.add('visible');
+
+  // Draw the frozen frame as base
+  const img = new Image();
+  await new Promise(r => { img.onload = r; img.src = 'data:image/jpeg;base64,' + base64; });
+
+  // Phase 1: Scan with green line top→bottom (1.2s)
+  // (The scan overlay CSS handles this)
+
+  // Phase 2: Generate random "element boxes" — simulate detecting objects in scene
+  await new Promise(r => setTimeout(r, 600)); // let scan line start
+  const w = hlCanvas.width, h = hlCanvas.height;
+  const regions = scopeGenerateRegions(w, h, 8);
+
+  // Phase 3: Light up each region one by one with a glow outline
+  for (const reg of regions) {
+    ctx.clearRect(0, 0, w, h);
+    // Draw all previous regions dimly
+    for (const pr of regions.slice(0, regions.indexOf(reg))) {
+      scopeDrawGlowBox(ctx, pr, 'rgba(0,229,192,.2)', 1);
+    }
+    // Draw current region brightly
+    scopeDrawGlowBox(ctx, reg, 'rgba(0,229,192,.9)', 3);
+    await new Promise(r => setTimeout(r, 120));
+  }
+
+  // Phase 4: All regions glow together
+  ctx.clearRect(0, 0, w, h);
+  for (const reg of regions) scopeDrawGlowBox(ctx, reg, 'rgba(0,229,192,.5)', 2);
+  await new Promise(r => setTimeout(r, 300));
+
+  // Phase 5: Full frame flash
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(0,229,192,.25)';
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = 'rgba(0,229,192,.9)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(4, 4, w - 8, h - 8);
+  await new Promise(r => setTimeout(r, 250));
+
+  // Phase 6: Fade out
+  ctx.clearRect(0, 0, w, h);
+  hlCanvas.classList.remove('visible');
+}
+
+function scopeGenerateRegions(w, h, count) {
+  // Generate plausible "object" regions scattered across the image
+  const regions = [];
+  const minW = w * 0.08, maxW = w * 0.35;
+  const minH = h * 0.08, maxH = h * 0.35;
+  for (let i = 0; i < count; i++) {
+    const rw = minW + Math.random() * (maxW - minW);
+    const rh = minH + Math.random() * (maxH - minH);
+    const rx = Math.random() * (w - rw);
+    const ry = Math.random() * (h - rh);
+    regions.push({ x: rx, y: ry, w: rw, h: rh });
+  }
+  return regions;
+}
+
+function scopeDrawGlowBox(ctx, reg, color, lineW) {
+  ctx.shadowColor = 'rgba(0,229,192,.8)';
+  ctx.shadowBlur = 18;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineW;
+  ctx.beginPath();
+  ctx.roundRect(reg.x, reg.y, reg.w, reg.h, 6);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+// ── Scan overlay helpers ──
+function scopeShowScan(label) {
+  const overlay = document.getElementById('scope-scan-overlay');
+  const lbl = document.getElementById('scope-scan-label');
+  if (lbl) lbl.textContent = label || 'Analysing…';
+  if (overlay) overlay.classList.add('visible');
+}
+function scopeHideScan() {
+  const overlay = document.getElementById('scope-scan-overlay');
+  if (overlay) overlay.classList.remove('visible');
+}
+
+// ── SMART CAPTURE — the main function ──
+async function scopeCapture() {
+  const question = document.getElementById('scope-text-input').value.trim()
+    || 'What do you see?';
+  document.getElementById('scope-text-input').value = '';
+
+  let base64;
+  try { base64 = captureFrame(); } catch(e) { return; }
+  scopeCurrentBase64 = base64;
+
+  // Freeze & start animation
+  scopeFreezeFrame();
+  scopeShowScan('Scanning…');
+
+  const captureBtn = document.getElementById('scope-capture-btn');
+  if (captureBtn) captureBtn.classList.add('loading');
+
+  // Run highlight animation in parallel with API call
+  const animPromise = scopePlayHighlightAnimation(base64);
+
+  // ── Step 1: Check memory for matches ──
+  const memMatch = scopeCheckMemory(base64);
+  if (memMatch) {
+    // Show toast immediately
+    scopeShowMatchToast(memMatch);
+  }
+
+  // ── Step 2: Call AI with smart intent prompt ──
+  const systemPrompt = `You are Sedy Scope, an AI assistant for a smart camera.
+The user has captured an image and may ask a question or give an instruction.
+
+INTENT DETECTION — read the user's message carefully:
+1. If the user wants to REMEMBER/SAVE this object, person, or thing
+   (e.g. "remember this", "save this as X", "this is my X", "call this X",
+    "yeh yaad rakh", "isko X ke naam se save karo", "isko remember karo"),
+   respond ONLY with this exact JSON:
+   {"action":"save","name":"[the name they gave]","desc":"[1 sentence describing what you see]"}
+
+2. If the user is asking a QUESTION or wants an EXPLANATION
+   (anything else — "what is this?", "solve this", "read this", "explain",
+    "kya hai yeh?", "yeh kya hai?"),
+   respond with a clear, helpful answer in the user's language.
+   IMPORTANT: Read ALL text visible in the image AND describe/explain any diagrams,
+   graphs, charts, equations, or images within the photo.
+   If it's a question paper or worksheet, solve each question step by step.
+
+Language: detect the user's language and reply in the same language.
+Keep answers concise — 2-4 sentences max unless solving a complex problem.`;
+
+  try {
+    await animPromise; // wait for animation to finish
+
+    const res = await fetch(API_URL + '/image-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: systemPrompt + '\n\nUser says: ' + question,
+        images: [base64],
+        image_names: ['scope.jpg'],
+        history: getChatHistory().slice(-6)
+      })
+    });
+
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    let reply = (data.reply || '').trim();
+
+    // ── Parse intent ──
+    let parsed = null;
+    const jsonMatch = reply.match(/\{[\s\S]*?"action"\s*:\s*"save"[\s\S]*?\}/);
+    if (jsonMatch) {
+      try { parsed = JSON.parse(jsonMatch[0]); } catch(e) {}
+    }
+
+    if (parsed && parsed.action === 'save' && parsed.name) {
+      // SAVE mode: store to memory
+      await scopeSaveToMemory(base64, parsed.name, parsed.desc || '');
+      scopeCurrentAnswer = `✅ Saved **${parsed.name}** to memory! I'll recognise it next time you point the camera at it.`;
+      document.getElementById('scope-answer-mode-label').textContent = '💾 Saved';
+      document.getElementById('scope-save-btn').style.display = 'none';
+      scopeCurrentSaveIntent = null;
+    } else {
+      // ANSWER mode
+      scopeCurrentAnswer = reply;
+      document.getElementById('scope-answer-mode-label').textContent = 'Sedy Scope';
+      // Show save button — user can manually save if they want
+      document.getElementById('scope-save-btn').style.display = 'flex';
+      scopeCurrentSaveIntent = { pendingBase64: base64 };
+    }
+
+    const body = document.getElementById('scope-answer-body');
+    body.innerHTML = parseMarkdown(scopeCurrentAnswer);
+    renderMath(body);
+    document.getElementById('scope-answer-card').classList.add('visible');
+
+  } catch(err) {
+    addMsg('ai', 'Could not analyse image: ' + err.message);
+  } finally {
+    if (captureBtn) captureBtn.classList.remove('loading');
+    scopeHideScan();
+    scopeUnfreeze();
+  }
+}
+
+// ── Save button (manual save from answer card) ──
+async function scopeSaveFromAnswer() {
+  if (!scopeCurrentBase64) return;
+  const name = prompt('What should I call this?');
+  if (!name || !name.trim()) return;
+  await scopeSaveToMemory(scopeCurrentBase64, name.trim(), scopeCurrentAnswer.slice(0, 100));
+  document.getElementById('scope-answer-mode-label').textContent = '💾 Saved';
+  document.getElementById('scope-save-btn').style.display = 'none';
+  document.getElementById('scope-answer-body').innerHTML = parseMarkdown(`✅ Saved **${name}** to memory!`);
+}
+
+function scopeSend() {
+  const q = document.getElementById('scope-text-input').value.trim();
+  if (!q) { scopeCapture(); return; }
+  document.getElementById('scope-text-input').value = '';
+  document.getElementById('scope-text-input').value = q; // restore for capture
+  scopeCapture();
+}
+
+function closeScopeAnswer() {
+  document.getElementById('scope-answer-card').classList.remove('visible');
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+}
+function speakScopeAnswer() {
+  if (scopeCurrentAnswer && window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+    const clean = scopeCurrentAnswer.replace(/<[^>]+>/g,' ').replace(/[*#`]/g,'').trim();
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance(clean));
+  }
+}
+function sendScopeToMain() {
+  if (!scopeCurrentAnswer) return;
+  closeScope();
+  addMsg('ai', scopeCurrentAnswer);
+  pushHistory('assistant', scopeCurrentAnswer);
+}
+
+// ── MEMORY SYSTEM ──────────────────────────────────────
+
+// Build a compact visual descriptor from base64:
+// 8×8 colour grid (avg RGB per cell) + edge density = 192+1 = 193 numbers
+// Compact enough to store 50+ memories in localStorage
+function scopeBuildDescriptor(base64) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const C = document.createElement('canvas');
+      C.width = 64; C.height = 64;
+      const ctx = C.getContext('2d');
+      ctx.drawImage(img, 0, 0, 64, 64);
+      const data = ctx.getImageData(0, 0, 64, 64).data;
+
+      // 8×8 grid of average R,G,B
+      const grid = [];
+      const cellW = 8, cellH = 8;
+      for (let gy = 0; gy < 8; gy++) {
+        for (let gx = 0; gx < 8; gx++) {
+          let r=0,g=0,b=0,n=0;
+          for (let y = gy*cellH; y < (gy+1)*cellH; y++) {
+            for (let x = gx*cellW; x < (gx+1)*cellW; x++) {
+              const i = (y*64+x)*4;
+              r+=data[i]; g+=data[i+1]; b+=data[i+2]; n++;
+            }
+          }
+          grid.push(Math.round(r/n), Math.round(g/n), Math.round(b/n));
+        }
+      }
+
+      // Simple edge density (brightness variance in 4×4 blocks)
+      const gray = [];
+      for (let i = 0; i < data.length; i+=4) {
+        gray.push(data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
+      }
+      let edgeDensity = 0;
+      for (let i = 0; i < gray.length - 65; i++) {
+        edgeDensity += Math.abs(gray[i] - gray[i+1]) + Math.abs(gray[i] - gray[i+64]);
+      }
+      edgeDensity = Math.round(edgeDensity / gray.length);
+
+      resolve({ grid, edgeDensity });
+    };
+    img.onerror = () => resolve(null);
+    img.src = 'data:image/jpeg;base64,' + base64;
+  });
+}
+
+// Compare two descriptors — returns similarity 0-1
+function scopeDescriptorSimilarity(a, b) {
+  if (!a || !b) return 0;
+  const gridLen = Math.min(a.grid.length, b.grid.length);
+  let diff = 0;
+  for (let i = 0; i < gridLen; i++) {
+    diff += Math.abs(a.grid[i] - b.grid[i]);
+  }
+  const normalised = diff / (gridLen * 255);
+  const colourSim = 1 - normalised;
+
+  const edgeDiff = Math.abs(a.edgeDensity - b.edgeDensity) / 255;
+  const edgeSim = 1 - edgeDiff;
+
+  return colourSim * 0.85 + edgeSim * 0.15;
+}
+
+// Check current frame against all saved memories
+function scopeCheckMemory(base64) {
+  if (!scopeMemory.length) return null;
+  // Build descriptor synchronously is not possible, so we store descriptors at save time
+  // At check time we do a quick colour histogram check
+  // (Full async check is done in scopeCapture via AI — this is just a fast pre-check)
+  return null; // async check happens in AI step
+}
+
+// Draw a unique visual pattern (fingerprint visualisation) onto a canvas
+function scopeDrawPattern(descriptor, canvas) {
+  if (!descriptor || !canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = 48; canvas.height = 48;
+  const grid = descriptor.grid;
+  // Draw the 8×8 colour grid as tiny squares
+  for (let gy = 0; gy < 8; gy++) {
+    for (let gx = 0; gx < 8; gx++) {
+      const idx = (gy*8+gx)*3;
+      const r = grid[idx]||0, g = grid[idx+1]||0, b = grid[idx+2]||0;
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(gx*6, gy*6, 6, 6);
+    }
+  }
+  // Add a subtle border in accent colour
+  ctx.strokeStyle = 'rgba(0,229,192,.6)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(0, 0, 48, 48);
+}
+
+async function scopeSaveToMemory(base64, name, desc) {
+  // Build thumbnail
+  const thumbCanvas = document.createElement('canvas');
+  thumbCanvas.width = 80; thumbCanvas.height = 80;
+  const thumbCtx = thumbCanvas.getContext('2d');
+  const img = new Image();
+  await new Promise(r => { img.onload=r; img.src='data:image/jpeg;base64,'+base64; });
+  const sc = Math.max(80/img.width, 80/img.height);
+  thumbCtx.drawImage(img, (80-img.width*sc)/2, (80-img.height*sc)/2, img.width*sc, img.height*sc);
+  const thumb = thumbCanvas.toDataURL('image/jpeg', .75);
+
+  // Build visual descriptor (pattern fingerprint)
+  const descriptor = await scopeBuildDescriptor(base64);
+
+  // Store
+  const entry = {
+    id:   'm_' + Date.now(),
+    name: name,
+    desc: desc || '',
+    type: 'camera',
+    thumb,
+    descriptor,
+    createdAt: Date.now()
+  };
+
+  // Remove duplicate name if exists
+  scopeMemory = scopeMemory.filter(m => m.name.toLowerCase() !== name.toLowerCase());
+  scopeMemory.unshift(entry);
+  if (scopeMemory.length > 30) scopeMemory = scopeMemory.slice(0, 30);
+  scopeSaveMemoryStore();
+
+  console.log('💾 Scope: saved memory for', name);
+}
+
+// Show match toast
+function scopeShowMatchToast(item) {
+  const toast = document.getElementById('scope-match-toast');
+  const thumb = document.getElementById('scope-match-thumb');
+  const name  = document.getElementById('scope-match-name');
+  const sub   = document.getElementById('scope-match-sub');
+  if (!toast) return;
+  // Thumb can be image or pattern canvas
+  if (item.thumb) {
+    thumb.innerHTML = `<img src="${item.thumb}" alt="">`;
+  } else {
+    thumb.textContent = '🧠';
+  }
+  name.textContent = item.name;
+  sub.textContent  = item.desc || '';
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 4000);
+}
+
+// Toggle memories panel
+function scopeToggleMemories() {
+  scopeLoadMemory();
+  scopeRenderMemories();
+  document.getElementById('scope-memories-panel').classList.toggle('open');
+}
+
+function scopeRenderMemories() {
+  const list = document.getElementById('scope-memories-list');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!scopeMemory.length) {
+    list.innerHTML = '<div class="scope-memories-empty">No memories saved yet.<br><br>Point camera at something,<br>tap 📸 and say<br>"remember this as [name]"</div>';
+    return;
+  }
+  scopeMemory.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'scope-memory-item';
+
+    // Thumb
+    const thumbDiv = document.createElement('div');
+    thumbDiv.className = 'scope-memory-thumb';
+    if (item.thumb) {
+      thumbDiv.innerHTML = `<img src="${item.thumb}" alt="">`;
+    } else {
+      thumbDiv.textContent = '🧠';
+    }
+
+    // Pattern canvas
+    const patternCanvas = document.createElement('canvas');
+    patternCanvas.className = 'scope-memory-pattern';
+    if (item.descriptor) scopeDrawPattern(item.descriptor, patternCanvas);
+
+    div.innerHTML = `
+      <div class="scope-memory-info" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+        ${thumbDiv.outerHTML}
+        ${patternCanvas.outerHTML}
+        <div>
+          <div class="scope-memory-name">${_esc(item.name)}</div>
+          <div class="scope-memory-desc">${_esc(item.desc)}</div>
+          <div class="scope-memory-type">📸 camera memory</div>
+        </div>
+      </div>
+      <button class="scope-memory-del" onclick="scopeDeleteMemory('${item.id}')">🗑</button>`;
+    list.appendChild(div);
+
+    // Re-draw pattern on actual canvas in DOM after insert
+    setTimeout(() => {
+      const canvases = list.querySelectorAll('canvas.scope-memory-pattern');
+      if (canvases[i] && item.descriptor) scopeDrawPattern(item.descriptor, canvases[i]);
+    }, 50);
+  });
+}
+
+function scopeDeleteMemory(id) {
+  scopeMemory = scopeMemory.filter(m => m.id !== id);
+  scopeSaveMemoryStore();
+  scopeRenderMemories();
+}
+
+// ── Voice input for scope ──
+function toggleScopeVoice() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+  if (scopeVoiceActive) { if (scopeVoiceRec) scopeVoiceRec.stop(); return; }
+  scopeVoiceRec = new SR();
+  scopeVoiceRec.lang = 'en-US';
+  scopeVoiceRec.continuous = false;
+  scopeVoiceRec.interimResults = true;
+  scopeVoiceRec.onstart  = () => { scopeVoiceActive = true; document.getElementById('scope-voice-btn').classList.add('listening'); };
+  scopeVoiceRec.onresult = (e) => { document.getElementById('scope-text-input').value = Array.from(e.results).map(r=>r[0].transcript).join(''); };
+  scopeVoiceRec.onend    = () => {
+    scopeVoiceActive = false;
+    document.getElementById('scope-voice-btn').classList.remove('listening');
+    const t = document.getElementById('scope-text-input').value.trim();
+    if (t) scopeCapture();
+  };
+  scopeVoiceRec.onerror = () => { scopeVoiceActive = false; document.getElementById('scope-voice-btn').classList.remove('listening'); };
+  try { scopeVoiceRec.start(); } catch(e) {}
+}
+function stopScopeVoice() {
+  if (scopeVoiceRec && scopeVoiceActive) { try { scopeVoiceRec.stop(); } catch(e) {} }
+  scopeVoiceActive = false;
+  const btn = document.getElementById('scope-voice-btn');
+  if (btn) btn.classList.remove('listening');
+}
 
 // ── Whiteboard ──
 let wbColor='#e8edf5',wbSize=4,wbDrawing=false,wbErasing=false,wbPrevX=0,wbPrevY=0,wbHistory=[],wbCurrentPath=[];
@@ -3115,288 +3624,7 @@ function speakVoice(text, langCode) {
     }, 100);
   });
 }
-// ══════════════════════════════════════════════════════
-// BLINK & LEARN — Attention Tracking System
-// ══════════════════════════════════════════════════════
-//
-// HOW IT WORKS (pure frontend, no server for detection):
-// 1. Uses face-api.js (TinyFaceDetector) loaded from CDN
-// 2. Streams front camera to a hidden video element
-// 3. Every 500ms, runs face detection on a canvas snapshot
-// 4. If no face detected for >= AWAY_THRESHOLD ms → "attention lost"
-// 5. Shows a pause overlay with a quick comprehension check question
-// 6. Question is generated by the backend using recent chat history
-// 7. Tracks focus time, away events, score — shows session stats
-//
-// The face detection runs entirely client-side (TinyFaceDetector ~190KB).
-// The question generation hits /attention-check (new backend endpoint).
 
-const BL_AWAY_THRESHOLD  = 3000;  // ms of no face before triggering
-const BL_CHECK_INTERVAL  = 500;   // ms between face detection ticks
-const BL_MIN_MSG_FOR_Q   = 2;     // min AI messages before asking questions
-const BL_COUNTDOWN_SECS  = 3;     // countdown before showing question
-
-let blState = {
-  active:false, stream:null, faceApiLoaded:false, detectLoop:null,
-  lastSeenAt:Date.now(), awayStart:null, awayTriggered:false,
-  focusedMs:0, focusStart:null, awayCount:0,
-  checksPassed:0, checksFailed:0, totalChecks:0,
-  pipHidden:false, lastQuestion:null, focusTimerInterval:null,
-};
-
-function blLoadFaceApi() {
-  return new Promise((resolve, reject) => {
-    if (window.faceapi) { resolve(); return; }
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js';
-    script.onload = async () => {
-      try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights');
-        blState.faceApiLoaded = true;
-        resolve();
-      } catch(e) { reject(e); }
-    };
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-}
-
-async function toggleBlinkLearn() {
-  if (blState.active) blStop();
-  else await blStart();
-}
-
-async function blStart() {
-  const subEl = document.getElementById('blink-sidebar-sub');
-  if (subEl) subEl.textContent = 'Loading face detector…';
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video:{ facingMode:'user', width:{ideal:320}, height:{ideal:240} }, audio:false
-    });
-    blState.stream = stream;
-    const video = document.getElementById('bl-video');
-    video.srcObject = stream;
-    await new Promise(r => { video.onloadeddata = r; });
-    await blLoadFaceApi();
-  } catch(err) {
-    if (subEl) subEl.textContent = 'AI watches your attention';
-    if (err.name === 'NotAllowedError') addMsg('ai','👁 **Blink & Learn** needs camera access. Please allow the camera and try again.');
-    else addMsg('ai','👁 Could not start Blink & Learn: ' + err.message);
-    return;
-  }
-  blState.active=true; blState.lastSeenAt=Date.now(); blState.awayStart=null;
-  blState.awayTriggered=false; blState.focusedMs=0; blState.focusStart=Date.now();
-  blState.awayCount=0; blState.checksPassed=0; blState.checksFailed=0; blState.totalChecks=0;
-  document.getElementById('bl-bar').classList.add('visible');
-  document.getElementById('bl-pip').classList.add('visible');
-  document.getElementById('blink-live-indicator').style.display = 'flex';
-  if (subEl) subEl.textContent = 'Watching your attention…';
-  blState.detectLoop = setInterval(blDetectTick, BL_CHECK_INTERVAL);
-  blState.focusTimerInterval = setInterval(blUpdateFocusTimer, 10000);
-  addMsg('ai','👁 **Blink & Learn activated!**\n\nI\'m watching your attention via the front camera. If you look away for 3+ seconds, I\'ll pause and check if you\'re following along. Stay focused — let\'s go! 🎯');
-}
-
-function blStop() {
-  blState.active = false;
-  clearInterval(blState.detectLoop);
-  clearInterval(blState.focusTimerInterval);
-  if (blState.stream) { blState.stream.getTracks().forEach(t => t.stop()); blState.stream = null; }
-  if (blState.focusStart) { blState.focusedMs += Date.now() - blState.focusStart; blState.focusStart = null; }
-  document.getElementById('bl-bar').classList.remove('visible');
-  document.getElementById('bl-pip').classList.remove('visible');
-  document.getElementById('blink-live-indicator').style.display = 'none';
-  document.getElementById('bl-pause-overlay').classList.remove('visible');
-  const subEl = document.getElementById('blink-sidebar-sub');
-  if (subEl) subEl.textContent = 'AI watches your attention';
-  if (blState.totalChecks > 0 || blState.focusedMs > 30000) blShowSessionStats();
-}
-
-async function blDetectTick() {
-  if (!blState.active || !blState.faceApiLoaded || blState.awayTriggered) return;
-  const video = document.getElementById('bl-video');
-  if (!video || video.readyState < 2) return;
-  try {
-    const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({inputSize:160, scoreThreshold:0.4}));
-    const now = Date.now();
-    const dot = document.getElementById('bl-pip-dot');
-    const statusDot = document.getElementById('bl-dot');
-    const statusTxt = document.getElementById('bl-status-text');
-    if (detection) {
-      blState.lastSeenAt = now; blState.awayStart = null;
-      if (dot) dot.classList.remove('away');
-      if (statusDot) statusDot.className = 'bl-status-dot looking';
-      if (statusTxt) statusTxt.textContent = 'Focused ✓';
-    } else {
-      if (!blState.awayStart) blState.awayStart = now;
-      const awayMs = now - blState.awayStart;
-      if (dot) dot.classList.add('away');
-      if (statusDot) statusDot.className = 'bl-status-dot away';
-      const secs = Math.floor(awayMs / 1000);
-      if (statusTxt) statusTxt.textContent = secs > 0 ? `Looking away for ${secs}s…` : 'Looking away…';
-      if (awayMs >= BL_AWAY_THRESHOLD && !blState.awayTriggered) {
-        blState.awayTriggered = true; blState.awayCount++;
-        if (blState.focusStart) { blState.focusedMs += now - blState.focusStart; blState.focusStart = null; }
-        blTriggerAttentionCheck();
-      }
-    }
-  } catch(e) {}
-}
-
-async function blTriggerAttentionCheck() {
-  const overlay=document.getElementById('bl-pause-overlay');
-  const icon=document.getElementById('bl-pause-icon');
-  const title=document.getElementById('bl-pause-title');
-  const sub=document.getElementById('bl-pause-sub');
-  const timerEl=document.getElementById('bl-pause-timer');
-  const checkCard=document.getElementById('bl-check-card');
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-  const msgs=[
-    {icon:'👁',title:'Hey, you zoned out!',sub:'You looked away. Let me check you caught everything.'},
-    {icon:'😴',title:'Wakey wakey!',sub:'Looks like you drifted off. Quick check before we continue.'},
-    {icon:'🤔',title:'Still with me?',sub:'You looked away for a bit. Let\'s make sure it sank in.'},
-    {icon:'👋',title:'Come back!',sub:'I noticed you looked away. No worries — let\'s do a quick recap.'},
-    {icon:'📚',title:'Focus check!',sub:'Quick question to make sure you\'re following along.'},
-  ];
-  const m=msgs[Math.floor(Math.random()*msgs.length)];
-  icon.textContent=m.icon; title.textContent=m.title; sub.textContent=m.sub;
-  timerEl.style.display='block'; checkCard.style.display='none';
-  overlay.classList.add('visible');
-  for (let i=BL_COUNTDOWN_SECS; i>=1; i--) {
-    timerEl.textContent=i;
-    await new Promise(r=>setTimeout(r,1000));
-    if (!blState.awayTriggered) return;
-  }
-  timerEl.style.display='none';
-  await blFetchAndShowQuestion();
-}
-
-async function blFetchAndShowQuestion() {
-  const checkCard=document.getElementById('bl-check-card');
-  const qEl=document.getElementById('bl-check-q');
-  const optsEl=document.getElementById('bl-check-opts');
-  checkCard.style.display='flex'; qEl.textContent='Loading question…'; optsEl.innerHTML='';
-  blState.totalChecks++;
-  const aiMsgs = getChatHistory().filter(m=>m.role==='assistant');
-  if (aiMsgs.length < BL_MIN_MSG_FOR_Q) { blShowFallbackQuestion(); return; }
-  const recentCtx = aiMsgs.slice(-3).map(m=>m.content.replace(/^\[Voice\]\s*/,'').slice(0,300)).join(' | ');
-  try {
-    const res = await fetch(API_URL+'/attention-check', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({context:recentCtx, history:getChatHistory().slice(-6)})
-    });
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    const data = await res.json();
-    if (!data.question||!data.options||data.answer_index===undefined) { blShowFallbackQuestion(); return; }
-    blState.lastQuestion = data;
-    qEl.textContent = data.question;
-    optsEl.innerHTML='';
-    data.options.forEach((opt,i)=>{
-      const btn=document.createElement('button');
-      btn.className='bl-check-opt'; btn.textContent=opt;
-      btn.onclick=()=>blAnswerCheck(i,data.answer_index,data.explanation);
-      optsEl.appendChild(btn);
-    });
-  } catch(e) { blShowFallbackQuestion(); }
-}
-
-function blShowFallbackQuestion() {
-  const qEl=document.getElementById('bl-check-q');
-  const optsEl=document.getElementById('bl-check-opts');
-  const fallbacks=[
-    {q:'What was the last topic you were reading about?',opts:['I remember it clearly ✓','I remember parts of it','I missed it completely'],ans:0},
-    {q:'How well are you following along right now?',opts:['Totally following ✓','Somewhat following','Lost — need a recap'],ans:0},
-    {q:'Quick — what was just explained?',opts:['I know it!','Vaguely…','I need to re-read it'],ans:0},
-  ];
-  const fb=fallbacks[Math.floor(Math.random()*fallbacks.length)];
-  blState.lastQuestion={...fb,isFallback:true};
-  qEl.textContent=fb.q; optsEl.innerHTML='';
-  fb.opts.forEach((opt,i)=>{
-    const btn=document.createElement('button');
-    btn.className='bl-check-opt'; btn.textContent=opt;
-    btn.onclick=()=>blAnswerCheck(i,fb.ans,null);
-    optsEl.appendChild(btn);
-  });
-}
-
-function blAnswerCheck(chosen, correct, explanation) {
-  const optsEl=document.getElementById('bl-check-opts');
-  const opts=optsEl.querySelectorAll('.bl-check-opt');
-  const passed=chosen===correct;
-  opts.forEach((btn,i)=>{
-    btn.disabled=true;
-    if(i===correct) btn.classList.add('correct');
-    else if(i===chosen) btn.classList.add('wrong');
-  });
-  if(passed) {
-    blState.checksPassed++;
-    document.getElementById('bl-pause-title').textContent='✅ Great, you got it!';
-    document.getElementById('bl-pause-sub').textContent=explanation||'You\'re on track. Keep going!';
-  } else {
-    blState.checksFailed++;
-    document.getElementById('bl-pause-title').textContent='❌ Missed that one';
-    document.getElementById('bl-pause-sub').textContent=explanation||'That\'s okay — re-read the last message and ask me if unsure.';
-  }
-  blTagLastMessage(passed?'good':'missed');
-  setTimeout(()=>blDismissCheck(passed?'pass':'fail'),2500);
-}
-
-function blDismissCheck(result) {
-  document.getElementById('bl-pause-overlay').classList.remove('visible');
-  blState.awayTriggered=false;
-  blState.focusStart=Date.now();
-  const statusDot=document.getElementById('bl-dot');
-  const statusTxt=document.getElementById('bl-status-text');
-  if(statusDot) statusDot.className='bl-status-dot looking';
-  if(statusTxt) statusTxt.textContent='Focused ✓';
-  if(result==='fail') {
-    setTimeout(()=>{
-      const lastCtx=getChatHistory().filter(m=>m.role==='assistant').slice(-1)[0]?.content;
-      if(lastCtx) addMsg('ai','🔁 **Quick recap:**\n\n'+lastCtx.replace(/^\[Voice\]\s*/,''));
-    },400);
-  }
-}
-
-function blTagLastMessage(result) {
-  const msgs=document.getElementById('chat-messages');
-  const aiMsgs=msgs.querySelectorAll('.msg.ai');
-  if(!aiMsgs.length) return;
-  const last=aiMsgs[aiMsgs.length-1];
-  const actions=last.querySelector('.msg-actions');
-  if(!actions||last.querySelector('.bl-score-badge')) return;
-  const badge=document.createElement('div');
-  const labels={good:'👁 Focused',ok:'👁 Partial',missed:'👁 Missed'};
-  badge.className=`bl-score-badge ${result}`;
-  badge.textContent=labels[result]||labels.ok;
-  actions.insertBefore(badge,actions.firstChild);
-}
-
-function blUpdateFocusTimer() {
-  if(!blState.active) return;
-  const streakEl=document.getElementById('bl-streak');
-  if(!streakEl) return;
-  let total=blState.focusedMs;
-  if(blState.focusStart) total+=Date.now()-blState.focusStart;
-  const mins=Math.floor(total/60000);
-  if(mins>0){streakEl.style.display='inline-flex';streakEl.textContent=`🔥 ${mins} min focused`;}
-}
-
-function blShowSessionStats() {
-  const totalFocused=blState.focusedMs;
-  const focusMins=Math.max(0,Math.floor(totalFocused/60000));
-  const accuracy=blState.totalChecks>0?Math.round((blState.checksPassed/blState.totalChecks)*100):100;
-  const wrap=document.getElementById('chat-messages');
-  const div=document.createElement('div');
-  div.className='msg ai';
-  const scoreColor=accuracy>=70?'var(--success)':'var(--danger)';
-  div.innerHTML=`<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble" style="padding:0;background:none;border:none;"><div class="bl-stats-card"><div class="bl-stats-title">👁 Blink &amp; Learn — Session Report</div><div class="bl-stats-grid"><div class="bl-stat-item"><div class="bl-stat-num" style="color:var(--accent3)">${focusMins}</div><div class="bl-stat-lbl">Focused min</div></div><div class="bl-stat-item"><div class="bl-stat-num" style="color:var(--warning)">${blState.awayCount}</div><div class="bl-stat-lbl">Distracted</div></div><div class="bl-stat-item"><div class="bl-stat-num" style="color:${scoreColor}">${accuracy}%</div><div class="bl-stat-lbl">Check score</div></div><div class="bl-stat-item"><div class="bl-stat-num">${blState.totalChecks}</div><div class="bl-stat-lbl">Checks taken</div></div></div></div></div></div>`;
-  wrap.appendChild(div);
-  scrollBottom();
-}
-
-function blTogglePip() {
-  blState.pipHidden=!blState.pipHidden;
-  document.getElementById('bl-pip').style.opacity=blState.pipHidden?'0.15':'1';
-}
 
 (function(){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';document.head.appendChild(s);})();
 

@@ -1390,6 +1390,16 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .onboard-step-dot{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.1);transition:all .3s;}
 .onboard-step-dot.active{background:linear-gradient(90deg,#7c5cfc,#4f8eff);}
 .onboard-step-dot.done{background:rgba(0,229,192,.5);}
+
+/* School code step */
+.ob-school-choice-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:16px 10px;border-radius:14px;border:1.5px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);cursor:pointer;transition:all .2s;
+  font-size:13px;color:rgba(136,153,187,.8);font-family:'DM Sans',sans-serif;
+}
+.ob-school-choice-btn:hover{border-color:rgba(79,142,255,.4);background:rgba(79,142,255,.08);color:#e8edf5;}
+.ob-school-choice-btn.selected{border-color:rgba(79,142,255,.7);background:rgba(79,142,255,.12);color:#e8edf5;}
 </style>
 </head>
 <body>
@@ -1450,12 +1460,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- ── STEP 2: Onboarding (shown after first login) ── -->
   <div id="auth-step-onboard" class="auth-card" style="display:none;">
 
-    <!-- Progress bar -->
+    <!-- Progress bar — 5 steps -->
     <div style="display:flex;gap:6px;margin-bottom:28px;">
       <div class="onboard-step-dot active" id="ob-dot-0"></div>
       <div class="onboard-step-dot" id="ob-dot-1"></div>
       <div class="onboard-step-dot" id="ob-dot-2"></div>
       <div class="onboard-step-dot" id="ob-dot-3"></div>
+      <div class="onboard-step-dot" id="ob-dot-4"></div>
     </div>
 
     <!-- Step pages -->
@@ -1516,6 +1527,68 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Marathi</div>
         <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Kannada</div>
         <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Gujarati</div>
+      </div>
+    </div>
+
+    <!-- ── STEP 5: School Code ── -->
+    <div id="ob-page-4" class="ob-page" style="display:none;">
+      <div class="ob-emoji">🏫</div>
+      <div class="ob-title">Do you have a school code?</div>
+      <div class="ob-sub">Your school or teacher may have given you a code to join Sedy Classroom</div>
+
+      <!-- Yes / No choice -->
+      <div id="ob-school-choice" style="display:flex;gap:10px;width:100%;margin-top:4px;">
+        <button class="ob-school-choice-btn" id="ob-school-yes" onclick="obSchoolChoice('yes')">
+          <span style="font-size:22px;">✅</span>
+          <span>Yes, I have a code</span>
+        </button>
+        <button class="ob-school-choice-btn" id="ob-school-no" onclick="obSchoolChoice('no')">
+          <span style="font-size:22px;">❌</span>
+          <span>No, skip for now</span>
+        </button>
+      </div>
+
+      <!-- Code entry — shown when Yes selected -->
+      <div id="ob-school-code-entry" style="display:none;width:100%;margin-top:16px;">
+        <div style="font-size:12px;color:rgba(136,153,187,.6);font-family:'DM Mono',monospace;margin-bottom:8px;text-align:left;">ENTER SCHOOL CODE</div>
+        <div style="display:flex;gap:8px;">
+          <input id="ob-school-code-input" type="text" class="auth-input"
+            placeholder="e.g. SEDY-XK29"
+            style="text-transform:uppercase;letter-spacing:2px;font-family:'DM Mono',monospace;font-size:16px;font-weight:700;margin-bottom:0;flex:1;"
+            maxlength="12"
+            oninput="this.value=this.value.toUpperCase();clearAuthError()"
+            onkeydown="if(event.key==='Enter')obVerifySchoolCode()">
+          <button onclick="obVerifySchoolCode()" style="
+            padding:12px 18px;border-radius:12px;border:none;
+            background:linear-gradient(135deg,var(--accent2,#7c5cfc),var(--accent,#4f8eff));
+            color:white;font-size:13px;font-weight:700;cursor:pointer;
+            font-family:'Syne',sans-serif;white-space:nowrap;transition:all .2s;
+          " id="ob-verify-btn">Verify →</button>
+        </div>
+
+        <!-- School confirmed card — shown after successful verify -->
+        <div id="ob-school-confirmed" style="display:none;margin-top:12px;
+          background:rgba(0,229,160,.08);border:1.5px solid rgba(0,229,160,.3);
+          border-radius:12px;padding:12px 14px;
+        ">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="font-size:28px;">🏫</div>
+            <div>
+              <div id="ob-school-name" style="font-size:14px;font-weight:700;color:var(--success,#00e5a0);font-family:'Syne',sans-serif;"></div>
+              <div id="ob-school-role" style="font-size:10px;color:rgba(136,153,187,.6);font-family:'DM Mono',monospace;margin-top:2px;"></div>
+            </div>
+            <div style="margin-left:auto;font-size:20px;">✅</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skip note -->
+      <div id="ob-school-skip-note" style="display:none;margin-top:12px;
+        background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+        border-radius:10px;padding:10px 14px;font-size:12px;color:rgba(136,153,187,.6);
+        font-family:'DM Sans',sans-serif;text-align:center;
+      ">
+        🔒 Classroom features will be locked.<br>You can join a school anytime from Settings.
       </div>
     </div>
 
@@ -4880,8 +4953,15 @@ let _currentUser  = null;
 let _obStep       = 0;
 let _obData       = {};
 let _isNewUser    = false;
+let _schoolCodeVerified = false;
+let _schoolChoiceMade   = null;
 
-const OB_STEPS = 4;
+// School membership (set after login if user belongs to a school)
+let _userSchoolCode = null;
+let _userSchoolName = null;
+let _userSchoolRole = null;  // 'student' | 'teacher' | 'principal'
+
+const OB_STEPS = 5;
 
 // ── Wait for Firebase module ──────────────────────────────────────────────────
 function _waitFb() {
@@ -5011,6 +5091,14 @@ async function authInit() {
         // Returning user — always set language from profile (including English)
         _userProfile = profile;
         _userPreferredLang = profile.language || 'English';
+
+        // Store school membership globally so classroom features know the user's school
+        if (profile.schoolCode) {
+          _userSchoolCode = profile.schoolCode;
+          _userSchoolName = profile.schoolName || '';
+          _userSchoolRole = profile.schoolRole || 'student';
+        }
+
         hideSessionLoader();
         _afterLogin(user, false);
       }
@@ -5074,6 +5162,8 @@ function _showOnboarding() {
   document.getElementById('auth-step-login').style.display   = 'none';
   document.getElementById('auth-step-onboard').style.display = 'block';
   _obStep = 0; _obData = {};
+  _schoolChoiceMade   = null;
+  _schoolCodeVerified = false;
   _obRenderStep(0);
 }
 
@@ -5116,18 +5206,37 @@ function obToggle(el, key) {
 
 async function obNext() {
   clearAuthError();
-  // Validate current step
+
+  // Step 0 — name validation
   if (_obStep === 0) {
     const name = document.getElementById('ob-name')?.value.trim();
     if (!name) { showAuthError('Please enter your name.'); return; }
     _obData.name = name;
   }
+
+  // Step 4 — school code step validation
+  if (_obStep === 4) {
+    // Must have made a choice
+    if (!_schoolChoiceMade) {
+      showAuthError('Please choose Yes or No.');
+      return;
+    }
+    // If Yes — must have verified the code
+    if (_schoolChoiceMade === 'yes' && !_schoolCodeVerified) {
+      showAuthError('Please verify your school code first, or choose "No".');
+      return;
+    }
+    // All good — save and finish
+    await _obSave();
+    return;
+  }
+
   if (_obStep < OB_STEPS - 1) {
     _obStep++;
     _obRenderStep(_obStep);
     return;
   }
-  // Final step — save and proceed
+
   await _obSave();
 }
 
@@ -5142,33 +5251,153 @@ async function _obSave() {
   const uid = _currentUser?.uid;
   if (fb && uid) {
     const profileData = {
-      name:     _obData.name || '',
-      class:    _obData.class || '',
-      subjects: _obData.subject || [],
-      language: _obData.lang || 'English',
-      email:    _currentUser.email || '',
-      phone:    _currentUser.phoneNumber || '',
-      photoURL: _currentUser.photoURL || '',
-      createdAt: Date.now(),
+      name:        _obData.name     || '',
+      class:       _obData.class    || '',
+      subjects:    _obData.subject  || [],
+      language:    _obData.lang     || 'English',
+      email:       _currentUser.email || '',
+      phone:       _currentUser.phoneNumber || '',
+      photoURL:    _currentUser.photoURL || '',
+      schoolCode:  _obData.schoolCode  || null,
+      schoolName:  _obData.schoolName  || null,
+      schoolRole:  _obData.schoolRole  || null,
+      createdAt:   Date.now(),
     };
     try {
       await fb.setDoc(fb.doc(fb.db, 'users', uid, 'profile', 'data'), profileData);
       await fb.updateProfile(_currentUser, { displayName: _obData.name });
+
+      // If joined a school — register this user in the school's members list
+      if (_obData.schoolCode) {
+        await fb.setDoc(
+          fb.doc(fb.db, 'schools', _obData.schoolCode, 'members', uid),
+          {
+            uid,
+            name:     _obData.name || '',
+            email:    _currentUser.email || '',
+            photoURL: _currentUser.photoURL || '',
+            role:     _obData.schoolRole || 'student',
+            class:    _obData.class || '',
+            joinedAt: Date.now(),
+          }
+        );
+      }
     } catch(e) { console.warn('Profile save failed:', e); }
   }
-  // Set preferred language immediately so first session uses it
   _userPreferredLang = _obData.lang || 'English';
-  // Store profile for greeting and settings
+
+  // Set school globals immediately
+  if (_obData.schoolCode) {
+    _userSchoolCode = _obData.schoolCode;
+    _userSchoolName = _obData.schoolName || '';
+    _userSchoolRole = _obData.schoolRole || 'student';
+  } else {
+    _userSchoolCode = null;
+    _userSchoolName = null;
+    _userSchoolRole = null;
+  }
+
   _userProfile = {
-    name:     _obData.name || '',
-    class:    _obData.class || '',
-    subjects: _obData.subject || [],
-    language: _obData.lang || 'English',
-    email:    _currentUser?.email || '',
-    photoURL: _currentUser?.photoURL || '',
-    createdAt: Date.now(),
+    name:       _obData.name || '',
+    class:      _obData.class || '',
+    subjects:   _obData.subject || [],
+    language:   _obData.lang || 'English',
+    email:      _currentUser?.email || '',
+    photoURL:   _currentUser?.photoURL || '',
+    schoolCode: _obData.schoolCode || null,
+    schoolName: _obData.schoolName || null,
+    schoolRole: _obData.schoolRole || null,
+    createdAt:  Date.now(),
   };
   _afterLogin(_currentUser, true);
+}
+
+// ══════════════════════════════════════════════════════
+// SCHOOL CODE — Onboarding Step 5
+// ══════════════════════════════════════════════════════
+
+function obSchoolChoice(choice) {
+  _schoolChoiceMade = choice;
+  _schoolCodeVerified = false;
+
+  // Update button styles
+  document.getElementById('ob-school-yes').classList.toggle('selected', choice === 'yes');
+  document.getElementById('ob-school-no').classList.toggle('selected',  choice === 'no');
+
+  const codeEntry = document.getElementById('ob-school-code-entry');
+  const skipNote  = document.getElementById('ob-school-skip-note');
+  const confirmed = document.getElementById('ob-school-confirmed');
+
+  if (choice === 'yes') {
+    codeEntry.style.display  = 'block';
+    skipNote.style.display   = 'none';
+    confirmed.style.display  = 'none';
+    document.getElementById('ob-school-code-input').focus();
+  } else {
+    codeEntry.style.display  = 'none';
+    skipNote.style.display   = 'block';
+    confirmed.style.display  = 'none';
+    _obData.schoolCode  = null;
+    _obData.schoolName  = null;
+    _obData.schoolRole  = null;
+    clearAuthError();
+  }
+}
+
+async function obVerifySchoolCode() {
+  const code = document.getElementById('ob-school-code-input').value.trim().toUpperCase();
+  if (!code) { showAuthError('Enter the school code.'); return; }
+
+  const btn = document.getElementById('ob-verify-btn');
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+  clearAuthError();
+
+  const fb = window._fb;
+  if (!fb) { btn.disabled = false; btn.textContent = 'Verify →'; showAuthError('Firebase not ready.'); return; }
+
+  try {
+    // Look up the school code in Firestore
+    // Structure: schools/{code} → { name, principalUid, createdAt, active }
+    const schoolRef  = fb.doc(fb.db, 'schools', code);
+    const schoolSnap = await fb.getDoc(schoolRef);
+
+    if (!schoolSnap.exists()) {
+      btn.disabled = false;
+      btn.textContent = 'Verify →';
+      showAuthError('❌ Invalid code. Check with your teacher or principal.');
+      return;
+    }
+
+    const school = schoolSnap.data();
+    if (school.active === false) {
+      btn.disabled = false;
+      btn.textContent = 'Verify →';
+      showAuthError('❌ This school code has been deactivated.');
+      return;
+    }
+
+    // ✅ Valid code — store in onboarding data
+    _obData.schoolCode = code;
+    _obData.schoolName = school.name || 'Your School';
+    _obData.schoolRole = 'student';   // default role when joining via code
+    _schoolCodeVerified = true;
+
+    // Show confirmation card
+    document.getElementById('ob-school-name').textContent = school.name || 'Your School';
+    document.getElementById('ob-school-role').textContent = '🎓 Student · ' + (school.name || code);
+    document.getElementById('ob-school-confirmed').style.display = 'block';
+
+    btn.disabled = false;
+    btn.textContent = '✓ Verified';
+    clearAuthError();
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Verify →';
+    showAuthError('Could not verify code. Check your internet and try again.');
+    console.error('School code verify error:', e);
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -5443,6 +5672,24 @@ async function settingsSave() {
   // Refresh empty state if visible
   const emptyEl = document.querySelector('.empty-state');
   if (emptyEl) { emptyEl.remove(); showEmptyState(); }
+}
+
+// ── Classroom access helpers ──────────────────────────────────────────────────
+
+function hasSchool() {
+  return !!_userSchoolCode;
+}
+
+function classroomLocked() {
+  return !_userSchoolCode;
+}
+
+// Called from anywhere in the app to check if classroom is available.
+// Returns true and shows a toast if locked, false if accessible.
+function requireSchool(action) {
+  if (hasSchool()) return false; // not locked
+  addMsg('ai', `🔒 **Sedy Classroom is locked.**\n\nYou need a school code to access classroom features. You can add one anytime from **Settings → Join a School**.`);
+  return true; // locked — caller should abort
 }
 
 // ── Start ─────────────────────────────────────────────────────────────────────

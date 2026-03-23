@@ -6286,5 +6286,74 @@ async function upgradesJoinSchool()  {
 }
 </script>
 
+<script>
+  // Fallback to ensure loader is always dismissed and main app loads
+  (function ensureAppLoads() {
+    let fallbackTimer = null;
+    let loaderDismissed = false;
+
+    function forceLoadMain() {
+      if (loaderDismissed) return;
+      loaderDismissed = true;
+
+      // Hide the loader
+      const loader = document.getElementById('session-loader');
+      if (loader) {
+        loader.style.transition = 'opacity 0.3s ease';
+        loader.style.opacity = '0';
+        setTimeout(() => {
+          loader.style.display = 'none';
+        }, 300);
+      }
+
+      // Check if we have local user data to show main app or auth screen
+      let hasLocalUser = false;
+      try {
+        const profile = localStorage.getItem('sedy_user_profile');
+        if (profile) {
+          const parsed = JSON.parse(profile);
+          if (parsed && parsed.name) hasLocalUser = true;
+        }
+      } catch(e) { /* ignore */ }
+
+      if (hasLocalUser) {
+        // Show main app (we already have local user data)
+        const authScreen = document.getElementById('auth-screen');
+        if (authScreen) authScreen.style.display = 'none';
+        // Ensure init is called
+        if (typeof init === 'function') init();
+      } else {
+        // Show auth screen
+        const authScreen = document.getElementById('auth-screen');
+        if (authScreen) {
+          authScreen.style.display = 'flex';
+          authScreen.style.opacity = '1';
+          // Hide any onboarding step that might be visible
+          const onboardStep = document.getElementById('auth-step-onboard');
+          if (onboardStep) onboardStep.style.display = 'none';
+          const loginStep = document.getElementById('auth-step-login');
+          if (loginStep) loginStep.style.display = 'block';
+        }
+      }
+    }
+
+    // If Firebase already loaded, we don't interfere
+    if (window._fb && window._fb.auth) {
+      return;
+    }
+
+    // Set a timeout to force load after 8 seconds
+    fallbackTimer = setTimeout(() => {
+      console.warn('Sedy fallback: Firebase not ready, loading main app with local storage');
+      forceLoadMain();
+    }, 8000);
+
+    // Listen for Firebase ready event to cancel fallback
+    window.addEventListener('fbReady', () => {
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+    });
+  })();
+</script>
+
 </body>
 </html>

@@ -6106,7 +6106,30 @@ async function crParseTimetableCore(images=[],text='') {
     btn.disabled=false;
     btn.textContent='✦ Parse Timetable with AI';
 }
-// ══════════════════════════════════════════════════════// INIT// ══════════════════════════════════════════════════════function init() {
+
+/**
+ * Initializes the main application interface.
+ * Hides the authentication/loading screen and reveals the app shell.
+ */
+function init() {
+  console.log("Sedy: Initializing main app...");
+  
+  const authScreen = document.getElementById('auth-screen');
+  const appShell = document.querySelector('.app-shell');
+  
+  if (authScreen) {
+    authScreen.style.opacity = '0';
+    setTimeout(() => {
+      authScreen.style.display = 'none';
+    }, 300); // Smooth fade out
+  }
+
+  if (appShell) {
+    appShell.style.display = 'flex';
+    // Initialize specific components like chat list or user profile here
+    loadUserConversations(); 
+  }
+}
     loadChats();
     let savedActive=null;
     try {
@@ -6293,49 +6316,43 @@ async function upgradesJoinSchool()  {
     let loaderDismissed = false;
 
     function forceLoadMain() {
-      if (loaderDismissed) return;
-      loaderDismissed = true;
+  try {
+    let hasLocalUser = false;
+    const userData = localStorage.getItem('sedy_user');
+    if (userData) {
+      const parsed = JSON.parse(userData);
+      if (parsed && (parsed.uid || parsed.name)) hasLocalUser = true;
+    }
 
-      // Hide the loader
-      const loader = document.getElementById('session-loader');
-      if (loader) {
-        loader.style.transition = 'opacity 0.3s ease';
-        loader.style.opacity = '0';
-        setTimeout(() => {
-          loader.style.display = 'none';
-        }, 300);
-      }
-
-      // Check if we have local user data to show main app or auth screen
-      let hasLocalUser = false;
-      try {
-        const profile = localStorage.getItem('sedy_user_profile');
-        if (profile) {
-          const parsed = JSON.parse(profile);
-          if (parsed && parsed.name) hasLocalUser = true;
-        }
-      } catch(e) { /* ignore */ }
-
-      if (hasLocalUser) {
-        // Show main app (we already have local user data)
-        const authScreen = document.getElementById('auth-screen');
-        if (authScreen) authScreen.style.display = 'none';
-        // Ensure init is called
-        if (typeof init === 'function') init();
+    if (hasLocalUser) {
+      // Hide auth screen and trigger init
+      const authScreen = document.getElementById('auth-screen');
+      if (authScreen) authScreen.style.display = 'none';
+      
+      if (typeof init === 'function') {
+        init();
       } else {
-        // Show auth screen
-        const authScreen = document.getElementById('auth-screen');
-        if (authScreen) {
-          authScreen.style.display = 'flex';
-          authScreen.style.opacity = '1';
-          // Hide any onboarding step that might be visible
-          const onboardStep = document.getElementById('auth-step-onboard');
-          if (onboardStep) onboardStep.style.display = 'none';
-          const loginStep = document.getElementById('auth-step-login');
-          if (loginStep) loginStep.style.display = 'block';
-        }
+        console.error("Critical: init() function is not defined.");
+      }
+    } else {
+      // No user found, strictly show the login UI
+      const authScreen = document.getElementById('auth-screen');
+      if (authScreen) {
+        authScreen.style.display = 'flex';
+        authScreen.style.opacity = '1';
+        
+        // Ensure the login step is visible, not onboarding
+        const loginStep = document.getElementById('auth-step-login');
+        if (loginStep) loginStep.style.display = 'block';
+        
+        const onboardStep = document.getElementById('auth-step-onboard');
+        if (onboardStep) onboardStep.style.display = 'none';
       }
     }
+  } catch (e) {
+    console.error("Error during forceLoadMain:", e);
+  }
+}
 
     // If Firebase already loaded, we don't interfere
     if (window._fb && window._fb.auth) {

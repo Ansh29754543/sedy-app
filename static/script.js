@@ -2798,11 +2798,14 @@ const OB_STEPS = 5;
 function _waitFb() {
   return new Promise(resolve => {
     if (window._fb) { resolve(window._fb); return; }
-    const iv = setInterval(() => { if (window._fb) { clearInterval(iv); resolve(window._fb); } }, 50);
-    setTimeout(() => { clearInterval(iv); resolve(null); }, 4000);
+    let elapsed = 0;
+    const iv = setInterval(() => {
+      elapsed += 100;
+      if (window._fb) { clearInterval(iv); resolve(window._fb); return; }
+      if (elapsed >= 8000) { clearInterval(iv); resolve(null); }
+    }, 100);
   });
 }
-
 // ── Tab: Sign In / Sign Up ────────────────────────────────────────────────────
 // ── GOOGLE ────────────────────────────────────────────────────────────────────
 async function authSignInGoogle() {
@@ -2884,6 +2887,7 @@ async function authInit() {
   }, 8000);
 
   function hideSessionLoader() {
+    console.log('hideSessionLoader called'); // remove after testing
     const loader = document.getElementById('session-loader');
     if (!loader) return;
     loader.style.transition = 'opacity .3s ease';
@@ -3917,14 +3921,10 @@ function crUpdateSidebarLabel(){
 
 loadTheme();
 clearAuthError();
-authInit();
 
-setTimeout(() => {
-  const loader = document.getElementById('session-loader');
-  if (loader && loader.style.display !== 'none') {
-    loader.style.opacity = '0';
-    setTimeout(() => loader.style.display = 'none', 300);
-    const auth = document.getElementById('auth-screen');
-    if (auth) auth.style.display = 'flex';
-  }
-}, 7000);
+// Wait for DOM + modules to be fully ready before auth
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => setTimeout(authInit, 100));
+} else {
+  setTimeout(authInit, 100);
+}

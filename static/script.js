@@ -3908,3 +3908,14 @@ loadTheme();
 // Clear any stale error state immediately on load
 clearAuthError();
 authInit();
+
+// Emergency fallback — hide loader after 8s no matter what
+setTimeout(() => {
+  const loader = document.getElementById('session-loader');
+  if (loader && loader.style.display !== 'none') {
+    loader.style.opacity = '0';
+    setTimeout(() => loader.style.display = 'none', 300);
+    hideAuthScreen && hideAuthScreen();
+    init && init();
+  }
+}, 8000);

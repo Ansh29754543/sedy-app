@@ -3902,20 +3902,16 @@ function crUpdateSidebarLabel(){
   label.textContent=hasSchool()?(_userSchoolName?_userSchoolName.split(' ')[0]:'Classroom'):'Classroom 🔒';
 }
 
-// ── Start ─────────────────────────────────────────────────────────────────────
-// Load theme before anything else renders (prevents flash)
 loadTheme();
-// Clear any stale error state immediately on load
 clearAuthError();
 authInit();
 
-// Emergency fallback — hide loader after 8s no matter what
 setTimeout(() => {
   const loader = document.getElementById('session-loader');
   if (loader && loader.style.display !== 'none') {
     loader.style.opacity = '0';
     setTimeout(() => loader.style.display = 'none', 300);
-    hideAuthScreen && hideAuthScreen();
-    init && init();
+    const auth = document.getElementById('auth-screen');
+    if (auth) auth.style.display = 'flex';
   }
-}, 8000);
+}, 7000);

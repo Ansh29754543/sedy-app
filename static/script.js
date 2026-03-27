@@ -2799,7 +2799,7 @@ function _waitFb() {
   return new Promise(resolve => {
     if (window._fb) { resolve(window._fb); return; }
     const iv = setInterval(() => { if (window._fb) { clearInterval(iv); resolve(window._fb); } }, 50);
-    setTimeout(() => { clearInterval(iv); resolve(null); }, 3000);
+    setTimeout(() => { clearInterval(iv); resolve(null); }, 4000);
   });
 }
 
@@ -2874,9 +2874,15 @@ async function authSignOut() {
 
 // ── onAuthStateChanged ────────────────────────────────────────────────────────
 async function authInit() {
-  const fb = await _waitFb();
+  // Hard fallback — if nothing resolves in 8s, just show the app
+  const hardFallback = setTimeout(() => {
+    console.warn('Auth hard timeout — forcing app load');
+    hideSessionLoader();
+    const screen = document.getElementById('auth-screen');
+    if (screen) screen.style.display = 'flex';
+    hideAuthLoading();
+  }, 8000);
 
-  // Helper to hide session loader (the full-screen spinner shown on every page load)
   function hideSessionLoader() {
     const loader = document.getElementById('session-loader');
     if (!loader) return;
@@ -2885,18 +2891,32 @@ async function authInit() {
     setTimeout(() => { loader.style.display = 'none'; }, 300);
   }
 
+  const fb = await _waitFb();
+
   if (!fb) {
-    // Firebase failed to load — run in localStorage-only mode
+    clearTimeout(hardFallback);
     console.warn('Firebase not available — running in local mode');
     hideSessionLoader();
-    hideAuthScreen();
+    hideAuthLoading();
     init();
     return;
   }
 
+  // Give onAuthStateChanged a max of 6s before we give up and show login
+  const authTimeout = setTimeout(() => {
+    clearTimeout(hardFallback);
+    console.warn('onAuthStateChanged timed out — showing login');
+    hideSessionLoader();
+    const screen = document.getElementById('auth-screen');
+    if (screen) screen.style.display = 'flex';
+    hideAuthLoading();
+  }, 6000);
+
   fb.onAuthStateChanged(fb.auth, async (user) => {
+    clearTimeout(authTimeout);
+    clearTimeout(hardFallback);
+
     if (user) {
-      // ── USER IS ALREADY LOGGED IN (persistent session) or just logged in ──
       if (user.providerData[0]?.providerId === 'password' && !user.emailVerified) {
         hideSessionLoader();
         return;
@@ -2908,22 +2928,17 @@ async function authInit() {
         console.warn('Firestore load failed, continuing:', e);
       }
 
-      // Check onboarding completion
       const profile = await _getProfile();
       if (!profile || !profile.name) {
-        // New user — show onboarding
         _isNewUser = true;
         hideSessionLoader();
-        // Show auth screen in onboarding mode
         const screen = document.getElementById('auth-screen');
         if (screen) screen.style.display = 'flex';
         _showOnboarding();
       } else {
-        // Returning user — always set language from profile (including English)
         _userProfile = profile;
         _userPreferredLang = profile.language || 'English';
 
-        // Store school membership globally so classroom features know the user's school
         if (profile.schoolCode) {
           _userSchoolCode = profile.schoolCode;
           _userSchoolName = profile.schoolName || '';
@@ -2934,7 +2949,6 @@ async function authInit() {
         _afterLogin(user, false);
       }
     } else {
-      // ── NOT LOGGED IN — show login screen ──
       _currentUser = null;
       hideSessionLoader();
       const screen = document.getElementById('auth-screen');

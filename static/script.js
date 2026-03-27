@@ -3900,7 +3900,6 @@ async function crParseTimetableCore(images=[],text=''){
 function crUpdateSidebarLabel(){
   const label=document.getElementById('sb-classroom-label');if(!label)return;
   label.textContent=hasSchool()?(_userSchoolName?_userSchoolName.split(' ')[0]:'Classroom'):'Classroom 🔒';
-}
 
 loadTheme();
 clearAuthError();

@@ -2799,7 +2799,7 @@ function _waitFb() {
   return new Promise(resolve => {
     if (window._fb) { resolve(window._fb); return; }
     const iv = setInterval(() => { if (window._fb) { clearInterval(iv); resolve(window._fb); } }, 50);
-    setTimeout(() => { clearInterval(iv); resolve(null); }, 6000);
+    setTimeout(() => { clearInterval(iv); resolve(null); }, 3000);
   });
 }
 

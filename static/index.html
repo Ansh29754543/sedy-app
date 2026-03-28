@@ -1227,28 +1227,128 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .upgrade-feature::before{content:'✓';color:var(--success);font-weight:700;flex-shrink:0;}
 .upgrade-action-btn{margin:0 18px 16px;width:calc(100% - 36px);padding:11px;border-radius:12px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;}
 
+
+/* ── Upgrade top button ── */
+.upgrade-top-btn{display:flex;align-items:center;gap:8px;padding:9px 14px;background:linear-gradient(135deg,rgba(255,181,71,.18),rgba(124,92,252,.18));border:1.5px solid rgba(255,181,71,.4);border-radius:12px;color:var(--warning);font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;width:100%;}
+.upgrade-top-btn:hover{background:linear-gradient(135deg,rgba(255,181,71,.28),rgba(124,92,252,.25));transform:translateY(-1px);}
+.upgrade-top-badge{margin-left:auto;padding:2px 8px;background:rgba(0,229,160,.15);border:1px solid rgba(0,229,160,.3);border-radius:10px;font-size:9px;color:var(--success);font-family:'DM Mono',monospace;letter-spacing:.5px;}
+
 /* ══════════════════════════════════════════════════════
-   SCHOOL SETUP WIZARD
+   SCHOOL SETUP WIZARD (new multi-step)
 ══════════════════════════════════════════════════════ */
-.school-setup-overlay{position:fixed;inset:0;z-index:8300;background:rgba(8,11,18,.8);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;}
-.school-setup-overlay.open{display:flex;}
-.school-setup-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:24px;width:100%;max-width:500px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:msgIn .28s ease;margin:16px;}
-.school-setup-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.school-setup-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);}
-.school-setup-body{overflow-y:auto;flex:1;padding:24px 22px;display:flex;flex-direction:column;gap:18px;}
+.school-setup-overlay,.ssw-overlay{position:fixed;inset:0;z-index:8300;background:rgba(8,11,18,.85);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;}
+.school-setup-overlay.open,.ssw-overlay.open{display:flex;}
+.school-setup-panel,.ssw-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:24px;width:100%;max-width:540px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.7);animation:msgIn .25s ease;margin:16px;}
+.school-setup-header,.ssw-header{display:flex;align-items:center;gap:10px;padding:16px 22px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.school-setup-title,.ssw-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);flex:1;}
+.school-setup-body,.ssw-body{overflow-y:auto;flex:1;padding:22px;display:flex;flex-direction:column;gap:16px;}
+.school-setup-body::-webkit-scrollbar,.ssw-body::-webkit-scrollbar{width:3px;}
+.school-setup-body::-webkit-scrollbar-thumb,.ssw-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.setup-actions,.ssw-footer{display:flex;gap:10px;padding:14px 22px;border-top:1px solid var(--border);flex-shrink:0;}
+.setup-btn-primary,.ssw-btn-primary{flex:2;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent2),var(--accent));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;}
+.setup-btn-primary:hover,.ssw-btn-primary:hover{transform:scale(1.02);}
+.setup-btn-primary:disabled,.ssw-btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.setup-btn-secondary,.ssw-btn-secondary{flex:1;padding:12px;border-radius:12px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
 .setup-step{display:flex;flex-direction:column;gap:6px;}
-.setup-label{font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;}
-.setup-input{width:100%;padding:12px 14px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color .2s;}
-.setup-input:focus{border-color:var(--accent2);}
+.setup-label,.ssw-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px;}
+.setup-input,.ssw-input{width:100%;padding:11px 14px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color .2s;}
+.setup-input:focus,.ssw-input:focus{border-color:var(--accent2);}
 .school-code-display{background:linear-gradient(135deg,rgba(124,92,252,.12),rgba(79,142,255,.08));border:2px solid rgba(124,92,252,.3);border-radius:16px;padding:20px;text-align:center;}
 .school-code-value{font-family:'Syne',sans-serif;font-size:32px;font-weight:900;color:var(--accent2);letter-spacing:4px;margin:8px 0;}
 .school-code-copy{padding:8px 20px;background:none;border:1px solid var(--accent2);border-radius:10px;color:var(--accent2);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .18s;}
 .school-code-copy:hover{background:rgba(124,92,252,.1);}
-.setup-actions{display:flex;gap:10px;padding:16px 22px;border-top:1px solid var(--border);flex-shrink:0;}
-.setup-btn-primary{flex:2;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent2),var(--accent));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;}
-.setup-btn-primary:hover{transform:scale(1.02);}
-.setup-btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
-.setup-btn-secondary{flex:1;padding:12px;border-radius:12px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* ssw-specific */
+.ssw-step-dots{display:flex;gap:6px;margin-right:4px;}
+.ssw-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:all .2s;}
+.ssw-dot.active{background:var(--accent2);box-shadow:0 0 6px var(--accent2);}
+.ssw-dot.done{background:var(--success);}
+.ssw-step{display:none;flex-direction:column;gap:14px;}
+.ssw-step.active{display:flex;}
+.ssw-logo-upload{display:flex;align-items:center;gap:14px;}
+.ssw-logo-preview{width:64px;height:64px;border-radius:14px;background:var(--card);border:2px dashed var(--border2);display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;overflow:hidden;transition:border-color .2s;flex-shrink:0;}
+.ssw-logo-preview:hover{border-color:var(--accent2);}
+.ssw-logo-preview img{width:100%;height:100%;object-fit:cover;}
+.ssw-upload-area{border:2px dashed var(--border2);border-radius:14px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;}
+.ssw-upload-area:hover{border-color:var(--accent2);background:rgba(124,92,252,.04);}
+.ssw-upload-icon{font-size:32px;margin-bottom:6px;}
+.ssw-upload-title{font-size:13px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;}
+.ssw-upload-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:3px;}
+.ssw-teacher-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;gap:0;}
+.ssw-teacher-card-top{display:flex;align-items:center;gap:10px;}
+.ssw-teacher-card:hover{border-color:var(--accent);}
+.ssw-teacher-card.open{border-color:var(--accent2);}
+.ssw-teacher-avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;color:white;font-weight:700;}
+.ssw-teacher-name{font-size:13px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;flex:1;}
+.ssw-teacher-meta{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;}
+.ssw-teacher-expand{font-size:12px;color:var(--text3);transition:transform .2s;flex-shrink:0;}
+.ssw-teacher-card.open .ssw-teacher-expand{transform:rotate(180deg);}
+.ssw-teacher-details{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif;line-height:1.8;}
+.ssw-teacher-card.open .ssw-teacher-details{display:block;}
+.ssw-class-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.ssw-class-row:last-child{border-bottom:none;}
+.ssw-class-name{font-size:13px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;min-width:60px;}
+.ssw-class-teacher-sel{flex:1;padding:7px 10px;background:var(--card);border:1.5px solid var(--border2);border-radius:9px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;}
+.ssw-class-teacher-sel:focus{border-color:var(--accent2);}
+.ssw-chain-select{width:100%;padding:11px 14px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;}
+.ssw-chain-select:focus{border-color:var(--accent2);}
+.ssw-session-opts{display:flex;flex-direction:column;gap:8px;}
+.ssw-session-opt{padding:14px 16px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:12px;}
+.ssw-session-opt:hover{border-color:var(--accent);}
+.ssw-session-opt.selected{border-color:var(--accent2);background:rgba(124,92,252,.08);}
+.ssw-session-label{font-size:13px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;}
+.ssw-session-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;}
+.ssw-preview-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.ssw-preview-row:last-child{border-bottom:none;}
+.ssw-preview-key{color:var(--text3);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;}
+.ssw-preview-val{color:var(--text);font-weight:600;}
+.ssw-key-card{background:var(--card);border:1.5px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:8px;}
+.ssw-key-for{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;}
+.ssw-key-value{font-family:'Syne',sans-serif;font-size:22px;font-weight:900;letter-spacing:3px;margin:4px 0 8px;}
+.ssw-key-student{color:var(--accent);}
+.ssw-key-teacher{color:var(--accent2);}
+.ssw-key-copy{padding:6px 16px;background:none;border:1px solid var(--border2);border-radius:8px;color:var(--text3);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .18s;}
+.ssw-key-copy:hover{border-color:var(--accent);color:var(--accent);}
+.ssw-parsing-status{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(79,142,255,.07);border:1px solid rgba(79,142,255,.2);border-radius:12px;font-size:12px;color:var(--accent);font-family:'DM Mono',monospace;}
+.ssw-parse-spinner{width:14px;height:14px;border:2px solid rgba(79,142,255,.3);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+.ssw-error{background:rgba(255,79,106,.08);border:1px solid rgba(255,79,106,.25);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--danger);font-family:'DM Sans',sans-serif;display:none;}
+
+/* ── Teacher / Student join onboarding ── */
+.teacher-ob-overlay,.student-ob-overlay{position:fixed;inset:0;z-index:9000;background:rgba(8,11,18,.92);backdrop-filter:blur(14px);display:none;align-items:center;justify-content:center;}
+.teacher-ob-overlay.open,.student-ob-overlay.open{display:flex;}
+.teacher-ob-panel,.student-ob-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:24px;width:100%;max-width:440px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.7);animation:msgIn .25s ease;margin:16px;}
+.teacher-ob-header,.student-ob-header{padding:20px 22px;border-bottom:1px solid var(--border);flex-shrink:0;text-align:center;}
+.teacher-ob-body,.student-ob-body{overflow-y:auto;flex:1;padding:20px 22px;display:flex;flex-direction:column;gap:14px;}
+.teacher-ob-step,.student-ob-step{display:none;flex-direction:column;gap:12px;}
+.teacher-ob-step.active,.student-ob-step.active{display:flex;}
+.teacher-ob-footer,.student-ob-footer{padding:14px 22px;border-top:1px solid var(--border);flex-shrink:0;}
+.ob-school-logo{width:64px;height:64px;border-radius:16px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:32px;background:linear-gradient(135deg,rgba(124,92,252,.2),rgba(79,142,255,.15));border:2px solid rgba(124,92,252,.3);overflow:hidden;}
+.ob-school-logo img{width:100%;height:100%;object-fit:cover;}
+.ob-school-nm{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);}
+.ob-school-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:10px;font-size:10px;font-family:'DM Mono',monospace;margin-top:5px;letter-spacing:.5px;}
+.ob-school-badge.teacher{background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.3);color:var(--accent2);}
+.ob-school-badge.student{background:rgba(79,142,255,.12);border:1px solid rgba(79,142,255,.3);color:var(--accent);}
+.name-list-opt{padding:11px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:11px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);transition:all .15s;font-family:'DM Sans',sans-serif;}
+.name-list-opt:hover{border-color:var(--accent);background:var(--card2);}
+.name-list-opt.selected{border-color:var(--accent2);background:rgba(124,92,252,.1);color:var(--accent2);}
+.timetable-preview-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:12px;font-family:'DM Mono',monospace;color:var(--text2);line-height:1.8;max-height:200px;overflow-y:auto;}
+.class-list-opt{padding:10px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:11px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);transition:all .15s;font-family:'DM Sans',sans-serif;}
+.class-list-opt:hover{border-color:var(--accent);background:var(--card2);}
+.class-list-opt.selected{border-color:var(--accent);background:rgba(79,142,255,.1);color:var(--accent);}
+
+/* ── Key entry at sign-in ── */
+.key-ob-overlay{position:fixed;inset:0;z-index:9100;background:rgba(8,11,18,.92);backdrop-filter:blur(14px);display:none;align-items:center;justify-content:center;}
+.key-ob-overlay.open{display:flex;}
+.key-ob-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:24px;width:100%;max-width:420px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.7);animation:msgIn .25s ease;margin:16px;}
+.key-ob-body{padding:22px;display:flex;flex-direction:column;gap:14px;}
+.key-choice-btn{flex:1;padding:14px 10px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);text-align:center;font-family:'DM Sans',sans-serif;transition:all .18s;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.key-choice-btn:hover{border-color:var(--accent);}
+.key-choice-btn.selected{border-color:var(--accent2);background:rgba(124,92,252,.1);}
+.school-verified-card{background:rgba(0,229,160,.07);border:1.5px solid rgba(0,229,160,.3);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.school-verified-logo{width:44px;height:44px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex-shrink:0;}
+.school-verified-logo img{width:100%;height:100%;object-fit:cover;}
+
+
 
 /* ══════════════════════════════════════════════════════
    CLASSROOM OVERLAY — Full screen
@@ -1775,6 +1875,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           " title="Your account" onclick="showUserMenu()">
         </div>
       </div>
+      <!-- Upgrade button — top of sidebar -->
+      <button class="upgrade-top-btn" onclick="openUpgrades()" id="upgrade-top-btn">
+        <span>⭐</span>
+        <span>Upgrade</span>
+        <span class="upgrade-top-badge">FREE</span>
+      </button>
       <button class="new-chat-btn" onclick="createNewChat()">
         ✦ New Chat
       </button>
@@ -1815,10 +1921,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           style="flex:2;background:linear-gradient(135deg,rgba(79,142,255,.12),rgba(124,92,252,.12));border-color:rgba(124,92,252,.3);color:var(--accent2);">
           🏫 <span id="sb-classroom-label">Classroom</span>
         </button>
-        <button class="sb-btn" onclick="openUpgrades()"
-          style="flex:1;background:rgba(255,181,71,.08);border-color:rgba(255,181,71,.3);color:var(--warning);">
-          ⭐ Plus
-        </button>
+
       </div>
     </div>
   </div>
@@ -2924,14 +3027,14 @@ async function sendMessage(){
     const topicFromText=(t)=>t.replace(/^(make|create|generate|give me|show me|flashcards?|quiz|notes?|formula|flowchart)\s+/gi,'').replace(/(notes?|formula sheet?|flashcards?|quiz|flowchart)\s+(on|for|about|of)\s+/gi,'').trim()||pdfName.replace(/\.pdf$/i,'');
     try{
       if(pdfIntent==='notes'){const res=await fetch(API_URL+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:topicFromText(text),history:getChatHistory().slice(-10),model:activeModel,pdf_base64:pdfBase64,pdf_name:pdfName})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Notes: '+data.topic+']');renderNotesMsg(data.notes,data.topic);return;}
-      if(pdfIntent==='formula'){const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:topicFromText(text),history:getChatHistory().slice(-10),model:activeModel,pdf_base64:pdfBase64,pdf_name:pdfName,preferred_language:_userPreferredLang||'English'})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Formula: '+data.topic+']');renderFormulaMsg(data.sheet,data.topic);return;}
+      if(pdfIntent==='formula'){const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:topicFromText(text),history:getChatHistory().slice(-10),model:activeModel,pdf_base64:pdfBase64,pdf_name:pdfName})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Formula: '+data.topic+']');renderFormulaMsg(data.sheet,data.topic);return;}
       if(pdfIntent==='flashcard'||pdfIntent==='both'||pdfIntent==='quiz'){
         const extractRes=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'List all the key concepts, terms and facts.',pdf_base64:pdfBase64,pdf_name:pdfName,history:[],model:activeModel})});
         if(extractRes.status===429){const d=await extractRes.json();hideTyping();showRateLimit(d.detail||{});return;}
         if(!extractRes.ok)throw new Error('HTTP '+extractRes.status);
         const extractData=await extractRes.json();const enrichedTopic=topicFromText(text)+'. Key content:\n'+extractData.reply.slice(0,800);
-        if(pdfIntent!=='quiz'){const fcRes=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:enrichedTopic,count:0,history:getChatHistory().slice(-6),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(!fcRes.ok)throw new Error('HTTP '+fcRes.status);const fcData=await fcRes.json();hideTyping();pushHistory('assistant','[Flashcards from PDF]');renderFlashcards(fcData.cards,fcData.topic);}
-        if(pdfIntent!=='flashcard'){const qRes=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:enrichedTopic,count:0,history:getChatHistory().slice(-6),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(!qRes.ok)throw new Error('HTTP '+qRes.status);const qData=await qRes.json();hideTyping();pushHistory('assistant','[Quiz from PDF]');renderQuiz(qData.questions,qData.topic,qData.difficulty);}
+        if(pdfIntent!=='quiz'){const fcRes=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:enrichedTopic,count:0,history:getChatHistory().slice(-6),model:activeModel})});if(!fcRes.ok)throw new Error('HTTP '+fcRes.status);const fcData=await fcRes.json();hideTyping();pushHistory('assistant','[Flashcards from PDF]');renderFlashcards(fcData.cards,fcData.topic);}
+        if(pdfIntent!=='flashcard'){const qRes=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:enrichedTopic,count:0,history:getChatHistory().slice(-6),model:activeModel})});if(!qRes.ok)throw new Error('HTTP '+qRes.status);const qData=await qRes.json();hideTyping();pushHistory('assistant','[Quiz from PDF]');renderQuiz(qData.questions,qData.topic,qData.difficulty);}
         return;
       }
       const res=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,pdf_base64:pdfBase64,pdf_name:pdfName,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();const reply=data.reply||'Sorry, no response.';pushHistory('assistant',reply);addMsg('ai',reply,{pdfBadge:pdfName})._rawText=reply;
@@ -2945,12 +3048,12 @@ async function sendMessage(){
   try{const ir=await fetch(API_URL+'/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-6)})});if(ir.ok){const id=await ir.json();intent=id.intent||'chat';}}catch(e){}
   pushHistory('user',text);
 
-  if(intent==='graph'){try{const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Graph: '+data.title+']');renderGraph(data);}catch(err){hideTyping();addMsg('ai','Could not generate the graph.');}return;}
-  if(intent==='flowchart'){try{const res=await fetch(API_URL+'/flowchart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Flowchart: '+data.title+']');renderFlowchartMsg(data);}catch(err){hideTyping();addMsg('ai','Could not generate the flowchart.');}return;}
-  if(intent==='notes'){try{const res=await fetch(API_URL+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Notes: '+data.topic+']');renderNotesMsg(data.notes,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate notes.');}return;}
-  if(intent==='formula'){try{const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Formula: '+data.topic+']');renderFormulaMsg(data.sheet,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate formula sheet.');}return;}
-  if(intent==='flashcard'||intent==='both'){try{const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();if(intent==='both'){const qres=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(!qres.ok)throw new Error('HTTP '+qres.status);const qdata=await qres.json();hideTyping();pushHistory('assistant','[Flashcards+Quiz: '+data.topic+']');renderFlashcards(data.cards,data.topic);renderQuiz(qdata.questions,qdata.topic,qdata.difficulty);}else{hideTyping();pushHistory('assistant','[Flashcards: '+data.topic+']');renderFlashcards(data.cards,data.topic);}}catch(err){hideTyping();addMsg('ai','Could not generate flashcards.');}return;}
-  if(intent==='quiz'){try{const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Quiz: '+data.topic+']');renderQuiz(data.questions,data.topic,data.difficulty);}catch(err){hideTyping();addMsg('ai','Could not generate quiz.');}return;}
+  if(intent==='graph'){try{const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Graph: '+data.title+']');renderGraph(data);}catch(err){hideTyping();addMsg('ai','Could not generate the graph.');}return;}
+  if(intent==='flowchart'){try{const res=await fetch(API_URL+'/flowchart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Flowchart: '+data.title+']');renderFlowchartMsg(data);}catch(err){hideTyping();addMsg('ai','Could not generate the flowchart.');}return;}
+  if(intent==='notes'){try{const res=await fetch(API_URL+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Notes: '+data.topic+']');renderNotesMsg(data.notes,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate notes.');}return;}
+  if(intent==='formula'){try{const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Formula: '+data.topic+']');renderFormulaMsg(data.sheet,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate formula sheet.');}return;}
+  if(intent==='flashcard'||intent==='both'){try{const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();if(intent==='both'){const qres=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(!qres.ok)throw new Error('HTTP '+qres.status);const qdata=await qres.json();hideTyping();pushHistory('assistant','[Flashcards+Quiz: '+data.topic+']');renderFlashcards(data.cards,data.topic);renderQuiz(qdata.questions,qdata.topic,qdata.difficulty);}else{hideTyping();pushHistory('assistant','[Flashcards: '+data.topic+']');renderFlashcards(data.cards,data.topic);}}catch(err){hideTyping();addMsg('ai','Could not generate flashcards.');}return;}
+  if(intent==='quiz'){try{const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Quiz: '+data.topic+']');renderQuiz(data.questions,data.topic,data.difficulty);}catch(err){hideTyping();addMsg('ai','Could not generate quiz.');}return;}
 
   if(intent==='practice'){
     // Extract topic — strip practice/solve/exercise trigger words
@@ -5444,10 +5547,15 @@ async function _obSave() {
     createdAt:  Date.now(),
   };
   _afterLogin(_currentUser, true);
+  // Show key-entry onboarding for new users AFTER app loads
+  // (so they can join a school with their student/teacher key)
+  if (!_obData.schoolCode) {
+    setTimeout(openKeyOnboarding, 600);
+  }
 }
 
 // ══════════════════════════════════════════════════════
-// SCHOOL CODE — Onboarding Step 5
+// SCHOOL CODE — Onboarding Step 5 (legacy – kept for backward compat)
 // ══════════════════════════════════════════════════════
 
 function obSchoolChoice(choice) {
@@ -5900,81 +6008,705 @@ function closeUpgrades() {
 }
 
 // ══════════════════════════════════════════════════════
-// SCHOOL SETUP WIZARD
+// SCHOOL SETUP WIZARD — 6-step multi-step
 // ══════════════════════════════════════════════════════
 
-let _schoolSetupRole = 'principal';
-let _generatedCode   = null;
+let _sswStep        = 0;
+let _sswLogoBase64  = null;
+let _sswTeachers    = [];   // parsed from timetable
+let _sswClasses     = [];   // parsed from timetable
+let _sswClassTeachers = {}; // { classId: teacherName }
+let _sswSession     = 1;    // 0=Jan-Dec, 1=Apr-Mar
+let _sswStudentKey  = null;
+let _sswTeacherKey  = null;
+let _sswCreatedCode = null;
+
+const SSW_STEPS = 6;
 
 function openSchoolSetup() {
   if (hasSchool()) { openClassroom(); return; }
-  document.getElementById('school-setup-step1').style.display = 'flex';
-  document.getElementById('school-setup-step2').style.display = 'none';
-  document.getElementById('school-setup-btn').textContent     = 'Create School →';
-  document.getElementById('school-setup-btn').disabled        = false;
-  document.getElementById('school-setup-error').style.display = 'none';
-  document.getElementById('school-setup-title').textContent   = '🏫 Set Up Your School';
-  _generatedCode = null;
+  _sswStep = 0; _sswLogoBase64 = null; _sswTeachers = []; _sswClasses = [];
+  _sswClassTeachers = {}; _sswSession = 1; _sswStudentKey = null;
+  _sswTeacherKey = null; _sswCreatedCode = null;
+  sswRenderStep(0);
   document.getElementById('school-setup-overlay').classList.add('open');
 }
 function closeSchoolSetup() {
   document.getElementById('school-setup-overlay').classList.remove('open');
 }
-function schoolSetupSelectRole(role) {
-  _schoolSetupRole = role;
-  document.getElementById('school-role-principal').classList.toggle('selected', role === 'principal');
-  document.getElementById('school-role-teacher').classList.toggle('selected',   role === 'teacher');
+
+function sswRenderStep(n) {
+  for (let i = 0; i < SSW_STEPS; i++) {
+    const s = document.getElementById('ssw-step-' + i);
+    if (s) s.className = 'ssw-step' + (i === n ? ' active' : '');
+    const d = document.getElementById('ssw-dot-' + i);
+    if (d) d.className = 'ssw-dot' + (i < n ? ' done' : (i === n ? ' active' : ''));
+  }
+  const titles = [
+    '🏫 Step 1 — School Identity',
+    '📅 Step 2 — Upload Timetable',
+    '📖 Step 3 — Assign Class Teachers',
+    '🏢 Step 4 — School Chain',
+    '📆 Step 5 — Session Timeline',
+    '👁 Step 6 — Preview & Create'
+  ];
+  document.getElementById('ssw-title').textContent = titles[n] || '🏫 Set Up Your School';
+  const back = document.getElementById('ssw-back-btn');
+  const next = document.getElementById('ssw-next-btn');
+  back.style.display = n > 0 && _sswCreatedCode === null ? 'block' : 'none';
+  if (n === 5 && _sswCreatedCode) {
+    next.textContent = '🏫 Go to Classroom →';
+  } else if (n === 5) {
+    next.textContent = '✨ Create School';
+  } else {
+    next.textContent = 'Next →';
+  }
 }
 
-async function schoolSetupNext() {
-  if (_generatedCode) { closeSchoolSetup(); openClassroom(); return; }
-  const name = document.getElementById('school-setup-name').value.trim();
-  if (!name) {
-    const e = document.getElementById('school-setup-error');
-    e.textContent = 'Please enter your school name.'; e.style.display = 'block'; return;
-  }
-  const btn = document.getElementById('school-setup-btn');
-  btn.disabled = true; btn.textContent = 'Creating…';
-  document.getElementById('school-setup-error').style.display = 'none';
-  try {
-    const res = await fetch(API_URL + '/school/generate-code', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ school_name: name, principal_uid: _currentUser?.uid||'', principal_name: _userProfile?.name||'', principal_email: _currentUser?.email||'' })
-    });
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    const data = await res.json();
-    _generatedCode = data.code;
+function sswShowErr(n, msg) {
+  const el = document.getElementById('ssw-err-' + n);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
 
-    if (window._fb && _currentUser) {
-      const fb = window._fb; const uid = _currentUser.uid;
-      await fb.setDoc(fb.doc(fb.db,'schools',_generatedCode), { name, principalUid:uid, principalName:_userProfile?.name||'', principalEmail:_currentUser.email||'', active:true, plan:'free', createdAt:Date.now(), memberCount:1 });
-      await fb.setDoc(fb.doc(fb.db,'schools',_generatedCode,'members',uid), { uid, name:_userProfile?.name||'', email:_currentUser.email||'', photoURL:_currentUser.photoURL||'', role:'principal', joinedAt:Date.now() });
-      _userSchoolCode = _generatedCode; _userSchoolName = name; _userSchoolRole = 'principal';
-      _userProfile = {...(_userProfile||{}), schoolCode:_generatedCode, schoolName:name, schoolRole:'principal'};
-      await fb.setDoc(fb.doc(fb.db,'users',uid,'profile','data'), _userProfile);
+async function sswNext() {
+  if (_sswCreatedCode && _sswStep === 5) { closeSchoolSetup(); openClassroom(); return; }
+  sswShowErr(_sswStep, '');
+
+  if (_sswStep === 0) {
+    // Validate logo + name
+    const name = document.getElementById('ssw-school-name').value.trim();
+    if (!_sswLogoBase64) { sswShowErr(0, '⚠️ Please upload a school logo.'); return; }
+    if (!name)           { sswShowErr(0, '⚠️ Please enter the school name.'); return; }
+    _sswStep = 1; sswRenderStep(1); return;
+  }
+
+  if (_sswStep === 1) {
+    // Timetable optional — can skip
+    _sswStep = 2; sswRenderStep(2);
+    sswBuildClassTeacherRows(); return;
+  }
+
+  if (_sswStep === 2) {
+    _sswStep = 3; sswRenderStep(3); return;
+  }
+
+  if (_sswStep === 3) {
+    _sswStep = 4; sswRenderStep(4); return;
+  }
+
+  if (_sswStep === 4) {
+    _sswStep = 5; sswRenderStep(5);
+    sswFillPreview(); return;
+  }
+
+  if (_sswStep === 5) {
+    await sswCreateSchool(); return;
+  }
+}
+
+function sswBack() {
+  if (_sswStep <= 0 || _sswCreatedCode) return;
+  _sswStep--;
+  sswRenderStep(_sswStep);
+}
+
+// ── Step 1 logo ──
+function sswLogoSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { sswShowErr(0, 'Logo must be under 2MB.'); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    _sswLogoBase64 = e.target.result; // data URL
+    const img = document.getElementById('ssw-logo-img');
+    const preview = document.getElementById('ssw-logo-preview');
+    img.src = _sswLogoBase64;
+    img.style.display = 'block';
+    preview.textContent = '';
+    preview.appendChild(img);
+    sswShowErr(0, '');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Step 2 timetable ──
+function sswTimetableDrop(ev) {
+  ev.preventDefault();
+  document.getElementById('ssw-tt-drop').style.borderColor = 'var(--border2)';
+  const file = ev.dataTransfer.files[0];
+  if (file) sswParseTimetableFile(file);
+}
+function sswTimetableFile(input) {
+  const file = input.files[0];
+  if (file) sswParseTimetableFile(file);
+}
+
+async function sswParseTimetableFile(file) {
+  const status = document.getElementById('ssw-parsing-status');
+  const txt    = document.getElementById('ssw-parsing-text');
+  const list   = document.getElementById('ssw-teachers-list');
+  const cards  = document.getElementById('ssw-teachers-cards');
+  status.style.display = 'flex';
+  txt.textContent = 'Reading file…';
+  list.style.display = 'none';
+  cards.innerHTML = '';
+  sswShowErr(1, '');
+
+  try {
+    let textContent = '';
+    const ext = file.name.split('.').pop().toLowerCase();
+
+    if (ext === 'xlsx' || ext === 'xls') {
+      // Use SheetJS via CDN if available
+      if (window.XLSX) {
+        const ab = await file.arrayBuffer();
+        const wb = window.XLSX.read(ab, { type: 'array' });
+        wb.SheetNames.forEach(sn => {
+          textContent += window.XLSX.utils.sheet_to_csv(wb.Sheets[sn]) + '\n';
+        });
+      } else {
+        // Load SheetJS dynamically
+        await new Promise((res, rej) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+          s.onload = res; s.onerror = rej;
+          document.head.appendChild(s);
+        });
+        const ab = await file.arrayBuffer();
+        const wb = window.XLSX.read(ab, { type: 'array' });
+        wb.SheetNames.forEach(sn => {
+          textContent += window.XLSX.utils.sheet_to_csv(wb.Sheets[sn]) + '\n';
+        });
+      }
+      txt.textContent = 'Sending to AI…';
+    } else if (file.type.startsWith('image/') || ext === 'pdf') {
+      // Send as base64 to backend
+      const b64 = await new Promise(res => {
+        const r = new FileReader();
+        r.onload = () => res(r.result.split(',')[1]);
+        r.readAsDataURL(file);
+      });
+      txt.textContent = 'AI is reading your timetable…';
+      const res = await fetch(API_URL + '/school/parse-timetable', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: '', images: [b64] })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      sswHandleParsed(data);
+      status.style.display = 'none';
+      return;
+    } else {
+      textContent = await file.text();
     }
 
-    document.getElementById('school-setup-step1').style.display = 'none';
-    document.getElementById('school-setup-step2').style.display = 'flex';
-    document.getElementById('school-setup-code-value').textContent = _generatedCode;
-    document.getElementById('school-setup-code-name').textContent  = name;
-    document.getElementById('school-setup-title').textContent      = '🎉 School Created!';
-    btn.disabled = false; btn.textContent = 'Go to Classroom →';
+    if (textContent) {
+      txt.textContent = 'AI is analysing…';
+      const res = await fetch(API_URL + '/school/parse-timetable', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textContent.slice(0, 8000) })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      sswHandleParsed(data);
+    }
+  } catch (err) {
+    sswShowErr(1, 'Could not parse timetable: ' + err.message);
+  }
+  status.style.display = 'none';
+}
+
+function sswHandleParsed(data) {
+  _sswTeachers = data.teachers || [];
+  _sswClasses  = data.classes  || [];
+  const cards = document.getElementById('ssw-teachers-cards');
+  const list  = document.getElementById('ssw-teachers-list');
+  cards.innerHTML = '';
+
+  if (_sswTeachers.length === 0) {
+    sswShowErr(1, 'No teachers found. You can continue and assign them manually.');
+    return;
+  }
+
+  _sswTeachers.forEach((t, i) => {
+    const subjs = (t.subjects || []).join(', ') || '—';
+    const cls   = (t.classes  || []).join(', ') || '—';
+    const asgn  = (t.assignments || []).map(a => `${a.class}: ${a.subject}`).join(' · ') || '—';
+    const card  = document.createElement('div');
+    card.className = 'ssw-teacher-card';
+    card.id = 'ssw-tc-' + i;
+    const initials = (t.name || 'T').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    card.innerHTML = `
+      <div class="ssw-teacher-card-top" onclick="sswToggleTeacher(${i})">
+        <div class="ssw-teacher-avatar">${initials}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="ssw-teacher-name">${t.name || 'Unknown'}</div>
+          <div class="ssw-teacher-meta">${subjs} · ${cls}</div>
+        </div>
+        <div class="ssw-teacher-expand">▼</div>
+      </div>
+      <div class="ssw-teacher-details">
+        <b>Subjects:</b> ${subjs}<br>
+        <b>Classes:</b> ${cls}<br>
+        <b>Assignments:</b> ${asgn}
+      </div>`;
+    cards.appendChild(card);
+  });
+
+  list.style.display = 'block';
+}
+
+function sswToggleTeacher(i) {
+  const card = document.getElementById('ssw-tc-' + i);
+  if (card) card.classList.toggle('open');
+}
+
+// ── Step 3 class teacher assignment ──
+function sswBuildClassTeacherRows() {
+  const container = document.getElementById('ssw-class-teacher-rows');
+  container.innerHTML = '';
+  const teacherNames = _sswTeachers.map(t => t.name).filter(Boolean);
+
+  if (_sswClasses.length === 0) {
+    container.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--text3);font-family:\'DM Mono\',monospace;">No classes parsed. Upload a timetable in Step 2 to auto-fill, or add classes manually.</div>';
+    return;
+  }
+
+  _sswClasses.forEach(cls => {
+    const row = document.createElement('div');
+    row.className = 'ssw-class-row';
+    const opts = teacherNames.map(n => `<option value="${n}"${_sswClassTeachers[cls] === n ? ' selected' : ''}>${n}</option>`).join('');
+    row.innerHTML = `
+      <div class="ssw-class-name">${cls}</div>
+      <select class="ssw-class-teacher-sel" onchange="_sswClassTeachers['${cls}']=this.value">
+        <option value="">— Unassigned —</option>${opts}
+      </select>`;
+    container.appendChild(row);
+  });
+}
+
+// ── Step 5 session ──
+function sswSelectSession(n) {
+  _sswSession = n;
+  document.getElementById('ssw-sess-0').classList.toggle('selected', n === 0);
+  document.getElementById('ssw-sess-1').classList.toggle('selected', n === 1);
+}
+
+// ── Step 6 preview ──
+function sswFillPreview() {
+  const name  = document.getElementById('ssw-school-name').value.trim();
+  const addr  = document.getElementById('ssw-school-address').value.trim() || '—';
+  const chain = document.getElementById('ssw-chain-select');
+  const chainLabel = chain.options[chain.selectedIndex]?.text || 'Independent';
+  document.getElementById('ssw-prev-name').textContent     = name;
+  document.getElementById('ssw-prev-addr').textContent     = addr;
+  document.getElementById('ssw-prev-teachers').textContent = _sswTeachers.length;
+  document.getElementById('ssw-prev-classes').textContent  = _sswClasses.join(', ') || '—';
+  document.getElementById('ssw-prev-chain').textContent    = chainLabel;
+  document.getElementById('ssw-prev-session').textContent  = _sswSession === 0 ? 'Jan–Dec' : 'Apr–Mar';
+}
+
+// ── Create school ──
+async function sswCreateSchool() {
+  const btn  = document.getElementById('ssw-next-btn');
+  const name = document.getElementById('ssw-school-name').value.trim();
+  btn.disabled = true; btn.textContent = 'Creating…';
+  sswShowErr(5, '');
+
+  try {
+    const res = await fetch(API_URL + '/school/generate-code', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        school_name:    name,
+        principal_uid:  _currentUser?.uid  || '',
+        principal_name: _userProfile?.name || '',
+        principal_email: _currentUser?.email || ''
+      })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    _sswCreatedCode = data.code;
+
+    // Generate student & teacher keys  e.g. SEDY·S·XK29 / SEDY·T·XK29
+    const suffix = _sswCreatedCode.replace('SEDY-', '');
+    _sswStudentKey = 'SEDY·S·' + suffix;
+    _sswTeacherKey = 'SEDY·T·' + suffix;
+
+    if (window._fb && _currentUser) {
+      const fb  = window._fb;
+      const uid = _currentUser.uid;
+      const addr  = document.getElementById('ssw-school-address').value.trim();
+      const chain = document.getElementById('ssw-chain-select').value;
+
+      // Save school document
+      await fb.setDoc(fb.doc(fb.db, 'schools', _sswCreatedCode), {
+        name, address: addr, chain,
+        session:      _sswSession === 0 ? 'jan-dec' : 'apr-mar',
+        logoBase64:   _sswLogoBase64 || '',
+        principalUid:  uid,
+        principalName: _userProfile?.name || '',
+        principalEmail: _currentUser.email || '',
+        active: true, plan: 'free',
+        createdAt: Date.now(), memberCount: 1,
+        teachers:  _sswTeachers,
+        classes:   _sswClasses,
+        classTeachers: _sswClassTeachers,
+        studentKey: _sswStudentKey,
+        teacherKey: _sswTeacherKey
+      });
+
+      // Add principal as member
+      await fb.setDoc(fb.doc(fb.db, 'schools', _sswCreatedCode, 'members', uid), {
+        uid, name: _userProfile?.name || '', email: _currentUser.email || '',
+        photoURL: _currentUser.photoURL || '', role: 'principal', joinedAt: Date.now()
+      });
+
+      // Update user profile
+      _userSchoolCode = _sswCreatedCode;
+      _userSchoolName = name;
+      _userSchoolRole = 'principal';
+      _userProfile    = { ...(_userProfile || {}), schoolCode: _sswCreatedCode, schoolName: name, schoolRole: 'principal' };
+      await fb.setDoc(fb.doc(fb.db, 'users', uid, 'profile', 'data'), _userProfile);
+    }
+
+    // Show keys
+    document.getElementById('ssw-key-student').textContent = _sswStudentKey;
+    document.getElementById('ssw-key-teacher').textContent = _sswTeacherKey;
+    document.getElementById('ssw-keys-section').style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '🏫 Go to Classroom →';
     crUpdateSidebarLabel();
-  } catch(err) {
-    btn.disabled = false; btn.textContent = 'Create School →';
-    const e = document.getElementById('school-setup-error');
-    e.textContent = 'Could not create school. Try again.'; e.style.display='block';
+    sswRenderStep(5); // re-render to update button text
+
+  } catch (err) {
+    btn.disabled = false; btn.textContent = '✨ Create School';
+    sswShowErr(5, 'Could not create school: ' + err.message);
   }
 }
 
-function schoolCopyCode() {
-  if (!_generatedCode) return;
-  navigator.clipboard.writeText(_generatedCode).then(() => {
-    const btn = document.getElementById('school-copy-btn');
-    btn.textContent = '✅ Copied!';
-    setTimeout(() => { btn.textContent = '📋 Copy Code'; }, 2000);
+function sswCopyKey(type) {
+  const key = type === 'student' ? _sswStudentKey : _sswTeacherKey;
+  if (!key) return;
+  navigator.clipboard.writeText(key).then(() => {
+    const btn = document.querySelector(`.ssw-key-copy[onclick="sswCopyKey('${type}')"]`);
+    if (btn) { btn.textContent = '✅ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000); }
   });
+}
+
+// ── TEACHER JOIN ONBOARDING ──
+let _tobStep       = 0;
+let _tobSchoolCode = null;
+let _tobSchoolData = null;
+let _tobSelectedName = null;
+
+async function openTeacherOnboarding(schoolCode, schoolData) {
+  _tobStep = 0; _tobSelectedName = null;
+  _tobSchoolCode = schoolCode;
+  _tobSchoolData = schoolData;
+
+  // Set school logo + name in header
+  const logoEl = document.getElementById('tob-logo');
+  const nameEl = document.getElementById('tob-school-name');
+  nameEl.textContent = schoolData.name || 'Your School';
+  if (schoolData.logoBase64) {
+    logoEl.innerHTML = `<img src="${schoolData.logoBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
+  } else { logoEl.textContent = '🏫'; }
+
+  // Render teacher name list (exclude already-joined teachers)
+  const list = document.getElementById('tob-names-list');
+  list.innerHTML = '';
+  const teachers    = schoolData.teachers || [];
+  const joinedSnap  = window._fb ? await window._fb.getDocs(window._fb.collection(window._fb.db, 'schools', schoolCode, 'members')) : null;
+  const joinedNames = new Set();
+  if (joinedSnap) joinedSnap.forEach(d => { if (d.data().role === 'teacher') joinedNames.add(d.data().teacherName || d.data().name); });
+
+  const available = teachers.map(t => t.name).filter(n => n && !joinedNames.has(n));
+  if (available.length === 0) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--text3);font-family:\'DM Mono\',monospace;padding:8px 0;">All teachers have already joined.</div>';
+  } else {
+    available.forEach(n => {
+      const el = document.createElement('div');
+      el.className = 'name-list-opt';
+      el.textContent = n;
+      el.onclick = () => {
+        list.querySelectorAll('.name-list-opt').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+        _tobSelectedName = n;
+      };
+      list.appendChild(el);
+    });
+  }
+
+  tobShowStep(0);
+  document.getElementById('teacher-ob-overlay').classList.add('open');
+}
+
+function tobShowStep(n) {
+  _tobStep = n;
+  for (let i = 0; i < 3; i++) {
+    const s = document.getElementById('tob-step-' + i);
+    if (s) s.className = 'teacher-ob-step' + (i === n ? ' active' : '');
+  }
+  const btn = document.getElementById('tob-next-btn');
+  btn.textContent = n === 2 ? '▶ Go to Classroom' : 'Continue →';
+}
+
+async function tobNext() {
+  if (_tobStep === 0) {
+    if (!_tobSelectedName) {
+      const e = document.getElementById('tob-err-0');
+      e.textContent = 'Please select your name.'; e.style.display = 'block'; return;
+    }
+    document.getElementById('tob-err-0').style.display = 'none';
+    // Show timetable
+    const box = document.getElementById('tob-timetable-box');
+    const teacher = (_tobSchoolData.teachers || []).find(t => t.name === _tobSelectedName);
+    if (teacher && teacher.assignments && teacher.assignments.length) {
+      box.innerHTML = teacher.assignments.map(a => `<div>📚 <b>${a.subject}</b> — ${a.class}${a.periods_per_week ? ' (' + a.periods_per_week + ' periods/wk)' : ''}</div>`).join('');
+    } else {
+      box.textContent = 'No timetable data found for you. Your principal may upload it later.';
+    }
+    // Save teacher to members
+    if (window._fb && _currentUser && _tobSchoolCode) {
+      const fb = window._fb; const uid = _currentUser.uid;
+      await fb.setDoc(fb.doc(fb.db, 'schools', _tobSchoolCode, 'members', uid), {
+        uid, name: _userProfile?.name || _currentUser.displayName || '',
+        email: _currentUser.email || '', photoURL: _currentUser.photoURL || '',
+        role: 'teacher', teacherName: _tobSelectedName, joinedAt: Date.now()
+      });
+      _userSchoolCode = _tobSchoolCode; _userSchoolName = _tobSchoolData.name; _userSchoolRole = 'teacher';
+      _userProfile = { ...(_userProfile || {}), schoolCode: _tobSchoolCode, schoolName: _tobSchoolData.name, schoolRole: 'teacher', teacherName: _tobSelectedName };
+      await fb.setDoc(fb.doc(fb.db, 'users', uid, 'profile', 'data'), _userProfile);
+    }
+    tobShowStep(1); return;
+  }
+  if (_tobStep === 1) { tobShowStep(2); return; }
+  if (_tobStep === 2) {
+    document.getElementById('teacher-ob-overlay').classList.remove('open');
+    crUpdateSidebarLabel();
+    openClassroom();
+  }
+}
+
+// ── STUDENT JOIN ONBOARDING ──
+let _sobStep       = 0;
+let _sobSchoolCode = null;
+let _sobSchoolData = null;
+let _sobClass      = null;
+
+async function openStudentOnboarding(schoolCode, schoolData) {
+  _sobStep = 0; _sobClass = null;
+  _sobSchoolCode = schoolCode;
+  _sobSchoolData = schoolData;
+
+  const logoEl = document.getElementById('sob-logo');
+  const nameEl = document.getElementById('sob-school-name');
+  nameEl.textContent = schoolData.name || 'Your School';
+  if (schoolData.logoBase64) {
+    logoEl.innerHTML = `<img src="${schoolData.logoBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
+  } else { logoEl.textContent = '🏫'; }
+
+  // Pre-fill name
+  const nameInput = document.getElementById('sob-name-input');
+  nameInput.value = _userProfile?.name || _currentUser?.displayName || '';
+
+  // Build class list
+  const classListEl = document.getElementById('sob-class-list');
+  classListEl.innerHTML = '';
+  const classes = schoolData.classes || [];
+  if (classes.length === 0) {
+    classListEl.innerHTML = '<div style="font-size:13px;color:var(--text3);font-family:\'DM Mono\',monospace;">No classes set up yet. Continue anyway.</div>';
+  } else {
+    classes.forEach(cls => {
+      const el = document.createElement('div');
+      el.className = 'class-list-opt';
+      el.textContent = cls;
+      el.onclick = () => {
+        classListEl.querySelectorAll('.class-list-opt').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+        _sobClass = cls;
+      };
+      classListEl.appendChild(el);
+    });
+  }
+
+  sobShowStep(0);
+  document.getElementById('student-ob-overlay').classList.add('open');
+}
+
+function sobShowStep(n) {
+  _sobStep = n;
+  for (let i = 0; i < 3; i++) {
+    const s = document.getElementById('sob-step-' + i);
+    if (s) s.className = 'student-ob-step' + (i === n ? ' active' : '');
+  }
+  document.getElementById('sob-back-btn').style.display = n > 0 ? 'block' : 'none';
+  document.getElementById('sob-next-btn').textContent = n === 2 ? '✅ Join School' : 'Continue →';
+}
+
+function sobBack() {
+  if (_sobStep > 0) sobShowStep(_sobStep - 1);
+}
+
+async function sobNext() {
+  if (_sobStep === 0) {
+    const name = document.getElementById('sob-name-input').value.trim();
+    const e = document.getElementById('sob-err-0');
+    if (!name) { e.textContent = 'Please enter your name.'; e.style.display = 'block'; return; }
+    e.style.display = 'none';
+    sobShowStep(1); return;
+  }
+  if (_sobStep === 1) {
+    if (!_sobClass && (_sobSchoolData?.classes || []).length > 0) {
+      const e = document.getElementById('sob-err-1');
+      e.textContent = 'Please select your class.'; e.style.display = 'block'; return;
+    }
+    document.getElementById('sob-err-1').style.display = 'none';
+    // Fill preview
+    const name = document.getElementById('sob-name-input').value.trim();
+    document.getElementById('sob-prev-name').textContent   = name;
+    document.getElementById('sob-prev-school').textContent = _sobSchoolData?.name || '—';
+    document.getElementById('sob-prev-class').textContent  = _sobClass || 'Not specified';
+    sobShowStep(2); return;
+  }
+  if (_sobStep === 2) {
+    const name = document.getElementById('sob-name-input').value.trim();
+    // Save student to members
+    if (window._fb && _currentUser && _sobSchoolCode) {
+      const fb = window._fb; const uid = _currentUser.uid;
+      await fb.setDoc(fb.doc(fb.db, 'schools', _sobSchoolCode, 'members', uid), {
+        uid, name, email: _currentUser.email || '', photoURL: _currentUser.photoURL || '',
+        role: 'student', class: _sobClass || '', joinedAt: Date.now()
+      });
+      _userSchoolCode = _sobSchoolCode; _userSchoolName = _sobSchoolData.name; _userSchoolRole = 'student';
+      _userProfile = { ...(_userProfile || {}), schoolCode: _sobSchoolCode, schoolName: _sobSchoolData.name, schoolRole: 'student', class: _sobClass || '', name };
+      await fb.setDoc(fb.doc(fb.db, 'users', uid, 'profile', 'data'), _userProfile);
+    }
+    document.getElementById('student-ob-overlay').classList.remove('open');
+    crUpdateSidebarLabel();
+    openClassroom();
+  }
+}
+
+// ── KEY ENTRY FLOW (sign-in modal) ──
+let _keyObChoice   = null;  // 'yes' | 'no'
+let _keyObVerified = false;
+let _keyObSchoolCode = null;
+let _keyObSchoolData = null;
+let _keyObRole     = null;  // 'student' | 'teacher'
+
+function openKeyOnboarding() {
+  _keyObChoice = null; _keyObVerified = false;
+  _keyObSchoolCode = null; _keyObSchoolData = null; _keyObRole = null;
+  document.getElementById('key-ob-step-0').style.display = 'block';
+  document.getElementById('key-ob-step-1').style.display = 'none';
+  document.getElementById('key-ob-verified-card').style.display = 'none';
+  document.getElementById('key-ob-err').style.display = 'none';
+  document.getElementById('key-ob-back-btn').style.display = 'none';
+  document.getElementById('key-ob-continue-btn').style.display = 'none';
+  document.getElementById('key-choice-yes').classList.remove('selected');
+  document.getElementById('key-choice-no').classList.remove('selected');
+  document.getElementById('key-ob-input').value = '';
+  document.getElementById('key-ob-overlay').classList.add('open');
+}
+
+function keyObChoice(choice) {
+  _keyObChoice = choice;
+  document.getElementById('key-choice-yes').classList.toggle('selected', choice === 'yes');
+  document.getElementById('key-choice-no').classList.toggle('selected', choice === 'no');
+  if (choice === 'yes') {
+    document.getElementById('key-ob-step-0').style.display = 'none';
+    document.getElementById('key-ob-step-1').style.display = 'flex';
+    document.getElementById('key-ob-back-btn').style.display = 'block';
+  } else {
+    // Skip — close overlay and continue normally
+    document.getElementById('key-ob-overlay').classList.remove('open');
+  }
+}
+
+function keyObBack() {
+  document.getElementById('key-ob-step-1').style.display = 'none';
+  document.getElementById('key-ob-step-0').style.display = 'block';
+  document.getElementById('key-ob-back-btn').style.display = 'none';
+  document.getElementById('key-ob-continue-btn').style.display = 'none';
+  document.getElementById('key-ob-verified-card').style.display = 'none';
+  document.getElementById('key-ob-err').style.display = 'none';
+  _keyObVerified = false;
+  document.getElementById('key-choice-yes').classList.remove('selected');
+  document.getElementById('key-choice-no').classList.remove('selected');
+}
+
+async function keyObVerify() {
+  const raw  = document.getElementById('key-ob-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('key-ob-err');
+  errEl.style.display = 'none';
+  document.getElementById('key-ob-verified-card').style.display = 'none';
+  document.getElementById('key-ob-continue-btn').style.display = 'none';
+
+  if (!raw) { errEl.textContent = 'Please enter your key.'; errEl.style.display = 'block'; return; }
+
+  // Parse key format: SEDY·S·XXXX or SEDY·T·XXXX
+  // Also accept SEDY-XXXX (old code format) as student key
+  let role = null, code = null;
+  const matchNew = raw.match(/^SEDY[·\.]([ST])[·\.]([A-Z0-9]{4})$/);
+  const matchOld = raw.match(/^SEDY[-]([A-Z0-9]{4})$/);
+
+  if (matchNew) {
+    role = matchNew[1] === 'S' ? 'student' : 'teacher';
+    code = 'SEDY-' + matchNew[2];
+  } else if (matchOld) {
+    role = 'student';
+    code = raw.replace('·', '-');
+  } else {
+    errEl.textContent = 'Invalid key format. Expected SEDY·S·XXXX or SEDY·T·XXXX.';
+    errEl.style.display = 'block'; return;
+  }
+
+  const btn = document.getElementById('key-ob-verify-btn');
+  btn.disabled = true; btn.textContent = 'Verifying…';
+
+  try {
+    if (!window._fb) throw new Error('Not connected');
+    const fb = window._fb;
+    const snap = await fb.getDoc(fb.doc(fb.db, 'schools', code));
+    if (!snap.exists()) throw new Error('School not found. Check your key and try again.');
+    const schoolData = snap.data();
+
+    _keyObVerified   = true;
+    _keyObSchoolCode = code;
+    _keyObSchoolData = schoolData;
+    _keyObRole       = role;
+
+    // Show verified card
+    const card    = document.getElementById('key-ob-verified-card');
+    const logoEl  = document.getElementById('key-ob-school-logo');
+    const nameEl  = document.getElementById('key-ob-school-name-lbl');
+    const roleEl  = document.getElementById('key-ob-role-badge');
+    nameEl.textContent = schoolData.name || 'School';
+    roleEl.textContent = role === 'teacher' ? '📖 Teacher' : '👨‍🎓 Student';
+    if (schoolData.logoBase64) {
+      logoEl.innerHTML = `<img src="${schoolData.logoBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
+    } else { logoEl.textContent = '🏫'; }
+    card.style.display = 'flex';
+    document.getElementById('key-ob-continue-btn').style.display = 'block';
+
+  } catch (err) {
+    errEl.textContent = err.message || 'Verification failed.';
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Verify →';
+}
+
+async function keyObContinue() {
+  if (!_keyObVerified || !_keyObSchoolCode || !_keyObSchoolData) return;
+  document.getElementById('key-ob-overlay').classList.remove('open');
+  if (_keyObRole === 'teacher') {
+    await openTeacherOnboarding(_keyObSchoolCode, _keyObSchoolData);
+  } else {
+    await openStudentOnboarding(_keyObSchoolCode, _keyObSchoolData);
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -6456,55 +7188,272 @@ authInit();
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     SCHOOL SETUP WIZARD
+     SCHOOL SETUP WIZARD — 6 steps
 ════════════════════════════════════════════════════════ -->
 <div class="school-setup-overlay" id="school-setup-overlay" onclick="if(event.target===this)closeSchoolSetup()">
-<div class="school-setup-panel">
-  <div class="school-setup-header">
-    <div id="school-setup-title" class="school-setup-title">🏫 Set Up Your School</div>
+<div class="school-setup-panel ssw-panel">
+  <div class="school-setup-header ssw-header">
+    <div class="ssw-step-dots">
+      <div class="ssw-dot active" id="ssw-dot-0"></div>
+      <div class="ssw-dot" id="ssw-dot-1"></div>
+      <div class="ssw-dot" id="ssw-dot-2"></div>
+      <div class="ssw-dot" id="ssw-dot-3"></div>
+      <div class="ssw-dot" id="ssw-dot-4"></div>
+      <div class="ssw-dot" id="ssw-dot-5"></div>
+    </div>
+    <div class="school-setup-title ssw-title" id="ssw-title">🏫 Set Up Your School</div>
     <button class="settings-close" onclick="closeSchoolSetup()">✕</button>
   </div>
+  <div class="school-setup-body ssw-body">
 
-  <!-- Step 1: Enter school details -->
-  <div id="school-setup-step1" class="school-setup-body">
-    <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;line-height:1.6;">
-      Create your school on Sedy Classroom. You'll get a unique join code to share with your teachers and students.
+    <!-- STEP 1: School identity -->
+    <div class="ssw-step active" id="ssw-step-0">
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;font-family:'DM Sans',sans-serif;">Tell us about your school. This info will appear to all members.</div>
+      <div>
+        <div class="ssw-label">School Logo <span style="color:var(--danger);">*</span></div>
+        <div class="ssw-logo-upload">
+          <div class="ssw-logo-preview" id="ssw-logo-preview" onclick="document.getElementById('ssw-logo-file').click()">🏫
+            <img id="ssw-logo-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">Upload Logo <span style="color:var(--danger);font-size:11px;">*required</span></div>
+            <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:3px;">PNG, JPG, WEBP · max 2MB</div>
+            <button onclick="document.getElementById('ssw-logo-file').click()" style="margin-top:8px;padding:6px 14px;background:none;border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;">📁 Choose file</button>
+            <input type="file" id="ssw-logo-file" accept="image/*" style="display:none" onchange="sswLogoSelected(this)">
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="ssw-label">School Name <span style="color:var(--danger);">*</span></div>
+        <input type="text" class="ssw-input" id="ssw-school-name" placeholder="e.g. Delhi Public School, Sector 15" maxlength="80">
+      </div>
+      <div>
+        <div class="ssw-label">School Address <span style="color:var(--text3);font-size:10px;">(optional)</span></div>
+        <input type="text" class="ssw-input" id="ssw-school-address" placeholder="e.g. Sector 15, Rohini, New Delhi - 110085" maxlength="120">
+      </div>
+      <div class="ssw-error" id="ssw-err-0"></div>
     </div>
-    <div class="setup-step">
-      <div class="setup-label">School Name</div>
-      <input id="school-setup-name" type="text" class="setup-input" placeholder="e.g. Delhi Public School, Sector 15" maxlength="60">
+
+    <!-- STEP 2: Upload timetable -->
+    <div class="ssw-step" id="ssw-step-1">
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;font-family:'DM Sans',sans-serif;">Upload your school timetable. AI will extract teacher names, classes, subjects and schedules.</div>
+      <div class="ssw-upload-area" id="ssw-tt-drop" onclick="document.getElementById('ssw-tt-file').click()" ondragover="event.preventDefault();this.style.borderColor='var(--accent2)'" ondragleave="this.style.borderColor='var(--border2)'" ondrop="sswTimetableDrop(event)">
+        <div class="ssw-upload-icon">📅</div>
+        <div class="ssw-upload-title">Drop timetable here or click to upload</div>
+        <div class="ssw-upload-sub">Excel (.xlsx/.xls), PDF, or image</div>
+        <input type="file" id="ssw-tt-file" accept=".xlsx,.xls,.pdf,image/*" style="display:none" onchange="sswTimetableFile(this)">
+      </div>
+      <div id="ssw-parsing-status" class="ssw-parsing-status" style="display:none;">
+        <div class="ssw-parse-spinner"></div>
+        <span id="ssw-parsing-text">Reading timetable with AI…</span>
+      </div>
+      <div id="ssw-teachers-list" style="display:none;">
+        <div class="ssw-label" style="margin-bottom:8px;">Parsed Teachers — click to expand</div>
+        <div id="ssw-teachers-cards" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+      <div class="ssw-error" id="ssw-err-1"></div>
     </div>
-    <div class="setup-step">
-      <div class="setup-label">Your Role</div>
-      <div style="display:flex;gap:8px;">
-        <div class="ob-opt selected" id="school-role-principal" onclick="schoolSetupSelectRole('principal')" style="flex:1;padding:10px;">👑 Principal</div>
-        <div class="ob-opt" id="school-role-teacher" onclick="schoolSetupSelectRole('teacher')" style="flex:1;padding:10px;">📖 Teacher</div>
+
+    <!-- STEP 3: Assign class teachers -->
+    <div class="ssw-step" id="ssw-step-2">
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;font-family:'DM Sans',sans-serif;">Assign a class teacher to each class. You can update these later.</div>
+      <div id="ssw-class-teacher-rows" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:4px 14px;"></div>
+      <div class="ssw-error" id="ssw-err-2"></div>
+    </div>
+
+    <!-- STEP 4: School chain -->
+    <div class="ssw-step" id="ssw-step-3">
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;font-family:'DM Sans',sans-serif;">Is your school part of a chain? Select below to help Sedy customise curriculum content.</div>
+      <div>
+        <div class="ssw-label">School Chain / Group</div>
+        <select class="ssw-chain-select" id="ssw-chain-select">
+          <option value="">— Independent / Not Listed —</option>
+          <option value="dps">Delhi Public School (DPS)</option>
+          <option value="kv">Kendriya Vidyalaya (KV)</option>
+          <option value="dav">DAV Public School</option>
+          <option value="ryan">Ryan International School</option>
+          <option value="st_xavier">St. Xavier's Schools</option>
+          <option value="amity">Amity International School</option>
+          <option value="jnv">Jawahar Navodaya Vidyalaya (JNV)</option>
+          <option value="army">Army Public School (APS)</option>
+          <option value="bal_bharti">Bal Bharati Public School</option>
+          <option value="mater_dei">Mater Dei School</option>
+          <option value="bluebells">Bluebells School International</option>
+          <option value="sanskriti">Sanskriti School</option>
+          <option value="podar">Podar International School</option>
+          <option value="campion">Campion School</option>
+          <option value="cathedral">Cathedral and John Connon School</option>
+          <option value="heritage">Heritage Xperiential Learning School</option>
+          <option value="suncity">Suncity School</option>
+          <option value="lotus_valley">Lotus Valley International School</option>
+          <option value="gdgps">G.D. Goenka Public School</option>
+          <option value="mother_mary">Mother Mary School</option>
+        </select>
+      </div>
+      <div class="ssw-error" id="ssw-err-3"></div>
+    </div>
+
+    <!-- STEP 5: Session timeline -->
+    <div class="ssw-step" id="ssw-step-4">
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;font-family:'DM Sans',sans-serif;">Select your academic session. This helps Sedy track terms and exam schedules.</div>
+      <div class="ssw-session-opts">
+        <div class="ssw-session-opt selected" id="ssw-sess-0" onclick="sswSelectSession(0)">
+          <span style="font-size:22px;">📅</span>
+          <div><div class="ssw-session-label">January – December</div><div class="ssw-session-sub">Calendar year (Jan 1 → Dec 31)</div></div>
+        </div>
+        <div class="ssw-session-opt" id="ssw-sess-1" onclick="sswSelectSession(1)">
+          <span style="font-size:22px;">🌸</span>
+          <div><div class="ssw-session-label">April – March</div><div class="ssw-session-sub">Academic year (Apr 1 → Mar 31) — Most Indian schools</div></div>
+        </div>
+      </div>
+      <div class="ssw-error" id="ssw-err-4"></div>
+    </div>
+
+    <!-- STEP 6: Preview + Keys -->
+    <div class="ssw-step" id="ssw-step-5">
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;font-family:'DM Sans',sans-serif;">Review your school, then click Create. You'll get two keys to share.</div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;">
+        <div class="ssw-preview-row"><span class="ssw-preview-key">School</span><span class="ssw-preview-val" id="ssw-prev-name">—</span></div>
+        <div class="ssw-preview-row"><span class="ssw-preview-key">Address</span><span class="ssw-preview-val" id="ssw-prev-addr">—</span></div>
+        <div class="ssw-preview-row"><span class="ssw-preview-key">Teachers parsed</span><span class="ssw-preview-val" id="ssw-prev-teachers">0</span></div>
+        <div class="ssw-preview-row"><span class="ssw-preview-key">Classes</span><span class="ssw-preview-val" id="ssw-prev-classes">—</span></div>
+        <div class="ssw-preview-row"><span class="ssw-preview-key">Chain</span><span class="ssw-preview-val" id="ssw-prev-chain">Independent</span></div>
+        <div class="ssw-preview-row"><span class="ssw-preview-key">Session</span><span class="ssw-preview-val" id="ssw-prev-session">Apr–Mar</span></div>
+      </div>
+      <div id="ssw-keys-section" style="display:none;">
+        <div class="ssw-label" style="margin-bottom:8px;">🎉 School Created — Share These Keys</div>
+        <div class="ssw-key-card">
+          <div class="ssw-key-for">👨‍🎓 Student Key</div>
+          <div class="ssw-key-value ssw-key-student" id="ssw-key-student">SEDY·S·????</div>
+          <button class="ssw-key-copy" onclick="sswCopyKey('student')">📋 Copy</button>
+        </div>
+        <div class="ssw-key-card">
+          <div class="ssw-key-for">📖 Teacher Key</div>
+          <div class="ssw-key-value ssw-key-teacher" id="ssw-key-teacher">SEDY·T·????</div>
+          <button class="ssw-key-copy" onclick="sswCopyKey('teacher')">📋 Copy</button>
+        </div>
+        <div style="background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.2);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--warning);font-family:'DM Sans',sans-serif;line-height:1.5;">⚠️ Save these keys. The student key lets anyone join as a student. The teacher key shows a name-pick list so only your real teachers can claim an account.</div>
+      </div>
+      <div class="ssw-error" id="ssw-err-5"></div>
+    </div>
+
+  </div>
+  <div class="setup-actions ssw-footer" id="ssw-footer">
+    <button class="setup-btn-secondary ssw-btn-secondary" id="ssw-back-btn" onclick="sswBack()" style="display:none;">← Back</button>
+    <button class="setup-btn-primary ssw-btn-primary" id="ssw-next-btn" onclick="sswNext()">Next →</button>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TEACHER JOIN ONBOARDING
+════════════════════════════════════════════════════════ -->
+<div class="teacher-ob-overlay" id="teacher-ob-overlay">
+<div class="teacher-ob-panel">
+  <div class="teacher-ob-header">
+    <div class="ob-school-logo" id="tob-logo">🏫</div>
+    <div class="ob-school-nm" id="tob-school-name">Your School</div>
+    <div class="ob-school-badge teacher">📖 Teacher</div>
+  </div>
+  <div class="teacher-ob-body">
+    <div class="teacher-ob-step active" id="tob-step-0">
+      <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;line-height:1.6;">Select your name from the teachers registered at this school. Teachers who already joined are hidden.</div>
+      <div id="tob-names-list" style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;"></div>
+      <div id="tob-err-0" style="font-size:12px;color:var(--danger);display:none;font-family:'DM Sans',sans-serif;"></div>
+    </div>
+    <div class="teacher-ob-step" id="tob-step-1">
+      <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;line-height:1.6;">Here is your timetable as uploaded by your principal.</div>
+      <div class="timetable-preview-box" id="tob-timetable-box">Loading…</div>
+    </div>
+    <div class="teacher-ob-step" id="tob-step-2">
+      <div style="text-align:center;padding:10px 0;">
+        <div style="font-size:40px;margin-bottom:10px;">🎉</div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:6px;">You're all set!</div>
+        <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;">Welcome to your school on Sedy Classroom.</div>
       </div>
     </div>
-    <div id="school-setup-error" class="auth-error-box" style="display:none;"></div>
   </div>
+  <div class="teacher-ob-footer">
+    <button id="tob-next-btn" onclick="tobNext()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent2),var(--accent));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">Continue →</button>
+  </div>
+</div>
+</div>
 
-  <!-- Step 2: Code generated -->
-  <div id="school-setup-step2" class="school-setup-body" style="display:none;">
-    <div style="text-align:center;">
-      <div style="font-size:40px;margin-bottom:8px;">🎉</div>
-      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);margin-bottom:6px;">Your school is ready!</div>
-      <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;">Share this code with your teachers and students</div>
+<!-- ══════════════════════════════════════════════════════
+     STUDENT JOIN ONBOARDING
+════════════════════════════════════════════════════════ -->
+<div class="student-ob-overlay" id="student-ob-overlay">
+<div class="student-ob-panel">
+  <div class="student-ob-header">
+    <div class="ob-school-logo" id="sob-logo">🏫</div>
+    <div class="ob-school-nm" id="sob-school-name">Your School</div>
+    <div class="ob-school-badge student">👨‍🎓 Student</div>
+  </div>
+  <div class="student-ob-body">
+    <div class="student-ob-step active" id="sob-step-0">
+      <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;">Enter your full name as it should appear to your teachers.</div>
+      <input type="text" class="ssw-input" id="sob-name-input" placeholder="Your full name" maxlength="50" onkeydown="if(event.key==='Enter')sobNext()">
+      <div id="sob-err-0" style="font-size:12px;color:var(--danger);display:none;font-family:'DM Sans',sans-serif;"></div>
     </div>
-    <div class="school-code-display">
-      <div style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:4px;">SCHOOL JOIN CODE</div>
-      <div class="school-code-value" id="school-setup-code-value">SEDY-????</div>
-      <div style="font-size:12px;color:var(--text3);font-family:'DM Sans',sans-serif;margin-bottom:12px;" id="school-setup-code-name">School Name</div>
-      <button class="school-code-copy" onclick="schoolCopyCode()" id="school-copy-btn">📋 Copy Code</button>
+    <div class="student-ob-step" id="sob-step-1">
+      <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;">Select your class.</div>
+      <div id="sob-class-list" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;"></div>
+      <div id="sob-err-1" style="font-size:12px;color:var(--danger);display:none;font-family:'DM Sans',sans-serif;"></div>
     </div>
-    <div style="background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.2);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--warning);font-family:'DM Sans',sans-serif;line-height:1.6;">
-      ⚠️ Save this code somewhere safe. Anyone with this code can join your school.
+    <div class="student-ob-step" id="sob-step-2">
+      <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;margin-bottom:4px;">Review your details before joining.</div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;">
+        <div class="ssw-preview-row"><span class="ssw-preview-key">Name</span><span class="ssw-preview-val" id="sob-prev-name">—</span></div>
+        <div class="ssw-preview-row"><span class="ssw-preview-key">School</span><span class="ssw-preview-val" id="sob-prev-school">—</span></div>
+        <div class="ssw-preview-row"><span class="ssw-preview-key">Class</span><span class="ssw-preview-val" id="sob-prev-class">—</span></div>
+      </div>
     </div>
   </div>
+  <div class="student-ob-footer">
+    <div style="display:flex;gap:8px;">
+      <button id="sob-back-btn" onclick="sobBack()" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;">← Back</button>
+      <button id="sob-next-btn" onclick="sobNext()" style="flex:2;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">Continue →</button>
+    </div>
+  </div>
+</div>
+</div>
 
-  <div class="setup-actions" id="school-setup-actions">
-    <button class="setup-btn-secondary" onclick="closeSchoolSetup()">Cancel</button>
-    <button class="setup-btn-primary" id="school-setup-btn" onclick="schoolSetupNext()">Create School →</button>
+<!-- ══════════════════════════════════════════════════════
+     KEY ENTRY FLOW (sign-in)
+════════════════════════════════════════════════════════ -->
+<div class="key-ob-overlay" id="key-ob-overlay">
+<div class="key-ob-panel">
+  <div class="key-ob-body">
+    <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Join Your School 🏫</div>
+    <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;">Do you have a key from your school?</div>
+    <div id="key-ob-step-0">
+      <div style="display:flex;gap:8px;">
+        <button class="key-choice-btn" id="key-choice-yes" onclick="keyObChoice('yes')">
+          <span style="font-size:24px;">🔑</span><span>I have a key</span>
+        </button>
+        <button class="key-choice-btn" id="key-choice-no" onclick="keyObChoice('no')">
+          <span style="font-size:24px;">❌</span><span>Skip for now</span>
+        </button>
+      </div>
+    </div>
+    <div id="key-ob-step-1" style="display:none;flex-direction:column;gap:10px;">
+      <div class="ssw-label">Enter your key</div>
+      <input type="text" id="key-ob-input" class="ssw-input" placeholder="e.g. SEDY·S·XK29" style="text-transform:uppercase;letter-spacing:2px;font-family:'DM Mono',monospace;font-size:16px;font-weight:700;" maxlength="14" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9·]/g,'')">
+      <button onclick="keyObVerify()" style="padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent2),var(--accent));color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;" id="key-ob-verify-btn">Verify →</button>
+      <div id="key-ob-verified-card" class="school-verified-card" style="display:none;">
+        <div class="school-verified-logo" id="key-ob-school-logo">🏫</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--success);font-family:'Syne',sans-serif;" id="key-ob-school-name-lbl">School</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;" id="key-ob-role-badge">Student</div>
+        </div>
+        <div style="margin-left:auto;font-size:22px;">✅</div>
+      </div>
+      <div id="key-ob-err" style="font-size:12px;color:var(--danger);display:none;font-family:'DM Sans',sans-serif;"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button id="key-ob-back-btn" onclick="keyObBack()" style="flex:1;padding:11px;border-radius:12px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;">← Back</button>
+      <button id="key-ob-continue-btn" onclick="keyObContinue()" style="flex:2;padding:11px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent2),var(--accent));color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;display:none;">Continue →</button>
+    </div>
   </div>
 </div>
 </div>

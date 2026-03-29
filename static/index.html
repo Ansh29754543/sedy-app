@@ -6683,6 +6683,127 @@ function crShowSubjectList(){crSwitchPane('subjects');}
 // Clear any stale auth error state immediately on load
 clearAuthError();
 authInit();
+
+// ══════════════════════════════════════════════════════
+// AUTH HELPERS — these were missing, causing the crash
+// ══════════════════════════════════════════════════════
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error') || document.getElementById('auth-error-ob');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function clearAuthError() {
+  ['auth-error','auth-error-ob'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function authSignInGoogle() {
+  const fb = window._fb;
+  if (!fb) { showAuthError('Auth not ready. Refresh the page.'); return; }
+  const authEl  = document.getElementById('auth-loading');
+  const errEl   = document.getElementById('auth-error');
+  if (authEl) { authEl.style.display = 'flex'; document.getElementById('auth-loading-text').textContent = 'Signing in…'; }
+  if (errEl)  errEl.style.display = 'none';
+  const provider = new fb.GoogleAuthProvider();
+  fb.signInWithPopup(fb.auth, provider)
+    .catch(err => {
+      if (authEl) authEl.style.display = 'none';
+      showAuthError(err.message || 'Sign-in failed. Try again.');
+    });
+}
+
+async function authSignOut() {
+  hideUserMenu();
+  const fb = window._fb;
+  if (fb) await fb.signOut(fb.auth).catch(() => {});
+  _currentUser  = null;
+  _userProfile  = null;
+  _userSchoolCode = null;
+  _userSchoolName = null;
+  _userSchoolRole = null;
+  chats = {}; activeChatId = null;
+  try { localStorage.clear(); } catch(e) {}
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('session-loader').style.display = 'none';
+  document.getElementById('sb-user').style.display = 'none';
+  document.getElementById('auth-step-login').style.display = 'block';
+  document.getElementById('auth-step-onboard').style.display = 'none';
+}
+
+async function _afterLogin(user, isNew) {
+  _currentUser = user;
+  _isNewUser   = isNew;
+
+  // Load or set preferred language
+  if (_userProfile?.language) _userPreferredLang = _userProfile.language;
+
+  // Update sidebar avatar
+  const sbUser   = document.getElementById('sb-user');
+  const sbAvatar = document.getElementById('sb-avatar');
+  const umAvatar = document.getElementById('um-avatar');
+  const umName   = document.getElementById('um-name');
+  const umEmail  = document.getElementById('um-email');
+  if (sbUser)   sbUser.style.display  = 'flex';
+  if (sbAvatar) sbAvatar.src = user.photoURL || '';
+  if (umAvatar) umAvatar.src = user.photoURL || '';
+  if (umName)   umName.textContent  = _userProfile?.name || user.displayName || '';
+  if (umEmail)  umEmail.textContent = user.email || '';
+
+  // Hide auth screen
+  document.getElementById('auth-screen').style.display  = 'none';
+  document.getElementById('session-loader').style.display = 'none';
+
+  // Set school globals from profile
+  _userSchoolCode = _userProfile?.schoolCode || null;
+  _userSchoolName = _userProfile?.schoolName || null;
+  _userSchoolRole = _userProfile?.schoolRole || null;
+  crUpdateSidebarLabel();
+
+  // Boot the main app
+  loadTheme();
+  init();
+}
+
+function authInit() {
+  const fb = window._fb;
+  if (!fb) {
+    // Firebase not loaded yet — retry
+    setTimeout(authInit, 300);
+    return;
+  }
+  fb.onAuthStateChanged(fb.auth, async (user) => {
+    if (user) {
+      _currentUser = user;
+      // Load profile from Firestore
+      try {
+        const snap = await fb.getDoc(fb.doc(fb.db, 'users', user.uid, 'profile', 'data'));
+        _userProfile = snap.exists() ? snap.data() : null;
+      } catch(e) { _userProfile = null; }
+
+      const isNew = !_userProfile;
+
+      if (isNew) {
+        // First-time user → show onboarding
+        document.getElementById('session-loader').style.display = 'none';
+        document.getElementById('auth-screen').style.display    = 'flex';
+        _showOnboarding();
+      } else {
+        // Returning user → load data and go
+        try { await loadUserDataFromFirestore(); } catch(e) {}
+        await _afterLogin(user, false);
+      }
+    } else {
+      // Not signed in → show login
+      document.getElementById('session-loader').style.display = 'none';
+      document.getElementById('auth-screen').style.display    = 'flex';
+    }
+  });
+}
 </script>
 <!-- User menu popup -->
 <div id="user-menu" style="

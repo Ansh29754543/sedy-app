@@ -2543,6 +2543,7 @@ function copyFormula(id){const el=document.getElementById(id);if(!el)return;navi
 
 function addMsg(role, content, extra, silent = false) {
   const wrap = document.getElementById('chat-messages');
+  // Remove empty state if present
   const empty = wrap.querySelector('.empty-state');
   if (empty) empty.remove();
 
@@ -2551,64 +2552,20 @@ function addMsg(role, content, extra, silent = false) {
   const speakId = 'spk' + Date.now() + Math.random().toString(36).slice(2);
 
   if (role === 'ai') {
-    const pdfBadge = extra && extra.pdfBadge
-      ? `<div class="pdf-reply-badge">📄 ${_esc(extra.pdfBadge)}</div>` : '';
-    const imgBadge = extra && extra.imgBadge
-      ? `<div class="img-reply-badge">🖼️ ${extra.imgBadge}</div>` : '';
-    const parsed = parseMarkdown(content);
-    div.innerHTML =
-      `<div class="msg-avatar">✦</div>` +
-      `<div class="msg-content">` +
-        pdfBadge + imgBadge +
-        `<div class="msg-bubble">${parsed}</div>` +
-        `<div class="msg-actions">` +
-          `<button class="speak-btn" id="${speakId}" onclick="speakMsg('${speakId}')">🔊 Speak</button>` +
-        `</div>` +
-      `</div>`;
+    div.innerHTML = `<div class="msg-avatar">✦</div><div class="msg-content">${extra&&extra.pdfBadge?`<div class="pdf-reply-badge">📄 ${_esc(extra.pdfBadge)}</div>`:''} ${extra&&extra.imgBadge?`<div class="img-reply-badge">🖼️ ${extra.imgBadge}</div>`:''}<div class="msg-bubble">${parseMarkdown(content)}</div><div class="msg-actions"><button class="speak-btn" id="${speakId}" onclick="speakMsg('${speakId}')">🔊 Speak</button></div></div>`;
     div._rawText = content;
   } else {
     let attachHtml = '';
-    if (extra && extra.pdfs && extra.pdfs.length) {
-      attachHtml += '<div class="pdf-user-attachments">' +
-        extra.pdfs.map(p => {
-          const thumb = p.thumbDataUrl
-            ? `<img class="pdf-user-thumb-img" src="${p.thumbDataUrl}" alt="">`
-            : `<div class="pdf-user-thumb-icon">📄</div>`;
-          return `<div class="pdf-user-thumb">${thumb}` +
-            `<div class="pdf-user-thumb-info">` +
-              `<div class="pdf-user-thumb-name">${_esc(p.name)}</div>` +
-              `<div class="pdf-user-thumb-sub">${p.sizeKb} KB${p.pageCount ? ' · ' + p.pageCount + 'p' : ''}</div>` +
-            `</div></div>`;
-        }).join('') + '</div>';
+    if (extra&&extra.pdfs&&extra.pdfs.length) {
+      attachHtml += '<div class="pdf-user-attachments">'+extra.pdfs.map(p=>{const thumb=p.thumbDataUrl?`<img class="pdf-user-thumb-img" src="${p.thumbDataUrl}" alt="">`:`<div class="pdf-user-thumb-icon">📄</div>`;return`<div class="pdf-user-thumb">${thumb}<div class="pdf-user-thumb-info"><div class="pdf-user-thumb-name">${_esc(p.name)}</div><div class="pdf-user-thumb-sub">${p.sizeKb} KB${p.pageCount?' · '+p.pageCount+'p':''}</div></div></div>`;}).join('')+'</div>';
     }
-    if (extra && extra.images && extra.images.length) {
-      const imgs = extra.images;
-      attachHtml += '<div class="img-user-attachments">';
-      const show = Math.min(imgs.length, 4);
-      for (let i = 0; i < show; i++) {
-        attachHtml += `<div class="img-user-thumb" onclick="openLightbox('${imgs[i].dataUrl}')">` +
-          `<img src="${imgs[i].dataUrl}" alt="${_esc(imgs[i].name)}"></div>`;
-      }
-      if (imgs.length > 4) {
-        attachHtml += `<div style="display:flex;align-items:center;justify-content:center;` +
-          `width:90px;height:90px;border-radius:10px;background:rgba(255,255,255,.15);` +
-          `font-size:18px;font-weight:800;color:white;">+${imgs.length - 4}</div>`;
-      }
-      attachHtml += '</div>';
+    if (extra&&extra.images&&extra.images.length) {
+      const imgs=extra.images;attachHtml+='<div class="img-user-attachments">';const show=Math.min(imgs.length,4);for(let i=0;i<show;i++){attachHtml+=`<div class="img-user-thumb" onclick="openLightbox('${imgs[i].dataUrl}')"><img src="${imgs[i].dataUrl}" alt="${_esc(imgs[i].name)}"></div>`;}if(imgs.length>4){attachHtml+=`<div style="display:flex;align-items:center;justify-content:center;width:90px;height:90px;border-radius:10px;background:rgba(255,255,255,.15);font-size:18px;font-weight:800;color:white;">+${imgs.length-4}</div>`;}attachHtml+='</div>';
     }
-    div.innerHTML =
-      `<div class="msg-avatar">👤</div>` +
-      `<div class="msg-content">` +
-        `<div class="msg-bubble">${attachHtml}${parseMarkdown(content)}</div>` +
-      `</div>`;
+    div.innerHTML = `<div class="msg-avatar">👤</div><div class="msg-content"><div class="msg-bubble">${attachHtml}${parseMarkdown(content)}</div></div>`;
   }
-
   wrap.appendChild(div);
-  if (role === 'ai') {
-    const bubble = div.querySelector('.msg-bubble');
-    if (bubble) renderMath(bubble);
-    try { bubble && hljs.highlightAllUnder(bubble); } catch(e) {}
-  }
+  if (role === 'ai') { const bubble = div.querySelector('.msg-bubble'); renderMath(bubble); }
   if (!silent) scrollBottom();
   return div;
 }
@@ -2833,13 +2790,8 @@ async function sendMessage(){
   }
   if(stagedPdfs.length){
     const pdfs=[...stagedPdfs];stagedPdfs=[];renderStagedRow();if(!text)text='Please summarise this document.';addMsg('user',text,{pdfs});pushHistory('user',text);showTyping();
+    let pdfIntent='chat';try{const ir=await fetch(API_URL+'/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-6)})});if(ir.ok){const id=await ir.json();pdfIntent=id.intent||'chat';}}catch(e){}
     const pdf=pdfs[0],pdfBase64=pdf.base64,pdfName=pdf.name;
-    // Replace this block in sendMessage():
-    let intent='chat';
-    try{
-      const ir=await fetch(API_URL+'/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-6)})});
-      if(ir.ok){const id=await ir.json();intent=id.intent||'chat';}
-    }catch(e){ intent='chat'; } // <-- this already exists, so intent check isn't the bug
     const topicFromText=(t)=>t.replace(/^(make|create|generate|give me|show me|flashcards?|quiz|notes?|formula|flowchart)\s+/gi,'').replace(/(notes?|formula sheet?|flashcards?|quiz|flowchart)\s+(on|for|about|of)\s+/gi,'').trim()||pdfName.replace(/\.pdf$/i,'');
     try{
       if(pdfIntent==='notes'){const res=await fetch(API_URL+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:topicFromText(text),history:getChatHistory().slice(-10),model:activeModel,pdf_base64:pdfBase64,pdf_name:pdfName})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Notes: '+data.topic+']');renderNotesMsg(data.notes,data.topic);return;}
@@ -2861,8 +2813,12 @@ async function sendMessage(){
   // Only check for code context form if user EXPLICITLY asks to write/build/create code
   if(isCodeRequest(text)&&!isFreeMode){await showCodeContextForm(text);return;}
   showTyping();
-  let intent='chat';
-  try{const ir=await fetch(API_URL+'/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-6)})});if(ir.ok){const id=await ir.json();intent=id.intent||'chat';}}catch(e){}
+  // Replace this block in sendMessage():
+let intent='chat';
+try{
+  const ir=await fetch(API_URL+'/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-6)})});
+  if(ir.ok){const id=await ir.json();intent=id.intent||'chat';}
+}catch(e){ intent='chat'; } // <-- this already exists, so intent check isn't the bug
   pushHistory('user',text);
 
   if(intent==='graph'){try{const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Graph: '+data.title+']');renderGraph(data);}catch(err){hideTyping();addMsg('ai','Could not generate the graph.');}return;}
@@ -6108,5 +6064,8 @@ authInit();
     <button class="live-ask-btn" onclick="liveAsk()" title="Ask AI about live view">🎯</button>
   </div>
 </div>
+
+
+
 </body>
 </html>

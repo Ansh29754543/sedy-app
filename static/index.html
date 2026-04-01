@@ -14,7 +14,8 @@
   import {
     getAuth, GoogleAuthProvider,
     signInWithPopup, signOut, onAuthStateChanged,
-    updateProfile
+    updateProfile,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword
   } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
   import {
     getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
@@ -40,6 +41,7 @@
     GoogleAuthProvider,
     signInWithPopup, signOut, onAuthStateChanged,
     updateProfile,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
     doc, getDoc, setDoc, updateDoc, deleteDoc,
     collection, getDocs, writeBatch, serverTimestamp
   };
@@ -1205,56 +1207,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .wbp-tool-bar{display:flex;align-items:center;gap:8px;padding:6px 14px;background:#141928;border-top:1px solid var(--border);flex-wrap:wrap;flex-shrink:0;}
 @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
 
-/* ══════════════════════════════════════════════════════
-   UPGRADES PANEL
-══════════════════════════════════════════════════════ */
-.upgrades-overlay{position:fixed;inset:0;z-index:8200;background:rgba(8,11,18,.75);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;}
-.upgrades-overlay.open{display:flex;}
-.upgrades-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:24px;width:100%;max-width:480px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:msgIn .25s ease;margin:16px;}
-.upgrades-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.upgrades-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);}
-.upgrades-body{overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:14px;}
-.upgrade-card{border-radius:16px;border:1.5px solid var(--border2);overflow:hidden;transition:all .2s;cursor:pointer;}
-.upgrade-card:hover{border-color:var(--accent2);transform:translateY(-1px);}
-.upgrade-card-top{padding:16px 18px;display:flex;align-items:center;gap:14px;}
-.upgrade-card-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
-.upgrade-card-info{flex:1;}
-.upgrade-card-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);}
-.upgrade-card-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;}
-.upgrade-card-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap;}
-.upgrade-card-features{padding:0 18px 14px;display:flex;flex-direction:column;gap:5px;}
-.upgrade-feature{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif;}
-.upgrade-feature::before{content:'✓';color:var(--success);font-weight:700;flex-shrink:0;}
-.upgrade-action-btn{margin:0 18px 16px;width:calc(100% - 36px);padding:11px;border-radius:12px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;}
 
-/* ══════════════════════════════════════════════════════
-   SCHOOL SETUP WIZARD
-══════════════════════════════════════════════════════ */
-.school-setup-overlay{position:fixed;inset:0;z-index:8300;background:rgba(8,11,18,.8);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;}
-.school-setup-overlay.open{display:flex;}
-.school-setup-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:24px;width:100%;max-width:500px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:msgIn .28s ease;margin:16px;}
-.school-setup-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.school-setup-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);}
-.school-setup-body{overflow-y:auto;flex:1;padding:24px 22px;display:flex;flex-direction:column;gap:18px;}
-.setup-step{display:flex;flex-direction:column;gap:6px;}
-.setup-label{font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;}
-.setup-input{width:100%;padding:12px 14px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color .2s;}
-.setup-input:focus{border-color:var(--accent2);}
-.school-code-display{background:linear-gradient(135deg,rgba(124,92,252,.12),rgba(79,142,255,.08));border:2px solid rgba(124,92,252,.3);border-radius:16px;padding:20px;text-align:center;}
-.school-code-value{font-family:'Syne',sans-serif;font-size:32px;font-weight:900;color:var(--accent2);letter-spacing:4px;margin:8px 0;}
-.school-code-copy{padding:8px 20px;background:none;border:1px solid var(--accent2);border-radius:10px;color:var(--accent2);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .18s;}
-.school-code-copy:hover{background:rgba(124,92,252,.1);}
-.setup-actions{display:flex;gap:10px;padding:16px 22px;border-top:1px solid var(--border);flex-shrink:0;}
-.setup-btn-primary{flex:2;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent2),var(--accent));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;}
-.setup-btn-primary:hover{transform:scale(1.02);}
-.setup-btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
-.setup-btn-secondary{flex:1;padding:12px;border-radius:12px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
-
-/* ══════════════════════════════════════════════════════
-   CLASSROOM OVERLAY — Full screen
-══════════════════════════════════════════════════════ */
-.classroom-overlay{position:fixed;inset:0;z-index:8100;background:var(--bg);display:none;flex-direction:column;}
-.classroom-overlay.open{display:flex;}
 .classroom-topbar{display:flex;align-items:center;gap:12px;padding:14px 18px;padding-top:calc(14px + var(--safe-t));background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
 .classroom-back{width:36px;height:36px;border-radius:10px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .classroom-logo{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);flex:1;}
@@ -1555,9 +1508,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- ── STEP 1: Login / Signup ── -->
   <div id="auth-step-login" class="auth-card">
 
-    <div style="text-align:center;margin-bottom:28px;">
-      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#e8edf5;margin-bottom:6px;">Welcome back 👋</div>
-      <div style="font-size:13px;color:rgba(136,153,187,.65);font-family:'DM Sans',sans-serif;line-height:1.6;">Sign in to access your chats, saved notes,<br>and study materials — all in one place.</div>
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#e8edf5;margin-bottom:6px;">Welcome to Sedy 👋</div>
+      <div style="font-size:13px;color:rgba(136,153,187,.65);font-family:'DM Sans',sans-serif;line-height:1.6;">Sign in to access your AI study companion</div>
     </div>
 
     <!-- Google Sign-In Button -->
@@ -1566,6 +1519,29 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       Continue with Google
     </button>
 
+    <!-- OR divider -->
+    <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.1);"></div>
+      <div style="font-size:11px;color:rgba(136,153,187,.45);font-family:'DM Mono',monospace;white-space:nowrap;">or use email</div>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.1);"></div>
+    </div>
+
+    <!-- Email/Password fields -->
+    <div id="auth-email-fields">
+      <input id="auth-email-input" type="email" class="auth-input" placeholder="Email address"
+        style="margin-bottom:10px;"
+        oninput="clearAuthError()"
+        onkeydown="if(event.key==='Enter')document.getElementById('auth-pw-input').focus()">
+      <input id="auth-pw-input" type="password" class="auth-input" placeholder="Password"
+        style="margin-bottom:14px;"
+        oninput="clearAuthError()"
+        onkeydown="if(event.key==='Enter')authEmailAction()">
+      <div style="display:flex;gap:8px;">
+        <button onclick="authEmailSignIn()" style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent2,#7c5cfc),var(--accent,#4f8eff));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">Sign In</button>
+        <button onclick="authEmailSignUp()" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:none;color:rgba(255,255,255,.8);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign Up</button>
+      </div>
+    </div>
+
     <!-- Error + Loading -->
     <div id="auth-error" class="auth-error-box" style="display:none;margin-top:14px;"></div>
     <div id="auth-loading" class="auth-loading-box" style="display:none;margin-top:14px;">
@@ -1573,157 +1549,65 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <span id="auth-loading-text">Signing in…</span>
     </div>
 
-    <div style="margin-top:24px;font-size:10px;color:rgba(136,153,187,.35);font-family:'DM Mono',monospace;text-align:center;line-height:1.7;">
+    <div style="margin-top:20px;font-size:10px;color:rgba(136,153,187,.35);font-family:'DM Mono',monospace;text-align:center;line-height:1.7;">
       Your data is stored securely · Only you can see it<br>Made by Ansh Verma 🚀
     </div>
   </div>
 
   <!-- ── STEP 2: Onboarding (shown after first login) ── -->
   <div id="auth-step-onboard" class="auth-card" style="display:none;">
-    <!-- Progress dots — dynamic count -->
-    <div style="display:flex;gap:6px;margin-bottom:24px;" id="ob-dots-row">
+
+    <!-- Progress dots: 2 steps -->
+    <div style="display:flex;gap:6px;margin-bottom:28px;">
       <div class="onboard-step-dot active" id="ob-dot-0"></div>
       <div class="onboard-step-dot" id="ob-dot-1"></div>
-      <div class="onboard-step-dot" id="ob-dot-2"></div>
-      <div class="onboard-step-dot" id="ob-dot-3"></div>
-      <div class="onboard-step-dot" id="ob-dot-4"></div>
-      <div class="onboard-step-dot" id="ob-dot-5"></div>
     </div>
 
-    <!-- ── PAGE 0: Do you have a school key? ── -->
+    <!-- Step 0: Name -->
     <div id="ob-page-0" class="ob-page">
-      <div class="ob-emoji">🏫</div>
-      <div class="ob-title">Do you have a school key?</div>
-      <div class="ob-sub">Your principal or teacher gives you a key to join Sedy Classroom</div>
-      <div style="display:flex;gap:10px;width:100%;margin-top:8px;">
-        <button class="ob-school-choice-btn" id="ob-school-yes" onclick="obSchoolChoice('yes')">
-          <span style="font-size:22px;">🔑</span><span>Yes, I have a key</span>
-        </button>
-        <button class="ob-school-choice-btn" id="ob-school-no" onclick="obSchoolChoice('no')">
-          <span style="font-size:22px;">❌</span><span>No key, continue</span>
-        </button>
-      </div>
-      <!-- Key entry area -->
-      <div id="ob-key-entry" style="display:none;width:100%;margin-top:16px;">
-        <div style="font-size:11px;color:rgba(136,153,187,.5);font-family:'DM Mono',monospace;margin-bottom:6px;letter-spacing:.8px;text-transform:uppercase;">Enter Your Key</div>
-        <div style="display:flex;align-items:center;gap:0;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;overflow:hidden;">
-          <span style="padding:0 10px;font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:rgba(136,153,187,.5);border-right:1px solid rgba(255,255,255,.1);white-space:nowrap;">SEDY-</span>
-          <input id="ob-key-input" type="text" style="flex:1;background:none;border:none;outline:none;color:#e8edf5;font-family:'DM Mono',monospace;font-size:15px;font-weight:700;letter-spacing:2px;padding:13px 12px;text-transform:uppercase;" placeholder="S-XK29" maxlength="8"
-            oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9\-]/g,'')"
-            onkeydown="if(event.key==='Enter')obVerifyKey()">
-        </div>
-        <div style="font-size:11px;color:rgba(136,153,187,.4);font-family:'DM Mono',monospace;margin-top:5px;">Student key: S-XXXX · Teacher key: T-XXXX</div>
-        <button onclick="obVerifyKey()" id="ob-verify-btn" style="margin-top:10px;width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#7c5cfc,#4f8eff);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">Verify Key →</button>
-        <!-- Verified card -->
-        <div id="ob-key-verified" style="display:none;margin-top:10px;background:rgba(0,229,160,.08);border:1.5px solid rgba(0,229,160,.3);border-radius:12px;padding:12px 14px;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div id="ob-verified-logo" style="width:40px;height:40px;border-radius:10px;background:rgba(124,92,252,.2);display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex-shrink:0;">🏫</div>
-            <div>
-              <div id="ob-verified-school" style="font-size:14px;font-weight:700;color:#00e5a0;font-family:'Syne',sans-serif;"></div>
-              <div id="ob-verified-role" style="font-size:10px;color:rgba(136,153,187,.6);font-family:'DM Mono',monospace;margin-top:2px;"></div>
-            </div>
-            <div style="margin-left:auto;font-size:20px;">✅</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── PAGE 1S: Student — name ── -->
-    <div id="ob-page-1s" class="ob-page" style="display:none;">
-      <div class="ob-emoji">👋</div>
-      <div class="ob-title">What's your name?</div>
-      <div class="ob-sub">Your teachers will see this name</div>
-      <input id="ob-s-name" type="text" class="auth-input" placeholder="Your full name" maxlength="40" onkeydown="if(event.key==='Enter')obNext()">
-    </div>
-
-    <!-- ── PAGE 2S: Student — age + gender ── -->
-    <div id="ob-page-2s" class="ob-page" style="display:none;">
-      <div class="ob-emoji">🎂</div>
-      <div class="ob-title">Age &amp; Gender</div>
-      <div class="ob-sub">Helps Sedy personalise your experience</div>
-      <input id="ob-s-age" type="number" class="auth-input" placeholder="Your age" min="5" max="100" style="margin-bottom:10px;">
-      <div class="ob-options-grid" id="ob-s-gender-grid" style="margin-top:4px;">
-        <div class="ob-opt" onclick="obSelect(this,'gender')">👦 Male</div>
-        <div class="ob-opt" onclick="obSelect(this,'gender')">👧 Female</div>
-        <div class="ob-opt" onclick="obSelect(this,'gender')">🧑 Other</div>
-      </div>
-    </div>
-
-    <!-- ── PAGE 3S: Student — class ── -->
-    <div id="ob-page-3s" class="ob-page" style="display:none;">
-      <div class="ob-emoji">🎓</div>
-      <div class="ob-title">Select your class</div>
-      <div class="ob-sub">Choose from classes in your school</div>
-      <div class="ob-options-grid" id="ob-s-class-grid" style="max-height:200px;overflow-y:auto;">
-        <!-- Populated dynamically from school data -->
-      </div>
-    </div>
-
-    <!-- ── PAGE 1T: Teacher — pick name ── -->
-    <div id="ob-page-1t" class="ob-page" style="display:none;">
-      <div class="ob-emoji">📖</div>
-      <div class="ob-title">Select your name</div>
-      <div class="ob-sub">Pick your name from the school's teacher list</div>
-      <div id="ob-t-names-list" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;width:100%;margin-top:8px;"></div>
-    </div>
-
-    <!-- ── PAGE 2T: Teacher — age + gender ── -->
-    <div id="ob-page-2t" class="ob-page" style="display:none;">
-      <div class="ob-emoji">🎂</div>
-      <div class="ob-title">Age &amp; Gender</div>
-      <div class="ob-sub">Helps Sedy personalise your experience</div>
-      <input id="ob-t-age" type="number" class="auth-input" placeholder="Your age" min="18" max="100" style="margin-bottom:10px;">
-      <div class="ob-options-grid" id="ob-t-gender-grid" style="margin-top:4px;">
-        <div class="ob-opt" onclick="obSelect(this,'tgender')">👦 Male</div>
-        <div class="ob-opt" onclick="obSelect(this,'tgender')">👧 Female</div>
-        <div class="ob-opt" onclick="obSelect(this,'tgender')">🧑 Other</div>
-      </div>
-    </div>
-
-    <!-- ── PAGE 1N: No-code — name ── -->
-    <div id="ob-page-1n" class="ob-page" style="display:none;">
       <div class="ob-emoji">👋</div>
       <div class="ob-title">What's your name?</div>
       <div class="ob-sub">How should Sedy greet you?</div>
-      <input id="ob-n-name" type="text" class="auth-input" placeholder="Your name or nickname" maxlength="30" onkeydown="if(event.key==='Enter')obNext()">
+      <input id="ob-name" type="text" class="auth-input" placeholder="Your name or nickname"
+        maxlength="30" onkeydown="if(event.key==='Enter')obNext()">
     </div>
 
-    <!-- ── PAGE 2N: No-code — age + gender ── -->
-    <div id="ob-page-2n" class="ob-page" style="display:none;">
-      <div class="ob-emoji">🎂</div>
-      <div class="ob-title">Age &amp; Gender</div>
-      <div class="ob-sub">Helps Sedy personalise your experience</div>
-      <input id="ob-n-age" type="number" class="auth-input" placeholder="Your age" min="5" max="100" style="margin-bottom:10px;">
-      <div class="ob-options-grid" id="ob-n-gender-grid" style="margin-top:4px;">
-        <div class="ob-opt" onclick="obSelect(this,'ngender')">👦 Male</div>
-        <div class="ob-opt" onclick="obSelect(this,'ngender')">👧 Female</div>
-        <div class="ob-opt" onclick="obSelect(this,'ngender')">🧑 Other</div>
-      </div>
-    </div>
-
-    <!-- ── PAGE 3N: No-code — language ── -->
-    <div id="ob-page-3n" class="ob-page" style="display:none;">
-      <div class="ob-emoji">🗣️</div>
-      <div class="ob-title">Preferred language?</div>
-      <div class="ob-sub">Sedy will reply in your language by default</div>
-      <div class="ob-options-grid" id="ob-lang-grid">
-        <div class="ob-opt" onclick="obSelect(this,'lang')">🇬🇧 English</div>
-        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Hindi</div>
-        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Hinglish</div>
-        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Bengali</div>
-        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Tamil</div>
-        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Telugu</div>
-        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Marathi</div>
-        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Kannada</div>
-        <div class="ob-opt" onclick="obSelect(this,'lang')">🇮🇳 Gujarati</div>
+    <!-- Step 1: Interests (pick 3-4 topics) -->
+    <div id="ob-page-1" class="ob-page" style="display:none;">
+      <div class="ob-emoji">🎯</div>
+      <div class="ob-title">What are your interests?</div>
+      <div class="ob-sub">Pick 3–4 topics — Sedy will focus on these</div>
+      <div class="ob-options-grid" id="ob-interests-grid" style="margin-top:8px;">
+        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🔢 Mathematics</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'interest')">⚛️ Physics</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🧪 Chemistry</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🌿 Biology</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'interest')">💻 Coding</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🏛️ History</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🌍 Geography</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'interest')">📖 English</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🧮 Economics</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🎨 Arts</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🎵 Music</div>
+        <div class="ob-opt multi" onclick="obToggle(this,'interest')">⚽ Sports</div>
       </div>
     </div>
 
     <!-- Nav buttons -->
     <div style="display:flex;gap:10px;margin-top:24px;">
-      <button id="ob-back-btn" onclick="obBack()" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:none;color:rgba(136,153,187,.6);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;">← Back</button>
-      <button id="ob-next-btn" onclick="obNext()" style="flex:2;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#7c5cfc,#4f8eff);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;">Next →</button>
+      <button id="ob-back-btn" onclick="obBack()" style="
+        flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);
+        background:none;color:rgba(136,153,187,.6);font-size:13px;cursor:pointer;
+        font-family:'DM Sans',sans-serif;display:none;
+      ">← Back</button>
+      <button id="ob-next-btn" onclick="obNext()" style="
+        flex:2;padding:12px;border-radius:12px;border:none;
+        background:linear-gradient(135deg,var(--accent2,#7c5cfc),var(--accent,#4f8eff));
+        color:white;font-size:14px;font-weight:700;cursor:pointer;
+        font-family:'Syne',sans-serif;transition:all .2s;
+      ">Next →</button>
     </div>
+
     <div id="auth-error-ob" class="auth-error-box" style="display:none;margin-top:12px;"></div>
   </div>
 
@@ -1802,20 +1686,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
       <div class="sidebar-bottom-row">
         <button class="sb-btn" onclick="openFilesPanel()">📁 Files</button>
-        <button class="sb-btn" onclick="openScope()">🔭 Scope</button>
+        <button class="sb-btn" onclick="openSedyLens()">🔍 Lens</button>
         <button class="sb-btn" onclick="openWhiteboard()">🖊 Draw</button>
       </div>
-      <!-- Classroom + Upgrades row -->
-      <div class="sidebar-bottom-row" style="margin-top:4px;">
-        <button class="sb-btn" id="sb-classroom-btn" onclick="openClassroom()"
-          style="flex:2;background:linear-gradient(135deg,rgba(79,142,255,.12),rgba(124,92,252,.12));border-color:rgba(124,92,252,.3);color:var(--accent2);">
-          🏫 <span id="sb-classroom-label">Classroom</span>
-        </button>
-        <button class="sb-btn" onclick="openUpgrades()"
-          style="flex:1;background:rgba(255,181,71,.08);border-color:rgba(255,181,71,.3);color:var(--warning);">
-          ⭐ Plus
-        </button>
-      </div>
+
     </div>
   </div>
 
@@ -1905,17 +1779,18 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div class="attach-menu" id="attach-menu">
             <div class="attach-menu-item" onclick="pickAnyFile()"><span class="ami-icon">📁</span><div><div class="ami-label">Upload File</div><div class="ami-sub">PDF, JPG, PNG, TXT…</div></div></div>
             <div class="attach-menu-sep"></div>
-            <div class="attach-menu-item" onclick="startScreenshot()"><span class="ami-icon">📸</span><div><div class="ami-label">Screenshot</div><div class="ami-sub">Capture & explain</div></div></div>
+            <div class="attach-menu-item" onclick="takePicture()"><span class="ami-icon">📷</span><div><div class="ami-label">Take Picture</div><div class="ami-sub">Camera photo</div></div></div>
             <div class="attach-menu-sep"></div>
             <div class="attach-menu-item" onclick="openWhiteboardFromMenu()"><span class="ami-icon">🖊</span><div><div class="ami-label">Whiteboard</div><div class="ami-sub">Draw & ask</div></div></div>
-            <div class="attach-menu-item" onclick="openScopeFromMenu()"><span class="ami-icon">🔭</span><div><div class="ami-label">Sedy Scope</div><div class="ami-sub">Live camera</div></div></div>
+            <div class="attach-menu-item" onclick="openSedyLensFromMenu()"><span class="ami-icon">🔍</span><div><div class="ami-label">Sedy Lens</div><div class="ami-sub">Point &amp; ask AI</div></div></div>
+            <div class="attach-menu-item" onclick="openSedyLiveFromMenu()"><span class="ami-icon">🎯</span><div><div class="ami-label">Sedy Live</div><div class="ami-sub">Real-time highlight</div></div></div>
           </div>
         </div>
         <textarea id="chat-input" rows="1" placeholder="Ask anything…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
         <button class="mic-btn" id="mic-btn" onclick="toggleVoice()">🎤</button>
         <button class="send-btn" onclick="sendMessage()">➤</button>
       </div>
-      <div class="input-hint">🎤 voice &bull; 📎 files &bull; 📸 screenshot &bull; 🔭 scope &bull; 🖊 whiteboard</div>
+      <div class="input-hint">🎤 voice &bull; 📎 files &bull; 📷 camera &bull; 🔍 lens &bull; 🎯 live &bull; 🖊 whiteboard</div>
     </div>
   </div>
 </div>
@@ -2031,19 +1906,19 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <div class="files-list" id="files-list"></div>
 </div>
 
-<!-- Scope overlay (simplified) -->
-<div class="scope-overlay" id="scope-overlay">
+<!-- Sedy Lens overlay -->
+<div class="scope-overlay" id="lens-overlay">
 
   <!-- Top bar -->
   <div class="scope-topbar">
-    <div class="scope-logo">🔭 Sedy Scope</div>
+    <div class="scope-logo">🔍 Sedy Lens</div>
     <div style="display:flex;gap:8px;align-items:center;">
       <!-- Memory saved count badge -->
       <div class="scope-mem-badge" id="scope-mem-badge" style="display:none">
         <span id="scope-mem-count">0</span> saved
       </div>
       <button class="scope-flip-btn" onclick="scopeFlipCamera()">🔄</button>
-      <button class="scope-close-btn" onclick="closeScope()">✕</button>
+      <button class="scope-close-btn" onclick="closeSedyLens()">✕</button>
     </div>
   </div>
 
@@ -2081,7 +1956,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="scope-answer-header">
         <div class="scope-answer-badge">
           <div class="scope-answer-dot"></div>
-          <span id="scope-answer-mode-label">Sedy Scope</span>
+          <span id="scope-answer-mode-label">Sedy Lens</span>
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
           <button class="scope-act-btn" id="scope-save-btn" onclick="scopeSaveFromAnswer()" style="display:none">💾 Save</button>
@@ -2935,6 +2810,7 @@ async function sendMessage(){
   }
 
   addMsg('user',text);
+  // Only check for code context form if user EXPLICITLY asks to write/build/create code
   if(isCodeRequest(text)&&!isFreeMode){await showCodeContextForm(text);return;}
   showTyping();
   let intent='chat';
@@ -2944,7 +2820,9 @@ async function sendMessage(){
   if(intent==='graph'){try{const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Graph: '+data.title+']');renderGraph(data);}catch(err){hideTyping();addMsg('ai','Could not generate the graph.');}return;}
   if(intent==='flowchart'){try{const res=await fetch(API_URL+'/flowchart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Flowchart: '+data.title+']');renderFlowchartMsg(data);}catch(err){hideTyping();addMsg('ai','Could not generate the flowchart.');}return;}
   if(intent==='notes'){try{const res=await fetch(API_URL+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Notes: '+data.topic+']');renderNotesMsg(data.notes,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate notes.');}return;}
-  if(intent==='formula'){try{const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Formula: '+data.topic+']');renderFormulaMsg(data.sheet,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate formula sheet.');}return;}
+  // formula — ONLY if user explicitly says "formula sheet", "give me formulas", "cheat sheet", etc.
+  // NOT auto-triggered on ambiguous follow-ups
+  if(intent==='formula'&&/\b(formula|formulas|formulae|cheat.?sheet|key.?terms|reference.?sheet)\b/i.test(text)){try{const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Formula: '+data.topic+']');renderFormulaMsg(data.sheet,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate formula sheet.');}return;}
   if(intent==='flashcard'||intent==='both'){try{const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();if(intent==='both'){const qres=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(!qres.ok)throw new Error('HTTP '+qres.status);const qdata=await qres.json();hideTyping();pushHistory('assistant','[Flashcards+Quiz: '+data.topic+']');renderFlashcards(data.cards,data.topic);renderQuiz(qdata.questions,qdata.topic,qdata.difficulty);}else{hideTyping();pushHistory('assistant','[Flashcards: '+data.topic+']');renderFlashcards(data.cards,data.topic);}}catch(err){hideTyping();addMsg('ai','Could not generate flashcards.');}return;}
   if(intent==='quiz'){try{const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Quiz: '+data.topic+']');renderQuiz(data.questions,data.topic,data.difficulty);}catch(err){hideTyping();addMsg('ai','Could not generate quiz.');}return;}
 
@@ -2975,7 +2853,7 @@ async function _sendChat(text){
     const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
       message: text,
       model: activeModel,
-      history: getChatHistory().slice(-20),
+      history: getChatHistory().slice(-30),
       preferred_language: _userPreferredLang || 'English',
       force_language: true,
     })});
@@ -2996,7 +2874,7 @@ function toggleAttachMenu(e){e.stopPropagation();document.getElementById('attach
 function closeAttachMenu(){document.getElementById('attach-menu').classList.remove('open');}
 document.addEventListener('click',(e)=>{if(!e.target.closest('#attach-wrap'))closeAttachMenu();});
 function openWhiteboardFromMenu(){closeAttachMenu();openWhiteboard();}
-function openScopeFromMenu(){closeAttachMenu();openScope();}
+function openSedyLensFromMenu(){closeAttachMenu();openSedyLens();}
 
 // ── Screenshot / Crop ──
 let cropCanvas=null,cropCtx=null,cropStream=null,cropStartX=0,cropStartY=0,cropEndX=0,cropEndY=0,cropDragging=false,cropHasSelection=false;
@@ -3076,17 +2954,17 @@ function scopeUpdateMemBadge() {
 }
 
 // ── Open / Close ──
-function openScope() {
+function openSedyLens() {
   scopeLoadMemory();
-  document.getElementById('scope-overlay').classList.add('active');
+  document.getElementById('lens-overlay').classList.add('active');
   startScopeCamera();
   scopeUpdateMemBadge();
 }
-function closeScope() {
+function closeSedyLens() {
   stopScopeCamera();
   stopScopeVoice();
   if (window.speechSynthesis) window.speechSynthesis.cancel();
-  document.getElementById('scope-overlay').classList.remove('active');
+  document.getElementById('lens-overlay').classList.remove('active');
   closeScopeAnswer();
   scopeHideScan();
   document.getElementById('scope-freeze').classList.remove('visible');
@@ -3107,7 +2985,7 @@ async function startScopeCamera() {
     video.classList.toggle('mirrored', scopeFacingMode === 'user');
   } catch(err) {
     addMsg('ai', 'Camera error: ' + err.message);
-    document.getElementById('scope-overlay').classList.remove('active');
+    document.getElementById('lens-overlay').classList.remove('active');
   }
 }
 function stopScopeCamera() {
@@ -3376,7 +3254,7 @@ function speakScopeAnswer() {
 }
 function sendScopeToMain() {
   if (!scopeCurrentAnswer) return;
-  closeScope();
+  closeSedyLens();
   addMsg('ai', scopeCurrentAnswer);
   pushHistory('assistant', scopeCurrentAnswer);
 }
@@ -5013,21 +4891,9 @@ function speakVoice(text, langCode) {
 function init() {
   loadChats();
 
-  // Restore or create active chat
-  let savedActive = null;
-  try { savedActive = localStorage.getItem(ACTIVE_CHAT_KEY); } catch(e) {}
-
-  if (savedActive && chats[savedActive]) {
-    activeChatId = savedActive;
-  } else if (Object.keys(chats).length > 0) {
-    // Switch to most recently updated
-    const sorted = Object.keys(chats).sort((a,b) => (chats[b].updatedAt||0)-(chats[a].updatedAt||0));
-    activeChatId = sorted[0];
-  } else {
-    // First launch — create initial chat
-    const id = createNewChat(false);
-    activeChatId = id;
-  }
+  // Always start with a fresh new chat on every app open
+  const id = createNewChat(false);
+  activeChatId = id;
 
   renderChatList();
   renderChatMessages();
@@ -5078,280 +4944,274 @@ function init() {
 // ══════════════════════════════════════════════════════
 
 let _currentUser  = null;
+let _obStep    = 0;
+let _obData    = {};
+let _isNewUser = false;
+
+const OB_STEPS = 2;  // Name + Interests
+
+// ── Wait for Firebase module ──────────────────────────────────────────────────
+function _waitFb() {
+  return new Promise(resolve => {
+    if (window._fb) { resolve(window._fb); return; }
+    const iv = setInterval(() => { if (window._fb) { clearInterval(iv); resolve(window._fb); } }, 50);
+    setTimeout(() => { clearInterval(iv); resolve(null); }, 6000);
+  });
+}
+
+// ── Tab: Sign In / Sign Up ────────────────────────────────────────────────────
+// ── GOOGLE ────────────────────────────────────────────────────────────────────
+async function authSignInGoogle() {
+  const fb = window._fb;
+  if (!fb) { showAuthError('Firebase not ready. Refresh the page.'); return; }
+  showAuthLoadingMsg('Signing in with Google…');
+  try {
+    const provider = new fb.GoogleAuthProvider();
+    const result   = await fb.signInWithPopup(fb.auth, provider);
+    _isNewUser = result._tokenResponse?.isNewUser || false;
+  } catch(err) {
+    hideAuthLoading();
+    if (err.code === 'auth/popup-closed-by-user') return;
+    showAuthError(friendlyError(err.code));
+  }
+}
+// ── EMAIL SIGN IN ─────────────────────────────────────────────────────────────
+async function authEmailSignIn() {
+  const email = document.getElementById('auth-email-input')?.value.trim();
+  const pw    = document.getElementById('auth-pw-input')?.value;
+  if (!email || !pw) { showAuthError('Enter your email and password.'); return; }
+  const fb = window._fb;
+  if (!fb) { showAuthError('Firebase not ready.'); return; }
+  showAuthLoadingMsg('Signing in…');
+  try {
+    await fb.signInWithEmailAndPassword(fb.auth, email, pw);
+  } catch(err) {
+    hideAuthLoading();
+    showAuthError(friendlyError(err.code));
+  }
+}
+
+// ── EMAIL SIGN UP ─────────────────────────────────────────────────────────────
+async function authEmailSignUp() {
+  const email = document.getElementById('auth-email-input')?.value.trim();
+  const pw    = document.getElementById('auth-pw-input')?.value;
+  if (!email) { showAuthError('Enter your email address.'); return; }
+  if (!pw || pw.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+  const fb = window._fb;
+  if (!fb) { showAuthError('Firebase not ready.'); return; }
+  showAuthLoadingMsg('Creating account…');
+  try {
+    _isNewUser = true;
+    await fb.createUserWithEmailAndPassword(fb.auth, email, pw);
+  } catch(err) {
+    hideAuthLoading();
+    _isNewUser = false;
+    showAuthError(friendlyError(err.code));
+  }
+}
+
+
+
+// ── Error messages ────────────────────────────────────────────────────────────
+function friendlyError(code) {
+  const map = {
+    'auth/user-not-found':         'No account with this email. Sign up instead.',
+    'auth/wrong-password':         'Wrong password. Try again.',
+    'auth/email-already-in-use':   'This email is already registered. Sign in instead.',
+    'auth/invalid-email':          'Invalid email address.',
+    'auth/weak-password':          'Password too weak — use at least 6 characters.',
+    'auth/too-many-requests':      'Too many attempts. Wait a moment and try again.',
+    'auth/network-request-failed': 'Network error. Check your internet.',
+    'auth/invalid-verification-code': 'Wrong OTP. Check and try again.',
+    'auth/code-expired':           'OTP expired. Request a new one.',
+    'auth/account-exists-with-different-credential': 'Account exists with another sign-in method.',
+    'auth/popup-blocked':          'Popup blocked. Allow popups for this site.',
+  };
+  return map[code] || 'Something went wrong. Please try again.';
+}
+
+// ── Auth UI helpers ───────────────────────────────────────────────────────────
+function showAuthError(msg) {
+  const onboardVisible = document.getElementById('auth-step-onboard')?.style.display !== 'none';
+  const box = document.getElementById(onboardVisible ? 'auth-error-ob' : 'auth-error');
+  if (box) { box.textContent = msg; box.style.display = 'block'; }
+  hideAuthLoading();
+}
+function clearAuthError() {
+  ['auth-error','auth-error-ob'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display='none'; el.textContent=''; }
+  });
+}
+function showAuthLoadingMsg(msg) {
+  const el = document.getElementById('auth-loading');
+  if (el) { el.style.display='flex'; el.querySelector('span').textContent = msg || 'Please wait…'; }
+}
+function hideAuthLoading() {
+  const el = document.getElementById('auth-loading');
+  if (el) el.style.display='none';
+}
+
+// ── Sign out ──────────────────────────────────────────────────────────────────
+async function authSignOut() {
+  hideUserMenu();
+  const fb = window._fb;
+  if (!fb) return;
+  _currentUser = null;
+  chats = {}; activeChatId = null;
+  try { localStorage.clear(); } catch(e) {}
+  await fb.signOut(fb.auth);
+  location.reload(); // cleanest way to reset all state
+}
+
+// ── onAuthStateChanged ────────────────────────────────────────────────────────
+async function authInit() {
+  const fb = await _waitFb();
+
+  // Helper to hide session loader (the full-screen spinner shown on every page load)
+  function hideSessionLoader() {
+    const loader = document.getElementById('session-loader');
+    if (!loader) return;
+    loader.style.transition = 'opacity .3s ease';
+    loader.style.opacity = '0';
+    setTimeout(() => { loader.style.display = 'none'; }, 300);
+  }
+
+  if (!fb) {
+    // Firebase failed to load — run in localStorage-only mode
+    console.warn('Firebase not available — running in local mode');
+    hideSessionLoader();
+    hideAuthScreen();
+    init();
+    return;
+  }
+
+  fb.onAuthStateChanged(fb.auth, async (user) => {
+    if (user) {
+      // ── USER IS ALREADY LOGGED IN (persistent session) or just logged in ──
+      if (user.providerData[0]?.providerId === 'password' && !user.emailVerified) {
+        hideSessionLoader();
+        return;
+      }
+
+      _currentUser = user;
+
+      try { await loadUserDataFromFirestore(); } catch(e) {
+        console.warn('Firestore load failed, continuing:', e);
+      }
+
+      // Check onboarding completion
+      const profile = await _getProfile();
+      if (!profile || !profile.name) {
+        // New user — show onboarding
+        _isNewUser = true;
+        hideSessionLoader();
+        // Show auth screen in onboarding mode
+        const screen = document.getElementById('auth-screen');
+        if (screen) screen.style.display = 'flex';
+        _showOnboarding();
+      } else {
+        // Returning user — always set language from profile (including English)
+        _userProfile = profile;
+        _userPreferredLang = profile.language || 'English';
+
+        // Store school membership globally so classroom features know the user's school
+        if (profile.schoolCode) {
+          _userSchoolCode = profile.schoolCode;
+          _userSchoolName = profile.schoolName || '';
+          _userSchoolRole = profile.schoolRole || 'student';
+        }
+
+        hideSessionLoader();
+        _afterLogin(user, false);
+      }
+    } else {
+      // ── NOT LOGGED IN — show login screen ──
+      _currentUser = null;
+      hideSessionLoader();
+      const screen = document.getElementById('auth-screen');
+      if (screen) screen.style.display = 'flex';
+      hideAuthLoading();
+    }
+  });
+}
+
+async function _getProfile() {
+  if (!_currentUser || !window._fb) return null;
+  try {
+    const fb  = window._fb;
+    const ref = fb.doc(fb.db, 'users', _currentUser.uid, 'profile', 'data');
+    const snap= await fb.getDoc(ref);
+    return snap.exists() ? snap.data() : null;
+  } catch(e) { return null; }
+}
+
+function _afterLogin(user, isNew) {
+  hideAuthScreen();
+  hideAuthLoading();
+
+  // Sidebar avatar
+  const sbUser = document.getElementById('sb-user');
+  const avatar = document.getElementById('sb-avatar');
+  if (sbUser) sbUser.style.display = 'flex';
+  if (avatar && user.photoURL) avatar.src = user.photoURL;
+
+  // User menu
+  const umAvatar = document.getElementById('um-avatar');
+  const umName   = document.getElementById('um-name');
+  const umEmail  = document.getElementById('um-email');
+  if (umAvatar && user.photoURL) umAvatar.src = user.photoURL;
+  if (umName)  umName.textContent  = user.displayName || _obData.name || 'Student';
+  if (umEmail) umEmail.textContent = user.email || user.phoneNumber || '';
+
+  // _userPreferredLang is already correctly set before _afterLogin is called.
+  // Don't override it here.
+  init();
+  // Update classroom sidebar label based on school membership
+  setTimeout(crUpdateSidebarLabel, 100);
+}
+
+function hideAuthScreen() {
+  const screen = document.getElementById('auth-screen');
+  if (!screen) return;
+  screen.style.transition = 'opacity .4s ease';
+  screen.style.opacity = '0';
+  setTimeout(() => { screen.style.display = 'none'; screen.style.opacity = '1'; }, 400);
+}
+
 // ══════════════════════════════════════════════════════
-// ONBOARDING STATE
+// ONBOARDING FLOW
 // ══════════════════════════════════════════════════════
-
-let _obStep        = 0;
-let _obData        = {};
-let _isNewUser     = false;
-// _obPath: 'student' | 'teacher' | 'nocode'
-let _obPath        = null;
-// Verified school data from key entry
-let _obVerifiedCode  = null;
-let _obVerifiedSchool = null;  // full Firestore school doc
-let _obVerifiedRole   = null;  // 'student' | 'teacher'
-// Teacher name selected during onboarding
-let _obTeacherName   = null;
-
-// School membership globals (set after login)
-let _userSchoolCode = null;
-let _userSchoolName = null;
-let _userSchoolRole = null;
-
-// ── Page sequences per path ──
-// nocode:  0 → 1n → 2n → 3n → SAVE
-// student: 0 → 1s → 2s → 3s → SAVE
-// teacher: 0 → 1t → 2t → SAVE
-const OB_PATHS = {
-  nocode:  ['ob-page-0','ob-page-1n','ob-page-2n','ob-page-3n'],
-  student: ['ob-page-0','ob-page-1s','ob-page-2s','ob-page-3s'],
-  teacher: ['ob-page-0','ob-page-1t','ob-page-2t'],
-};
-// dot counts per path
-const OB_PATH_DOTS = { nocode:4, student:4, teacher:3, null:1 };
 
 function _showOnboarding() {
   document.getElementById('auth-step-login').style.display   = 'none';
   document.getElementById('auth-step-onboard').style.display = 'block';
-  _obStep = 0; _obData = {}; _obPath = null;
-  _obVerifiedCode = null; _obVerifiedSchool = null; _obVerifiedRole = null; _obTeacherName = null;
-  _obRenderStep();
+  _obStep = 0; _obData = {};
+  _obRenderStep(0);
 }
 
-function _obCurrentPage() {
-  if (!_obPath) return 'ob-page-0';
-  const seq = OB_PATHS[_obPath];
-  return seq ? (seq[_obStep] || seq[seq.length-1]) : 'ob-page-0';
-}
-
-function _obRenderStep() {
-  // Hide all pages
-  ['ob-page-0','ob-page-1s','ob-page-2s','ob-page-3s',
-   'ob-page-1t','ob-page-2t',
-   'ob-page-1n','ob-page-2n','ob-page-3n'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
-  // Show current
-  const cur = _obCurrentPage();
-  const curEl = document.getElementById(cur);
-  if (curEl) curEl.style.display = 'flex';
-
-  // Dots
-  const total = _obPath ? OB_PATHS[_obPath].length : 1;
-  for (let i = 0; i < 6; i++) {
-    const dot = document.getElementById('ob-dot-' + i);
+function _obRenderStep(step) {
+  // Show/hide pages — page 0 and page 1
+  for (let i = 0; i < OB_STEPS; i++) {
+    const page = document.getElementById('ob-page-'+i);
+    if (page) page.style.display = i === step ? 'flex' : 'none';
+  }
+  // Dots — only 2
+  for (let i = 0; i < OB_STEPS; i++) {
+    const dot = document.getElementById('ob-dot-'+i);
     if (!dot) continue;
-    dot.style.display = i < total ? 'block' : 'none';
-    dot.className = 'onboard-step-dot' + (i < _obStep ? ' done' : i === _obStep ? ' active' : '');
+    dot.className = 'onboard-step-dot' + (i < step ? ' done' : i === step ? ' active' : '');
   }
-
-  // Back/Next buttons
+  // Back button
   const backBtn = document.getElementById('ob-back-btn');
+  if (backBtn) backBtn.style.display = step > 0 ? 'block' : 'none';
+  // Next button label
   const nextBtn = document.getElementById('ob-next-btn');
-  if (backBtn) backBtn.style.display = _obStep > 0 ? 'block' : 'none';
-  const isLast = _obPath && _obStep === OB_PATHS[_obPath].length - 1;
-  if (nextBtn) nextBtn.textContent = isLast ? "Let's go 🚀" : 'Next →';
-}
-
-function obSchoolChoice(choice) {
-  document.getElementById('ob-school-yes').classList.toggle('selected', choice === 'yes');
-  document.getElementById('ob-school-no').classList.toggle('selected', choice === 'no');
-  const keyEntry = document.getElementById('ob-key-entry');
-  if (choice === 'yes') {
-    keyEntry.style.display = 'block';
-    document.getElementById('ob-key-input').focus();
-  } else {
-    keyEntry.style.display = 'none';
-    // No-code path — go directly
-    _obPath = 'nocode';
-    _obStep = 1;
-    _obRenderStep();
-  }
-}
-
-async function obVerifyKey() {
-  const suffix = document.getElementById('ob-key-input').value.trim().toUpperCase();
-  if (!suffix) { showAuthError('Enter your key suffix (e.g. S-XK29)'); return; }
-
-  // Parse: suffix should be S-XXXX or T-XXXX
-  const m = suffix.match(/^([ST])-([A-Z0-9]{4})$/);
-  if (!m) { showAuthError('Invalid format. Use S-XXXX for student or T-XXXX for teacher.'); return; }
-
-  const role = m[1] === 'S' ? 'student' : 'teacher';
-  const code = 'SEDY-' + m[2];
-
-  const btn = document.getElementById('ob-verify-btn');
-  btn.disabled = true; btn.textContent = 'Checking…';
-  clearAuthError();
-
-  const fb = window._fb;
-  if (!fb) { btn.disabled = false; btn.textContent = 'Verify Key →'; showAuthError('Firebase not ready.'); return; }
-
-  try {
-    const snap = await fb.getDoc(fb.doc(fb.db, 'schools', code));
-    if (!snap.exists()) {
-      btn.disabled = false; btn.textContent = 'Verify Key →';
-      showAuthError('❌ School not found. Check your key.');
-      return;
-    }
-    const school = snap.data();
-    if (school.active === false) {
-      btn.disabled = false; btn.textContent = 'Verify Key →';
-      showAuthError('❌ This school code has been deactivated.');
-      return;
-    }
-
-    _obVerifiedCode   = code;
-    _obVerifiedSchool = school;
-    _obVerifiedRole   = role;
-
-    // Show verified card
-    const card = document.getElementById('ob-key-verified');
-    const logoEl = document.getElementById('ob-verified-logo');
-    const schoolEl = document.getElementById('ob-verified-school');
-    const roleEl = document.getElementById('ob-verified-role');
-    schoolEl.textContent = school.name || 'Your School';
-    roleEl.textContent = role === 'teacher' ? '📖 Teacher' : '👨‍🎓 Student';
-    if (school.logoBase64) {
-      logoEl.innerHTML = `<img src="${school.logoBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
-    } else { logoEl.textContent = '🏫'; }
-    card.style.display = 'block';
-
-    btn.disabled = false; btn.textContent = '✓ Verified';
-    clearAuthError();
-
-    // If teacher path — populate teacher name list
-    if (role === 'teacher') {
-      await _obPopulateTeacherNames(code, school);
-    } else {
-      // Student — populate class list from school
-      _obPopulateStudentClasses(school);
-    }
-
-  } catch(e) {
-    btn.disabled = false; btn.textContent = 'Verify Key →';
-    showAuthError('Could not verify. Check your internet.');
-  }
-}
-
-async function _obPopulateTeacherNames(code, school) {
-  const teachers = school.teachers || [];
-  // Get already-joined teachers
-  const fb = window._fb;
-  const joinedSet = new Set();
-  try {
-    const snap = await fb.getDocs(fb.collection(fb.db, 'schools', code, 'members'));
-    snap.forEach(d => { if (d.data().role === 'teacher') joinedSet.add(d.data().teacherName); });
-  } catch(e) {}
-  const available = teachers.map(t => t.name).filter(n => n && !joinedSet.has(n));
-  const list = document.getElementById('ob-t-names-list');
-  list.innerHTML = '';
-  if (available.length === 0) {
-    list.innerHTML = '<div style="font-size:13px;color:var(--text3);font-family:\'DM Mono\',monospace;">All teachers have joined already.</div>';
-  } else {
-    available.forEach(name => {
-      const el = document.createElement('div');
-      el.className = 'ob-opt';
-      el.textContent = name;
-      el.style.cssText = 'padding:11px 14px;text-align:left;cursor:pointer;width:100%;';
-      el.onclick = () => {
-        list.querySelectorAll('.ob-opt').forEach(x => x.classList.remove('selected'));
-        el.classList.add('selected');
-        _obTeacherName = name;
-      };
-      list.appendChild(el);
-    });
-  }
-}
-
-function _obPopulateStudentClasses(school) {
-  const classes = school.classes || [];
-  const grid = document.getElementById('ob-s-class-grid');
-  grid.innerHTML = '';
-  if (classes.length === 0) {
-    grid.innerHTML = '<div style="font-size:12px;color:var(--text3);font-family:\'DM Mono\',monospace;">No classes set up yet.</div>';
-    return;
-  }
-  classes.forEach(cls => {
-    const el = document.createElement('div');
-    el.className = 'ob-opt';
-    el.textContent = cls;
-    el.onclick = function() { obSelect(this, 'class'); };
-    grid.appendChild(el);
-  });
-}
-
-async function obNext() {
-  clearAuthError();
-
-  // Step 0: key/no-key choice
-  if (_obStep === 0 && !_obPath) {
-    if (!_obVerifiedCode && !_obVerifiedRole) {
-      // They haven't verified a key and haven't chosen no-key
-      // Check if they chose no
-      const noBtnSel = document.getElementById('ob-school-no')?.classList.contains('selected');
-      if (!noBtnSel) {
-        showAuthError('Please verify your key or click "No key, continue".');
-        return;
-      }
-    }
-    if (_obVerifiedRole === 'teacher') {
-      _obPath = 'teacher';
-    } else if (_obVerifiedRole === 'student') {
-      _obPath = 'student';
-    } else {
-      _obPath = 'nocode';
-    }
-    _obStep = 1;
-    _obRenderStep();
-    return;
-  }
-
-  // Step validations per path
-  const page = _obCurrentPage();
-
-  if (page === 'ob-page-1s') {
-    const name = document.getElementById('ob-s-name')?.value.trim();
-    if (!name) { showAuthError('Please enter your name.'); return; }
-    _obData.name = name;
-  }
-  if (page === 'ob-page-1t') {
-    if (!_obTeacherName) { showAuthError('Please select your name from the list.'); return; }
-    _obData.name = _obTeacherName;
-    _obData.teacherName = _obTeacherName;
-  }
-  if (page === 'ob-page-1n') {
-    const name = document.getElementById('ob-n-name')?.value.trim();
-    if (!name) { showAuthError('Please enter your name.'); return; }
-    _obData.name = name;
-  }
-  if (page === 'ob-page-2s' || page === 'ob-page-2t' || page === 'ob-page-2n') {
-    const ageId = page === 'ob-page-2s' ? 'ob-s-age' : page === 'ob-page-2t' ? 'ob-t-age' : 'ob-n-age';
-    const age = document.getElementById(ageId)?.value;
-    if (!age || isNaN(age)) { showAuthError('Please enter your age.'); return; }
-    _obData.age = parseInt(age);
-  }
-
-  // Last step — save
-  const seq = OB_PATHS[_obPath];
-  if (_obStep >= seq.length - 1) {
-    await _obSave();
-    return;
-  }
-
-  _obStep++;
-  _obRenderStep();
-}
-
-function obBack() {
-  if (_obStep > 0) { _obStep--; _obRenderStep(); }
-  else if (_obStep === 0) { _obPath = null; _obRenderStep(); }
+  if (nextBtn) nextBtn.textContent = step === OB_STEPS - 1 ? "Let's go 🚀" : 'Next →';
 }
 
 function obSelect(el, key) {
-  el.closest('.ob-options-grid')?.querySelectorAll('.ob-opt').forEach(o => o.classList.remove('selected'));
+  el.closest('.ob-options-grid').querySelectorAll('.ob-opt').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
   _obData[key] = el.textContent.replace(/^[\p{Emoji}\s]+/u,'').trim();
 }
@@ -5360,71 +5220,75 @@ function obToggle(el, key) {
   el.classList.toggle('selected');
   if (!_obData[key]) _obData[key] = [];
   const val = el.textContent.replace(/^[\p{Emoji}\s]+/u,'').trim();
-  if (el.classList.contains('selected')) { if (!_obData[key].includes(val)) _obData[key].push(val); }
-  else { _obData[key] = _obData[key].filter(v => v !== val); }
+  if (el.classList.contains('selected')) {
+    if (!_obData[key].includes(val)) _obData[key].push(val);
+  } else {
+    _obData[key] = _obData[key].filter(v => v !== val);
+  }
+}
+
+async function obNext() {
+  clearAuthError();
+
+  // Step 0 — name validation
+  if (_obStep === 0) {
+    const name = document.getElementById('ob-name')?.value.trim();
+    if (!name) { showAuthError('Please enter your name.'); return; }
+    _obData.name = name;
+    _obStep = 1;
+    _obRenderStep(1);
+    return;
+  }
+
+  // Step 1 — interests (need at least 1)
+  if (_obStep === 1) {
+    if (!_obData.interest || !_obData.interest.length) {
+      showAuthError('Please pick at least one interest.');
+      return;
+    }
+    await _obSave();
+    return;
+  }
+}
+
+function obBack() {
+  if (_obStep > 0) { _obStep--; _obRenderStep(_obStep); }
 }
 
 async function _obSave() {
   const btn = document.getElementById('ob-next-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
-
-  // Determine role
-  let schoolRole = null, schoolCode = null, schoolName = null;
-  if (_obVerifiedCode) {
-    schoolCode = _obVerifiedCode;
-    schoolName = _obVerifiedSchool?.name || '';
-    schoolRole = _obVerifiedRole;
-  }
-
-  const lang = _obData.lang || 'English';
-  const profileData = {
-    name:        _obData.name || '',
-    age:         _obData.age  || null,
-    gender:      _obData.gender || _obData.tgender || _obData.ngender || '',
-    class:       _obData.class || '',
-    subjects:    _obData.subject || [],
-    language:    lang,
-    teacherName: _obData.teacherName || null,
-    email:       _currentUser?.email || '',
-    photoURL:    _currentUser?.photoURL || '',
-    schoolCode:  schoolCode,
-    schoolName:  schoolName,
-    schoolRole:  schoolRole,
-    createdAt:   Date.now(),
-  };
-
   const fb  = window._fb;
   const uid = _currentUser?.uid;
   if (fb && uid) {
+    const profileData = {
+      name:      _obData.name     || '',
+      interests: _obData.interest || [],
+      language:  'English',
+      email:     _currentUser.email || '',
+      photoURL:  _currentUser.photoURL || '',
+      createdAt: Date.now(),
+    };
     try {
       await fb.setDoc(fb.doc(fb.db, 'users', uid, 'profile', 'data'), profileData);
       await fb.updateProfile(_currentUser, { displayName: _obData.name });
-
-      if (schoolCode) {
-        const memberData = {
-          uid, name: _obData.name || '', email: _currentUser.email || '',
-          photoURL: _currentUser.photoURL || '',
-          role: schoolRole, class: _obData.class || '',
-          teacherName: _obData.teacherName || null,
-          joinedAt: Date.now(),
-        };
-        await fb.setDoc(fb.doc(fb.db, 'schools', schoolCode, 'members', uid), memberData);
-      }
     } catch(e) { console.warn('Profile save failed:', e); }
   }
-
-  _userPreferredLang = lang;
-  _userSchoolCode    = schoolCode;
-  _userSchoolName    = schoolName;
-  _userSchoolRole    = schoolRole;
-  _userProfile       = { ...profileData };
-
+  _userPreferredLang = 'English';
+  _userProfile = {
+    name:      _obData.name     || '',
+    interests: _obData.interest || [],
+    language:  'English',
+    email:     _currentUser?.email || '',
+    photoURL:  _currentUser?.photoURL || '',
+    createdAt: Date.now(),
+  };
   _afterLogin(_currentUser, true);
 }
 
-// Keep legacy obVerifySchoolCode for Settings panel
-async function obVerifySchoolCode() { await obVerifyKey(); }
 
+// ══════════════════════════════════════════════════════
+// FIRESTORE: load + save user data
 // ══════════════════════════════════════════════════════
 // FIRESTORE: load + save user data
 // ══════════════════════════════════════════════════════
@@ -5666,9 +5530,7 @@ async function settingsJoinSchool() {
     _userProfile = { ...(_userProfile || {}), schoolCode: code, schoolName: school.name, schoolRole: 'student' };
     await fb.setDoc(fb.doc(fb.db, 'users', uid, 'profile', 'data'), _userProfile);
 
-    crUpdateSidebarLabel();
     closeSettings();
-    openClassroom();
   } catch(e) {
     if (errEl) { errEl.textContent = 'Could not join school. Check your connection.'; errEl.style.display = 'block'; }
     console.error('settingsJoinSchool error:', e);
@@ -5779,1031 +5641,230 @@ function requireSchool(action) {
   return true; // locked — caller should abort
 }
 
-// ══════════════════════════════════════════════════════
-// UPGRADES PANEL
-// ══════════════════════════════════════════════════════
-
-function openUpgrades() {
-  document.getElementById('upgrades-overlay').classList.add('open');
-}
-function closeUpgrades() {
-  document.getElementById('upgrades-overlay').classList.remove('open');
-}
-
 
 // ══════════════════════════════════════════════════════
-// SCHOOL SETUP — principal creates via Upgrades panel
+// TAKE PICTURE — opens device camera via file input
 // ══════════════════════════════════════════════════════
-
-let _generatedCode = null;
-
-function openSchoolSetup() {
-  if (hasSchool()) { openClassroom(); return; }
-  document.getElementById('school-setup-step1').style.display = 'flex';
-  document.getElementById('school-setup-step2').style.display = 'none';
-  document.getElementById('school-setup-btn').textContent = 'Create School →';
-  document.getElementById('school-setup-btn').disabled = false;
-  document.getElementById('school-setup-error').style.display = 'none';
-  document.getElementById('school-setup-title').textContent = '🏫 Set Up Your School';
-  _generatedCode = null;
-  document.getElementById('school-setup-overlay').classList.add('open');
-}
-function closeSchoolSetup() { document.getElementById('school-setup-overlay').classList.remove('open'); }
-function schoolSetupSelectRole(role) {
-  document.getElementById('school-role-principal').classList.toggle('selected', role === 'principal');
-  document.getElementById('school-role-teacher').classList.toggle('selected', role === 'teacher');
-}
-async function schoolSetupNext() {
-  if (_generatedCode) { closeSchoolSetup(); openClassroom(); return; }
-  const name = document.getElementById('school-setup-name').value.trim();
-  if (!name) { const e=document.getElementById('school-setup-error'); e.textContent='Please enter your school name.'; e.style.display='block'; return; }
-  const btn = document.getElementById('school-setup-btn');
-  btn.disabled=true; btn.textContent='Creating…';
-  document.getElementById('school-setup-error').style.display='none';
-  try {
-    const res = await fetch(API_URL+'/school/generate-code',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({school_name:name,principal_uid:_currentUser?.uid||'',principal_name:_userProfile?.name||'',principal_email:_currentUser?.email||''})});
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    const data = await res.json();
-    _generatedCode = data.code;
-    const suffix = _generatedCode.replace('SEDY-','');
-    const studentKey = 'SEDY-S-'+suffix;
-    const teacherKey = 'SEDY-T-'+suffix;
-    if (window._fb && _currentUser) {
-      const fb=window._fb; const uid=_currentUser.uid;
-      await fb.setDoc(fb.doc(fb.db,'schools',_generatedCode),{
-        name,principalUid:uid,principalName:_userProfile?.name||'',principalEmail:_currentUser.email||'',
-        active:true,plan:'free',createdAt:Date.now(),memberCount:1,
-        studentKey,teacherKey,teachers:[],classes:[]
-      });
-      await fb.setDoc(fb.doc(fb.db,'schools',_generatedCode,'members',uid),{
-        uid,name:_userProfile?.name||'',email:_currentUser.email||'',photoURL:_currentUser.photoURL||'',role:'principal',joinedAt:Date.now()
-      });
-      _userSchoolCode=_generatedCode; _userSchoolName=name; _userSchoolRole='principal';
-      _userProfile={...(_userProfile||{}),schoolCode:_generatedCode,schoolName:name,schoolRole:'principal'};
-      await fb.setDoc(fb.doc(fb.db,'users',uid,'profile','data'),_userProfile);
-    }
-    document.getElementById('school-setup-step1').style.display='none';
-    document.getElementById('school-setup-step2').style.display='flex';
-    document.getElementById('school-setup-code-value').textContent=_generatedCode;
-    document.getElementById('school-setup-code-name').textContent=name;
-    document.getElementById('school-setup-title').textContent='🎉 School Created!';
-    btn.disabled=false; btn.textContent='Go to Classroom →';
-    crUpdateSidebarLabel();
-  } catch(err) {
-    btn.disabled=false; btn.textContent='Create School →';
-    const e=document.getElementById('school-setup-error');
-    e.textContent='Could not create school. Try again.'; e.style.display='block';
-  }
-}
-function schoolCopyCode() {
-  if (!_generatedCode) return;
-  navigator.clipboard.writeText(_generatedCode).then(()=>{
-    const btn=document.getElementById('school-copy-btn');
-    btn.textContent='✅ Copied!'; setTimeout(()=>{btn.textContent='📋 Copy Code';},2000);
-  });
-}
-
-// ══════════════════════════════════════════════════════
-// CLASSROOM — full system
-// ══════════════════════════════════════════════════════
-
-let _crAllMembers   = [];
-let _crMemberFilter = 'all';
-let _crSchoolData   = null;
-// Subject room state
-let _srSubjectName  = null;
-let _srClassName    = null;
-let _srSubjectId    = null;
-// Class room state (teacher/principal)
-let _clrClassName   = null;
-let _clrClassId     = null;
-
-const SUBJ_ICONS = {
-  Maths:'🔢',Physics:'⚛️',Chemistry:'🧪',Biology:'🌿','CS/Code':'💻',
-  History:'🏛️',Geography:'🌍',English:'📖',Economics:'🧮',Arts:'🎨',default:'📚'
-};
-const SUBJ_COLORS = {
-  Maths:'#4f8eff',Physics:'#7c5cfc',Chemistry:'#ff6b9d',Biology:'#00e5a0',
-  'CS/Code':'#00e5c0',History:'#ffb547',Geography:'#ff9f43',English:'#c084fc',
-  Economics:'#fbbf24',Arts:'#f87171',default:'#8899bb'
-};
-
-function openClassroom() {
-  document.getElementById('classroom-overlay').classList.add('open');
-  if (!hasSchool()) {
-    document.getElementById('classroom-locked').style.display='flex';
-    document.getElementById('classroom-active').style.display='none';
-    return;
-  }
-  document.getElementById('classroom-locked').style.display='none';
-  document.getElementById('classroom-active').style.display='flex';
-  document.getElementById('cr-school-badge').textContent=_userSchoolName||'My School';
-  const isStudent=_userSchoolRole==='student';
-  const isTeacher=_userSchoolRole==='teacher';
-  const isPrincipal=_userSchoolRole==='principal';
-  document.querySelectorAll('.cr-nav-student').forEach(el=>el.style.display=isStudent?'flex':'none');
-  document.querySelectorAll('.cr-nav-teacher').forEach(el=>el.style.display=isTeacher?'flex':'none');
-  document.querySelectorAll('.cr-nav-principal').forEach(el=>el.style.display=isPrincipal?'flex':'none');
-  document.querySelectorAll('.cr-nav-staff').forEach(el=>el.style.display=(isTeacher||isPrincipal)?'flex':'none');
-  const postArea=document.getElementById('cr-post-announce');
-  if (postArea) postArea.style.display=(isTeacher||isPrincipal)?'block':'none';
-  crLoadSchoolData().then(()=>crSwitchPane('dashboard'));
-}
-function closeClassroom() { document.getElementById('classroom-overlay').classList.remove('open'); }
-
-async function crLoadSchoolData() {
-  if (!window._fb||!_userSchoolCode) return;
-  try {
-    const snap=await window._fb.getDoc(window._fb.doc(window._fb.db,'schools',_userSchoolCode));
-    if (snap.exists()) {
-      _crSchoolData=snap.data();
-      const nameEl=document.getElementById('cr-school-name-header');
-      if (nameEl) nameEl.textContent=_crSchoolData.name||'your school';
-      const logoSm=document.getElementById('cr-school-logo-sm');
-      if (logoSm&&_crSchoolData.logoBase64) logoSm.innerHTML=`<img src="${_crSchoolData.logoBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:7px;">`;
-    }
-  } catch(e){}
-}
-
-function crSwitchPane(pane) {
-  document.querySelectorAll('.classroom-pane').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.classroom-nav-btn').forEach(b=>b.classList.remove('active'));
-  const pEl=document.getElementById('cr-pane-'+pane);
-  const nEl=document.querySelector(`.classroom-nav-btn[data-pane="${pane}"]`);
-  if (pEl) pEl.classList.add('active');
-  if (nEl) nEl.classList.add('active');
-  if (pane==='announce')   crLoadAnnouncements();
-  if (pane==='members')    crLoadMembers();
-  if (pane==='dashboard')  crLoadDashboard();
-  if (pane==='myclass')    crLoadMyClass();
-  if (pane==='myclasses')  crLoadTeacherClasses();
-  if (pane==='allclasses') crLoadAllClasses();
-}
-
-// ── DASHBOARD ──
-async function crLoadDashboard() {
-  const container=document.getElementById('cr-dashboard-content');
-  if (!container) return;
-  container.innerHTML='';
-  const role=_userSchoolRole;
-  const school=_crSchoolData;
-
-  if (role==='student') {
-    const myClass=_userProfile?.class||'';
-    container.innerHTML=`<div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;margin-bottom:14px;">You are in <b style="color:var(--text);">${_esc(myClass||'your class')}</b> · <span style="color:var(--accent2);">${_esc(_userSchoolName||'')}</span></div>`;
-    const classSubjects=new Set();
-    if (school?.teachers) {
-      school.teachers.forEach(t=>{
-        (t.assignments||[]).forEach(a=>{if(!myClass||a.class===myClass)classSubjects.add(a.subject);});
-      });
-    }
-    if (classSubjects.size) {
-      const grid=document.createElement('div');
-      grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:10px;';
-      [...classSubjects].forEach(sub=>{
-        const card=document.createElement('div'); card.className='cr-subject-card';
-        const icon=SUBJ_ICONS[sub]||SUBJ_ICONS.default;
-        const col=SUBJ_COLORS[sub]||SUBJ_COLORS.default;
-        card.innerHTML=`<div class="cr-subject-card-icon" style="background:${col}22;">${icon}</div><div><div class="cr-subject-card-name">${_esc(sub)}</div><div class="cr-subject-card-sub">Notes · AI · Doubts</div></div>`;
-        card.onclick=()=>crOpenSubjectRoom(sub,myClass);
-        grid.appendChild(card);
-      });
-      container.appendChild(grid);
-    } else {
-      container.innerHTML+='<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No subjects assigned yet.</div>';
-    }
-
-  } else if (role==='teacher') {
-    const myName=_userProfile?.teacherName||_userProfile?.name||'';
-    const myAssignments=school?.teachers?.find(t=>t.name===myName)?.assignments||[];
-    const classes=[...new Set(myAssignments.map(a=>a.class))].filter(Boolean);
-    container.innerHTML=`<div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;margin-bottom:14px;">You teach in <b style="color:var(--text);">${classes.length}</b> class${classes.length===1?'':'es'}.</div>`;
-    const grid=document.createElement('div'); grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:10px;';
-    classes.forEach(cls=>{
-      const subs=myAssignments.filter(a=>a.class===cls).map(a=>a.subject).join(', ');
-      const card=document.createElement('div'); card.className='cr-class-card';
-      card.innerHTML=`<div class="cr-class-card-name">🎓 ${_esc(cls)}</div><div class="cr-class-card-sub">${_esc(subs)}</div>`;
-      card.onclick=()=>crOpenClassRoom(cls);
-      grid.appendChild(card);
-    });
-    container.appendChild(grid);
-
-  } else if (role==='principal') {
-    const classes=school?.classes||[];
-    const teachers=school?.teachers||[];
-    container.innerHTML=`<div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;margin-bottom:14px;"><b style="color:var(--text);">${classes.length}</b> classes · <b style="color:var(--text);">${teachers.length}</b> teachers</div>`;
-    const grid=document.createElement('div'); grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:10px;';
-    classes.forEach(cls=>{
-      const ct=school?.classTeachers?.[cls]||'—';
-      const card=document.createElement('div'); card.className='cr-class-card';
-      card.innerHTML=`<div class="cr-class-card-name">🎓 ${_esc(cls)}</div><div class="cr-class-card-sub">CT: ${_esc(ct)}</div>`;
-      card.onclick=()=>crOpenClassRoom(cls);
-      grid.appendChild(card);
-    });
-    container.appendChild(grid);
-  }
-}
-
-// ── STUDENT: MY CLASS ──
-async function crLoadMyClass() {
-  const myClass=_userProfile?.class||'';
-  crLoadClassChatMsgs(myClass,'cr-class-chat-msgs');
-  const school=_crSchoolData;
-  const list=document.getElementById('cr-my-subjects-list');
-  if (!list) return;
-  list.innerHTML='';
-  const classSubjects=new Set();
-  if (school?.teachers) {
-    school.teachers.forEach(t=>{(t.assignments||[]).forEach(a=>{if(!myClass||a.class===myClass)classSubjects.add(a.subject);});});
-  }
-  [...classSubjects].forEach(sub=>{
-    const card=document.createElement('div'); card.className='cr-subject-card';
-    const icon=SUBJ_ICONS[sub]||SUBJ_ICONS.default;
-    const col=SUBJ_COLORS[sub]||SUBJ_COLORS.default;
-    card.innerHTML=`<div class="cr-subject-card-icon" style="background:${col}22;">${icon}</div><div><div class="cr-subject-card-name">${_esc(sub)}</div><div class="cr-subject-card-sub">Notes · AI Chat · Doubts</div></div><span style="color:var(--text3);font-size:18px;">›</span>`;
-    card.onclick=()=>crOpenSubjectRoom(sub,myClass);
-    list.appendChild(card);
-  });
-  if (!classSubjects.size) list.innerHTML='<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;padding:10px 0;">No subjects yet.</div>';
-}
-
-// ── TEACHER: MY CLASSES ──
-async function crLoadTeacherClasses() {
-  const school=_crSchoolData;
-  const myName=_userProfile?.teacherName||_userProfile?.name||'';
-  const myAssignments=school?.teachers?.find(t=>t.name===myName)?.assignments||[];
-  const classes=[...new Set(myAssignments.map(a=>a.class))].filter(Boolean);
-  const list=document.getElementById('cr-teacher-classes-list');
-  if (!list) return;
-  list.innerHTML='';
-  classes.forEach(cls=>{
-    const subs=myAssignments.filter(a=>a.class===cls).map(a=>a.subject);
-    const card=document.createElement('div'); card.className='cr-class-card';
-    card.innerHTML=`<div class="cr-class-card-name">🎓 ${_esc(cls)}</div>
-      <div class="cr-class-card-sub">${subs.map(s=>_esc(s)).join(' · ')}</div>
-      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
-        <button onclick="crOpenClassRoom('${_esc(cls)}')" style="padding:6px 12px;background:rgba(79,142,255,.12);border:1px solid rgba(79,142,255,.25);border-radius:8px;color:var(--accent);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;">💬 Class Chat</button>
-        ${subs.map(s=>`<button onclick="crOpenSubjectRoom('${_esc(s)}','${_esc(cls)}')" style="padding:6px 12px;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.2);border-radius:8px;color:var(--accent2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;">📚 ${_esc(s)}</button>`).join('')}
-      </div>`;
-    list.appendChild(card);
-  });
-  if (!classes.length) list.innerHTML='<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;padding:10px 0;">No classes assigned. Contact your principal.</div>';
-}
-
-// ── PRINCIPAL: ALL CLASSES ──
-async function crLoadAllClasses() {
-  const school=_crSchoolData;
-  const classes=school?.classes||[];
-  const list=document.getElementById('cr-principal-classes-list');
-  if (!list) return;
-  list.innerHTML='';
-  classes.forEach(cls=>{
-    const ct=school?.classTeachers?.[cls]||'—';
-    const subjects=[...new Set((school?.teachers||[]).flatMap(t=>(t.assignments||[]).filter(a=>a.class===cls).map(a=>a.subject)))];
-    const card=document.createElement('div'); card.className='cr-class-card';
-    card.innerHTML=`<div class="cr-class-card-name">🎓 ${_esc(cls)} <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;font-weight:400;">· CT: ${_esc(ct)}</span></div>
-      <div class="cr-class-card-sub">${subjects.map(s=>_esc(s)).join(' · ')||'No subjects yet'}</div>
-      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
-        <button onclick="crOpenClassRoom('${_esc(cls)}')" style="padding:6px 12px;background:rgba(79,142,255,.12);border:1px solid rgba(79,142,255,.25);border-radius:8px;color:var(--accent);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;">💬 Class Chat</button>
-        ${subjects.map(s=>`<button onclick="crOpenSubjectRoom('${_esc(s)}','${_esc(cls)}')" style="padding:6px 12px;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.2);border-radius:8px;color:var(--accent2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;">📚 ${_esc(s)}</button>`).join('')}
-      </div>`;
-    list.appendChild(card);
-  });
-  if (!classes.length) list.innerHTML='<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;padding:10px 0;">No classes yet. Upload a timetable first.</div>';
-}
-
-// ── CLASS ROOM (shared — opens for teacher + principal to chat with a class) ──
-function crOpenClassRoom(className) {
-  _clrClassName=className;
-  _clrClassId=className.toLowerCase().replace(/[^a-z0-9]/g,'_');
-  const nameEl=document.getElementById('clr-class-name');
-  if (nameEl) nameEl.textContent='🎓 '+className;
-  // Subject buttons for teacher/principal
-  const btnWrap=document.getElementById('clr-subject-btn-wrap');
-  if (btnWrap) {
-    btnWrap.innerHTML='';
-    const school=_crSchoolData;
-    const myName=_userProfile?.teacherName||_userProfile?.name;
-    const teacher=school?.teachers?.find(t=>t.name===myName);
-    const subs=(teacher?.assignments||[]).filter(a=>a.class===className).map(a=>a.subject);
-    subs.forEach(s=>{
-      const btn=document.createElement('button');
-      btn.textContent='📚 '+s;
-      btn.style.cssText='padding:5px 10px;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.25);border-radius:8px;color:var(--accent2);font-size:11px;cursor:pointer;font-family:\'DM Mono\',monospace;';
-      btn.onclick=()=>crOpenSubjectRoom(s,className);
-      btnWrap.appendChild(btn);
-    });
-  }
-  document.querySelectorAll('.classroom-pane').forEach(p=>p.classList.remove('active'));
-  document.getElementById('cr-pane-classroom').classList.add('active');
-  crLoadClassChatMsgs(className,'clr-chat-msgs');
-}
-
-function crCloseClassRoom() {
-  crSwitchPane(_userSchoolRole==='principal'?'allclasses':'myclasses');
-}
-
-// ── CLASS CHAT ──
-async function crLoadClassChatMsgs(className, msgsElId) {
-  if (!window._fb||!_userSchoolCode||!className) return;
-  const msgsEl=document.getElementById(msgsElId);
-  if (!msgsEl) return;
-  msgsEl.innerHTML='';
-  const classId=className.toLowerCase().replace(/[^a-z0-9]/g,'_');
-  try {
-    const fb=window._fb;
-    const snap=await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'classChats',classId,'messages'));
-    const msgs=[]; snap.forEach(d=>msgs.push({...d.data(),id:d.id}));
-    msgs.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
-    msgs.forEach(m=>crRenderChatBubble(msgsEl,m));
-    msgsEl.scrollTop=msgsEl.scrollHeight;
-  } catch(e){}
-}
-
-function crRenderChatBubble(container, msg) {
-  const mine=msg.senderUid===_currentUser?.uid;
-  const wrap=document.createElement('div');
-  wrap.style.cssText=`display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};gap:2px;`;
-  if (!mine) {
-    const meta=document.createElement('div');
-    meta.className='cr-chat-sender';
-    let tag='';
-    const role=msg.senderRole||'student';
-    if (role==='principal') tag='<span class="cr-chat-tag principal">Principal</span>';
-    else if (role==='teacher'||role==='principal') {
-      const isClassT=msg.isClassTeacher;
-      tag=`<span class="cr-chat-tag ${isClassT?'class-teacher':'teacher'}">${isClassT?'Class Teacher':(msg.subject||'Teacher')}</span>`;
-    }
-    meta.innerHTML=_esc(msg.senderName||'Unknown')+tag;
-    wrap.appendChild(meta);
-  }
-  const bubble=document.createElement('div');
-  bubble.className='cr-chat-bubble '+(mine?'mine':'theirs');
-  bubble.textContent=msg.text||'';
-  wrap.appendChild(bubble);
-  container.appendChild(wrap);
-}
-
-async function crSendClassMsg() {
-  const input=document.getElementById('cr-class-chat-input');
-  const text=input?.value.trim();
-  if (!text||!_userSchoolCode) return;
-  input.value='';
-  const myClass=_userProfile?.class||'';
-  if (!myClass) return;
-  const classId=myClass.toLowerCase().replace(/[^a-z0-9]/g,'_');
-  const school=_crSchoolData;
-  const isClassTeacher=school?.classTeachers?.[myClass]===(_userProfile?.teacherName||_userProfile?.name);
-  const msg={text,senderUid:_currentUser?.uid,senderName:_userProfile?.name||'',
-    senderRole:_userSchoolRole||'student',isClassTeacher,subject:'',createdAt:Date.now()};
-  const msgsEl=document.getElementById('cr-class-chat-msgs');
-  if (msgsEl){crRenderChatBubble(msgsEl,msg);msgsEl.scrollTop=msgsEl.scrollHeight;}
-  if (window._fb){
-    const fb=window._fb;
-    await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classChats',classId,'messages','m_'+Date.now()),msg).catch(()=>{});
-  }
-}
-
-async function clrSendMsg() {
-  const input=document.getElementById('clr-chat-input');
-  const text=input?.value.trim();
-  if (!text||!_clrClassId||!_userSchoolCode) return;
-  input.value='';
-  const school=_crSchoolData;
-  const isClassTeacher=school?.classTeachers?.[_clrClassName]===(_userProfile?.teacherName||_userProfile?.name);
-  const msg={text,senderUid:_currentUser?.uid,senderName:_userProfile?.name||'',
-    senderRole:_userSchoolRole||'teacher',isClassTeacher,subject:'',createdAt:Date.now()};
-  const msgsEl=document.getElementById('clr-chat-msgs');
-  if (msgsEl){crRenderChatBubble(msgsEl,msg);msgsEl.scrollTop=msgsEl.scrollHeight;}
-  if (window._fb){
-    const fb=window._fb;
-    await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classChats',_clrClassId,'messages','m_'+Date.now()),msg).catch(()=>{});
-  }
-}
-
-// ── SUBJECT ROOM ──
-function crOpenSubjectRoom(subjectName, className) {
-  _srSubjectName=subjectName;
-  _srClassName=className||_userProfile?.class||'';
-  _srSubjectId=(_srClassName+'_'+subjectName).toLowerCase().replace(/[^a-z0-9]/g,'_');
-  const snEl=document.getElementById('sr-subject-name');
-  const cnEl=document.getElementById('sr-class-name');
-  const siEl=document.getElementById('sr-subject-icon');
-  if (snEl) snEl.textContent=subjectName;
-  if (cnEl) cnEl.textContent=_srClassName?'Class '+_srClassName:'';
-  if (siEl) siEl.textContent=SUBJ_ICONS[subjectName]||SUBJ_ICONS.default;
-  const uploadTab=document.getElementById('sr-tab-upload');
-  if (uploadTab) uploadTab.style.display=(_userSchoolRole==='teacher'||_userSchoolRole==='principal')?'block':'none';
-  document.querySelectorAll('.classroom-pane').forEach(p=>p.classList.remove('active'));
-  document.getElementById('cr-pane-subjectroom').classList.add('active');
-  srSwitchTab('ai');
-  document.getElementById('sr-ai-msgs').innerHTML='';
-  srLoadNotes();
-  srLoadChat();
-  srLoadDoubts();
-}
-
-function crCloseSubjectRoom() {
-  const role=_userSchoolRole;
-  crSwitchPane(role==='student'?'myclass':role==='teacher'?'myclasses':'allclasses');
-}
-
-function srSwitchTab(tab) {
-  ['ai','notes','chat','doubts','upload'].forEach(t=>{
-    const btn=document.getElementById('sr-tab-'+t);
-    const pane=document.getElementById('sr-pane-'+t);
-    if (btn) btn.classList.toggle('active',t===tab);
-    if (pane) { pane.style.display=t===tab?'flex':'none'; }
-  });
-  if (tab==='doubts') srLoadDoubts();
-  if (tab==='notes')  srLoadNotes();
-  if (tab==='chat')   srLoadChat();
-}
-
-// Subject AI chat
-async function srSendAI() {
-  const input=document.getElementById('sr-ai-input');
-  const q=input?.value.trim();
-  if (!q) return;
-  input.value='';
-  const msgs=document.getElementById('sr-ai-msgs');
-  const uB=document.createElement('div');
-  uB.style.cssText='background:rgba(79,142,255,.12);border:1px solid rgba(79,142,255,.2);border-radius:12px;padding:9px 13px;font-size:13px;color:var(--text);align-self:flex-end;max-width:85%;';
-  uB.textContent=q; msgs.appendChild(uB);
-  const aB=document.createElement('div');
-  aB.style.cssText='background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px 13px;font-size:12px;color:var(--text3);font-family:\'DM Mono\',monospace;max-width:95%;';
-  aB.textContent='✦ Thinking…'; msgs.appendChild(aB);
-  msgs.scrollTop=msgs.scrollHeight;
-  let ctx='';
-  if (window._fb&&_userSchoolCode&&_srSubjectId) {
-    try {
-      const fb=window._fb;
-      const snap=await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'subjectRooms',_srSubjectId,'notes'));
-      snap.forEach(d=>{ctx+=(d.data().summary||d.data().title||'')+'\n';});
-    } catch(e){}
-  }
-  try {
-    const res=await fetch(API_URL+'/school/answer-doubt',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({question:q,material_context:ctx.slice(0,5000),subject:_srSubjectName,
-        class_name:_srClassName,student_name:_userProfile?.name||'',preferred_language:_userPreferredLang||'English'})});
-    if (!res.ok) throw new Error();
-    const data=await res.json();
-    aB.style.color='var(--text)';
-    aB.style.fontFamily="'DM Sans',sans-serif";
-    aB.innerHTML=`<strong style="font-size:10px;color:var(--accent2);font-family:'DM Mono',monospace;">✦ SEDY AI</strong><br>${parseMarkdown(data.answer||'')}`;
-    renderMath(aB);
-  } catch(e){aB.textContent='❌ Could not get answer.';aB.style.color='var(--danger)';}
-  msgs.scrollTop=msgs.scrollHeight;
-}
-
-// Notes
-async function srLoadNotes() {
-  const list=document.getElementById('sr-notes-list');
-  const empty=document.getElementById('sr-notes-empty');
-  if (!list) return;
-  list.innerHTML='';
-  if (!window._fb||!_userSchoolCode||!_srSubjectId){empty.style.display='block';return;}
-  try {
-    const fb=window._fb;
-    const snap=await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'subjectRooms',_srSubjectId,'notes'));
-    if (snap.empty){empty.style.display='block';return;}
-    empty.style.display='none';
-    const items=[]; snap.forEach(d=>items.push({...d.data(),id:d.id}));
-    items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    items.forEach(note=>{
-      const card=document.createElement('div'); card.className='cr-note-card';
-      const date=note.createdAt?new Date(note.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short'}):'';
-      card.innerHTML=`<div class="cr-note-title">📄 ${_esc(note.title||'Note')}</div><div class="cr-note-meta">By ${_esc(note.uploadedByName||'Teacher')} · ${date}</div>`;
-      let expanded=false;
-      card.onclick=()=>{
-        if (expanded) return;
-        expanded=true;
-        const d=document.createElement('div');
-        d.style.cssText='margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:13px;color:var(--text);line-height:1.7;';
-        d.innerHTML=note.summary?parseMarkdown(note.summary):'No summary available.';
-        renderMath(d); card.appendChild(d); card.onclick=null;
-      };
-      list.appendChild(card);
-    });
-  } catch(e){if(empty)empty.style.display='block';}
-}
-
-// Subject chat (WhatsApp-style, visible to all in subject)
-async function srLoadChat() {
-  const msgs=document.getElementById('sr-chat-msgs');
-  if (!msgs||!window._fb||!_userSchoolCode||!_srSubjectId) return;
-  msgs.innerHTML='';
-  try {
-    const fb=window._fb;
-    const snap=await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'subjectRooms',_srSubjectId,'chat'));
-    const items=[]; snap.forEach(d=>items.push({...d.data(),id:d.id}));
-    items.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
-    items.forEach(m=>crRenderChatBubble(msgs,m));
-    msgs.scrollTop=msgs.scrollHeight;
-  } catch(e){}
-}
-
-async function srSendChat() {
-  const input=document.getElementById('sr-chat-input');
-  const text=input?.value.trim();
-  if (!text||!_userSchoolCode||!_srSubjectId) return;
-  input.value='';
-  const school=_crSchoolData;
-  const isClassTeacher=school?.classTeachers?.[_srClassName]===(_userProfile?.teacherName||_userProfile?.name);
-  const msg={text,senderUid:_currentUser?.uid,senderName:_userProfile?.name||'',
-    senderRole:_userSchoolRole||'student',isClassTeacher,subject:_srSubjectName,createdAt:Date.now()};
-  const msgs=document.getElementById('sr-chat-msgs');
-  if (msgs){crRenderChatBubble(msgs,msg);msgs.scrollTop=msgs.scrollHeight;}
-  if (window._fb){
-    const fb=window._fb;
-    await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'subjectRooms',_srSubjectId,'chat','m_'+Date.now()),msg).catch(()=>{});
-  }
-}
-
-// Doubts (students post, teacher/AI answers; students only see own)
-async function srLoadDoubts() {
-  const list=document.getElementById('sr-doubts-list');
-  if (!list||!window._fb||!_userSchoolCode||!_srSubjectId) return;
-  list.innerHTML='';
-  try {
-    const fb=window._fb;
-    const snap=await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'subjectRooms',_srSubjectId,'doubts'));
-    const items=[]; snap.forEach(d=>items.push({...d.data(),id:d.id}));
-    items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    const filtered=_userSchoolRole==='student'
-      ?items.filter(i=>i.studentUid===_currentUser?.uid)
-      :items;
-    if (!filtered.length){list.innerHTML='<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;padding:10px 0;">No doubts yet.</div>';return;}
-    filtered.forEach(d=>{
-      const card=document.createElement('div'); card.className='cr-doubt-card';
-      card.innerHTML=`<div class="cr-doubt-meta">${_esc(d.studentName||'Student')}</div>
-        <div class="cr-doubt-q">❓ ${_esc(d.question||'')}</div>
-        <div class="cr-doubt-a">${d.answer?'<strong style="font-size:10px;color:var(--accent2);font-family:\'DM Mono\',monospace;">✦ ANSWER</strong><br>'+parseMarkdown(d.answer):'<span style="color:var(--text3);">Awaiting answer…</span>'}</div>`;
-      if (d.answer) renderMath(card);
-      list.appendChild(card);
-    });
-  } catch(e){}
-}
-
-async function srSendDoubt() {
-  const input=document.getElementById('sr-doubt-input');
-  const q=input?.value.trim();
-  if (!q||!_userSchoolCode||!_srSubjectId) return;
-  input.value='';
-  let ctx='';
-  if (window._fb){
-    try {
-      const fb=window._fb;
-      const snap=await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'subjectRooms',_srSubjectId,'notes'));
-      snap.forEach(d=>{ctx+=(d.data().summary||'')+'\n';});
-    } catch(e){}
-  }
-  let answer='';
-  try {
-    const res=await fetch(API_URL+'/school/answer-doubt',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({question:q,material_context:ctx.slice(0,5000),subject:_srSubjectName,
-        class_name:_srClassName,student_name:_userProfile?.name||'',preferred_language:_userPreferredLang||'English'})});
-    if (res.ok){const data=await res.json();answer=data.answer||'';}
-  } catch(e){}
-  const doubtDoc={question:q,answer,studentUid:_currentUser?.uid,studentName:_userProfile?.name||'',
-    subject:_srSubjectName,class_name:_srClassName,createdAt:Date.now()};
-  if (window._fb&&_userSchoolCode&&_srSubjectId){
-    const fb=window._fb;
-    await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'subjectRooms',_srSubjectId,'doubts','d_'+Date.now()),doubtDoc).catch(()=>{});
-  }
-  srLoadDoubts();
-}
-
-// Upload (teacher/principal only)
-function srHandleUploadDrop(ev) {
-  ev.preventDefault();
-  const file=ev.dataTransfer.files[0];
-  if (file) srUploadFileData(file);
-}
-function srUploadFile(input) {
-  const file=input.files[0];
-  if (file) srUploadFileData(file);
-}
-async function srUploadFileData(file) {
-  const status=document.getElementById('sr-upload-status');
-  const txt=document.getElementById('sr-upload-text');
-  if (status) status.style.display='flex';
-  if (txt) txt.textContent='Reading file…';
-  try {
-    let textContent='';
-    const ext=file.name.split('.').pop().toLowerCase();
-    if (ext==='pdf'&&window.pdfjsLib) {
-      const ab=await file.arrayBuffer();
-      const pdf=await pdfjsLib.getDocument({data:ab}).promise;
-      for (let i=1;i<=pdf.numPages;i++){
-        const page=await pdf.getPage(i);
-        const c=await page.getTextContent();
-        textContent+=c.items.map(x=>x.str).join(' ')+'\n';
-      }
-    } else if (ext==='xlsx'||ext==='xls') {
-      if (!window.XLSX){
-        await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
-      }
-      const ab=await file.arrayBuffer();
-      const wb=window.XLSX.read(ab,{type:'array'});
-      wb.SheetNames.forEach(sn=>{textContent+=window.XLSX.utils.sheet_to_csv(wb.Sheets[sn])+'\n';});
-    } else if (!file.type.startsWith('image/')) {
-      try{textContent=await file.text();}catch(e){}
-    }
-    if (txt) txt.textContent='Summarising with AI…';
-    let summary='';
-    try {
-      const res=await fetch(API_URL+'/school/summarize-material',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({material_text:textContent.slice(0,8000),material_name:file.name,
-          subject:_srSubjectName,class_name:_srClassName,preferred_language:_userPreferredLang||'English'})});
-      if (res.ok){const data=await res.json();summary=data.summary||'';}
-    } catch(e){}
-    const noteDoc={title:file.name,summary,uploadedByUid:_currentUser?.uid,
-      uploadedByName:_userProfile?.name||'Teacher',subject:_srSubjectName,
-      class_name:_srClassName,createdAt:Date.now()};
-    if (window._fb&&_userSchoolCode&&_srSubjectId){
-      const fb=window._fb;
-      await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'subjectRooms',_srSubjectId,'notes','n_'+Date.now()),noteDoc);
-    }
-    if (status) status.style.display='none';
-    srLoadNotes(); srSwitchTab('notes');
-  } catch(err){
-    if (txt) txt.textContent='❌ Upload failed: '+err.message;
-    setTimeout(()=>{if(status)status.style.display='none';},3000);
-  }
-}
-
-// ── ANNOUNCEMENTS ──
-async function crLoadAnnouncements() {
-  const list=document.getElementById('cr-announce-list'),empty=document.getElementById('cr-announce-empty');
-  list.innerHTML='<div style="color:var(--text3);font-size:11px;font-family:\'DM Mono\',monospace;padding:8px 0;">Loading…</div>';
-  if (!window._fb||!_userSchoolCode){list.innerHTML='';if(empty)empty.style.display='block';return;}
-  try {
-    const snap=await window._fb.getDocs(window._fb.collection(window._fb.db,'schools',_userSchoolCode,'announcements'));
-    const items=[];snap.forEach(d=>items.push({...d.data(),id:d.id}));
-    items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    list.innerHTML='';
-    if (!items.length){if(empty)empty.style.display='block';return;}
-    if(empty)empty.style.display='none';
-    items.forEach(item=>{
-      const div=document.createElement('div');div.className='cr-announce-item';
-      const time=item.createdAt?new Date(item.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
-      div.innerHTML=`<div class="cr-announce-meta"><span class="cr-announce-author">${_esc(item.authorName||'School')}</span><span class="cr-announce-role">${_esc(item.authorRole||'')}</span><span class="cr-announce-time">${time}</span></div><div class="cr-announce-text">${_esc(item.text||'')}</div>`;
-      list.appendChild(div);
-    });
-  } catch(e){list.innerHTML='';if(empty)empty.style.display='block';}
-}
-
-async function crPostAnnouncement() {
-  const text=document.getElementById('cr-announce-input').value.trim();
-  if (!text||!window._fb||!_userSchoolCode) return;
-  document.getElementById('cr-announce-input').value='';
-  const fb=window._fb;
-  const doc={text,authorUid:_currentUser?.uid,authorName:_userProfile?.name||'Principal',
-    authorRole:_userSchoolRole||'principal',targetClasses:['all'],createdAt:Date.now()};
-  await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'announcements','a_'+Date.now()),doc).catch(()=>{});
-  crLoadAnnouncements();
-}
-
-async function crAIDraftAnnouncement() {
-  const raw=document.getElementById('cr-announce-input').value.trim();
-  if (!raw){document.getElementById('cr-announce-input').placeholder='Type rough notes first…';return;}
-  document.getElementById('cr-announce-input').value='AI drafting…';
-  try {
-    const res=await fetch(API_URL+'/school/draft-announcement',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({raw_text:raw,author_role:_userSchoolRole||'principal',target:'all',preferred_language:_userPreferredLang||'English'})});
-    if (!res.ok) throw new Error();
-    const data=await res.json();
-    document.getElementById('cr-announce-input').value=data.announcement||raw;
-  } catch(e){document.getElementById('cr-announce-input').value=raw;}
-}
-
-// ── MEMBERS ──
-async function crLoadMembers() {
-  const list=document.getElementById('cr-members-list');
-  list.innerHTML='<div style="color:var(--text3);font-size:11px;font-family:\'DM Mono\',monospace;padding:8px 0;">Loading…</div>';
-  if (!window._fb||!_userSchoolCode){list.innerHTML='';return;}
-  try {
-    const snap=await window._fb.getDocs(window._fb.collection(window._fb.db,'schools',_userSchoolCode,'members'));
-    _crAllMembers=[];snap.forEach(d=>_crAllMembers.push({...d.data(),uid:d.id}));
-    _crAllMembers.sort((a,b)=>({principal:0,teacher:1,student:2}[a.role]??3)-({principal:0,teacher:1,student:2}[b.role]??3));
-    crRenderMembers(_crAllMembers);
-  } catch(e){list.innerHTML='';}
-}
-
-function crFilterMembers(filter) {
-  _crMemberFilter=filter;
-  ['all','teacher','student','principal'].forEach(f=>{
-    const btn=document.getElementById('cr-filter-'+f);
-    if(btn){btn.style.background=f===filter?'rgba(124,92,252,.12)':'';btn.style.borderColor=f===filter?'var(--accent2)':'var(--border2)';btn.style.color=f===filter?'var(--accent2)':'var(--text2)';}
-  });
-  crRenderMembers(filter==='all'?_crAllMembers:_crAllMembers.filter(m=>m.role===filter));
-}
-
-function crRenderMembers(members) {
-  const list=document.getElementById('cr-members-list');list.innerHTML='';
-  if (!members.length){list.innerHTML='<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;padding:8px 0;">No members found.</div>';return;}
-  members.forEach(m=>{
-    const div=document.createElement('div');div.className='cr-member-item';
-    div.innerHTML=`<div class="cr-member-avatar">${m.photoURL?`<img src="${m.photoURL}">`:((m.name||'?')[0].toUpperCase())}</div><div><div class="cr-member-name">${_esc(m.name||'Unknown')}</div><div class="cr-member-role">${_esc(m.email||'')}${m.class?' · '+m.class:''}</div></div><span class="cr-role-badge ${m.role||'student'}">${m.role||'student'}</span>`;
-    list.appendChild(div);
-  });
-}
-
-// ── TIMETABLE PARSER (Excel + PDF + image, with chunking to catch all teachers) ──
-async function crParseTimetable() {
-  const text=document.getElementById('cr-timetable-text').value.trim();
-  if (!text||text==='[Image uploaded — AI will read it directly]') return;
-  await crParseTimetableCore([],text);
-}
-
-async function crHandleTimetableFile(input) {
-  const file=input.files[0]; if (!file) return;
-  const textArea=document.getElementById('cr-timetable-text');
-  const ext=file.name.split('.').pop().toLowerCase();
-  if (ext==='xlsx'||ext==='xls') {
-    if (!window.XLSX) {
-      await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
-    }
-    const ab=await file.arrayBuffer();
-    const wb=window.XLSX.read(ab,{type:'array'});
-    let fullText='';
-    wb.SheetNames.forEach(sn=>{
-      const csv=window.XLSX.utils.sheet_to_csv(wb.Sheets[sn],{blankrows:false});
-      if (csv.trim()) fullText+=`\n=== Sheet: ${sn} ===\n${csv}\n`;
-    });
-    textArea.value=fullText.trim();
-    await crParseTimetableCore([],fullText);
-  } else if (ext==='pdf') {
-    try {
-      const ab=await file.arrayBuffer();
-      const pdf=await pdfjsLib.getDocument({data:ab}).promise;
-      let text='';
-      for (let i=1;i<=pdf.numPages;i++){
-        const page=await pdf.getPage(i);
-        const c=await page.getTextContent();
-        text+=c.items.map(x=>x.str).join(' ')+'\n';
-      }
-      textArea.value=text.trim();
-      await crParseTimetableCore([],text);
-    } catch(e){textArea.placeholder='Could not extract. Paste text manually.';}
-  } else if (file.type.startsWith('image/')) {
-    const reader=new FileReader();
-    reader.onload=async(e)=>{
-      const b64=e.target.result.split(',')[1];
-      textArea.value='[Image uploaded — AI will read it directly]';
-      await crParseTimetableCore([b64],'');
+function takePicture() {
+  closeAttachMenu();
+  // Create a hidden file input that captures from camera
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment'; // rear camera by default
+  input.style.display = 'none';
+  document.body.appendChild(input);
+  input.onchange = () => {
+    const file = input.files[0];
+    if (!file) { document.body.removeChild(input); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      const base64  = dataUrl.split(',')[1];
+      stagedImages.push({ dataUrl, base64, name: 'photo_' + Date.now() + '.jpg' });
+      renderImgStagedRow();
+      document.body.removeChild(input);
     };
     reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+// ══════════════════════════════════════════════════════
+// SEDY LENS — renamed from Scope (freeze + AI analyse)
+// ══════════════════════════════════════════════════════
+function openSedyLensFromMenu() { closeAttachMenu(); openSedyLens(); }
+
+// ══════════════════════════════════════════════════════
+// SEDY LIVE — real-time live camera + AI highlight
+// No freeze: video keeps running, AI draws box on canvas
+// ══════════════════════════════════════════════════════
+let _liveStream     = null;
+let _liveFacing     = 'environment';
+let _liveAnimFrame  = null;
+let _liveAsking     = false;
+let _liveHighlight  = null; // { x, y, w, h, label, alpha } — current highlight box
+let _liveHighlightTs= 0;    // timestamp when highlight was set
+
+function openSedyLiveFromMenu() { closeAttachMenu(); openSedyLive(); }
+
+async function openSedyLive() {
+  document.getElementById('live-overlay').classList.add('active');
+  await startLiveCamera();
+  startLiveLoop();
+}
+
+function closeSedyLive() {
+  stopLiveCamera();
+  stopLiveLoop();
+  document.getElementById('live-overlay').classList.remove('active');
+  closeLiveAnswer();
+  document.getElementById('live-dark-vignette').classList.remove('active');
+  document.getElementById('live-thinking').classList.remove('visible');
+}
+
+async function startLiveCamera() {
+  if (_liveStream) _liveStream.getTracks().forEach(t => t.stop());
+  try {
+    _liveStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: _liveFacing, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    const video = document.getElementById('live-video');
+    video.srcObject = _liveStream;
+    video.classList.toggle('mirrored', _liveFacing === 'user');
+  } catch(err) {
+    addMsg('ai', '📷 Camera error: ' + err.message);
+    closeSedyLive();
   }
 }
 
-async function crHandleTimetableDrop(e) {
-  e.preventDefault();
-  document.getElementById('cr-timetable-upload-area').style.borderColor='var(--border2)';
-  const file=e.dataTransfer.files[0];
-  if (file) crHandleTimetableFile({files:[file]});
+function stopLiveCamera() {
+  if (_liveStream) { _liveStream.getTracks().forEach(t => t.stop()); _liveStream = null; }
+  const video = document.getElementById('live-video');
+  if (video) video.srcObject = null;
 }
 
-async function crParseTimetableCore(images=[],text='') {
-  const btn=document.getElementById('cr-parse-btn');
-  const resultEl=document.getElementById('cr-timetable-result');
-  btn.disabled=true; btn.textContent='⏳ Parsing…';
-  if (resultEl) resultEl.style.display='none';
+function liveFlipCamera() {
+  _liveFacing = _liveFacing === 'environment' ? 'user' : 'environment';
+  startLiveCamera();
+}
 
-  // For large text, send in multiple chunks and merge — catches all teachers
-  const CHUNK=6000;
-  const chunks=[];
-  if (text.length>CHUNK) {
-    for (let i=0;i<text.length;i+=CHUNK) chunks.push(text.slice(i,i+CHUNK));
-  } else { chunks.push(text); }
-
-  let mergedTeachers=[], mergedClasses=new Set(), schoolName='';
-
-  for (let ci=0;ci<chunks.length;ci++) {
-    btn.textContent=chunks.length>1?`⏳ Parsing chunk ${ci+1}/${chunks.length}…`:'⏳ Parsing…';
-    try {
-      const body={text:chunks[ci],school_code:_userSchoolCode||''};
-      if (ci===0&&images.length) body.images=images;
-      const res=await fetch(API_URL+'/school/parse-timetable',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      if (!res.ok) throw new Error('HTTP '+res.status);
-      const data=await res.json();
-      if (data.school_name&&!schoolName) schoolName=data.school_name;
-      (data.classes||[]).forEach(c=>mergedClasses.add(c));
-      // Merge teachers — dedup by name, merge assignments
-      (data.teachers||[]).forEach(t=>{
-        const existing=mergedTeachers.find(x=>x.name===t.name);
-        if (existing) {
-          (t.subjects||[]).forEach(s=>{if(!existing.subjects.includes(s))existing.subjects.push(s);});
-          (t.classes||[]).forEach(c=>{if(!existing.classes.includes(c))existing.classes.push(c);});
-          (t.assignments||[]).forEach(a=>{if(!existing.assignments.find(x=>x.class===a.class&&x.subject===a.subject))existing.assignments.push(a);});
-        } else {
-          mergedTeachers.push({...t,subjects:[...(t.subjects||[])],classes:[...(t.classes||[])],assignments:[...(t.assignments||[])]});
-        }
-      });
-    } catch(e){console.warn('Chunk '+ci+' parse failed:',e);}
-  }
-
-  // Save to Firestore
-  if (window._fb&&_userSchoolCode&&(mergedTeachers.length||mergedClasses.size)) {
-    const fb=window._fb; const classes=[...mergedClasses];
-    try {
-      await fb.updateDoc(fb.doc(fb.db,'schools',_userSchoolCode),{teachers:mergedTeachers,classes});
-    } catch(e) {
-      await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode),{teachers:mergedTeachers,classes},{merge:true});
+// Animation loop — draws highlight box onto canvas while video runs live
+function startLiveLoop() {
+  const canvas = document.getElementById('live-highlight-canvas');
+  const wrap   = document.getElementById('live-video-wrap');
+  function loop() {
+    _liveAnimFrame = requestAnimationFrame(loop);
+    if (!canvas || !wrap) return;
+    canvas.width  = wrap.clientWidth;
+    canvas.height = wrap.clientHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (_liveHighlight && _liveHighlight.alpha > 0) {
+      const { x, y, w, h, label, alpha } = _liveHighlight;
+      // Fade out over 4 seconds
+      const age = (Date.now() - _liveHighlightTs) / 4000;
+      _liveHighlight.alpha = Math.max(0, 1 - age);
+      const a = _liveHighlight.alpha;
+      // Glow box
+      ctx.save();
+      ctx.globalAlpha = a;
+      ctx.strokeStyle = '#ff6b9d';
+      ctx.lineWidth   = 3;
+      ctx.shadowColor = '#ff6b9d';
+      ctx.shadowBlur  = 18;
+      // Convert fractional coords to pixel coords
+      const px = x * canvas.width;
+      const py = y * canvas.height;
+      const pw = w * canvas.width;
+      const ph = h * canvas.height;
+      ctx.strokeRect(px, py, pw, ph);
+      // Label tag above the box
+      ctx.shadowBlur  = 0;
+      ctx.fillStyle   = 'rgba(255,107,157,0.92)';
+      const tagW = Math.min(pw, ctx.measureText(label).width + 20);
+      const tagH = 24;
+      ctx.fillRect(px, py - tagH - 4, tagW + 20, tagH);
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 13px DM Mono, monospace';
+      ctx.fillText(label, px + 10, py - tagH - 4 + 16);
+      ctx.restore();
     }
-    if (_crSchoolData){_crSchoolData.teachers=mergedTeachers;_crSchoolData.classes=classes;}
   }
-
-  if (resultEl) {
-    resultEl.style.display='block';
-    resultEl.innerHTML=`<div style="background:rgba(0,229,160,.07);border:1px solid rgba(0,229,160,.25);border-radius:12px;padding:14px;">
-      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--success);margin-bottom:8px;">✅ Parsed ${mergedTeachers.length} teachers across ${mergedClasses.size} classes</div>
-      <div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;max-height:200px;overflow-y:auto;">
-        ${mergedTeachers.map(t=>`<div style="padding:3px 0;border-bottom:1px solid var(--border);">${_esc(t.name)}: ${(t.classes||[]).join(', ')} · ${(t.subjects||[]).join(', ')}</div>`).join('')}
-      </div>
-    </div>`;
-  }
-  btn.disabled=false; btn.textContent='✦ Parse Timetable with AI';
+  loop();
 }
 
-// ── SIDEBAR LABEL ──
-function crUpdateSidebarLabel() {
-  const label=document.getElementById('sb-classroom-label');
-  const btn=document.getElementById('sb-classroom-btn');
-  if (!label||!btn) return;
-  if (_userSchoolCode) {
-    label.textContent=_userSchoolName||'Classroom';
-    btn.style.background='linear-gradient(135deg,rgba(0,229,160,.12),rgba(79,142,255,.1))';
-    btn.style.borderColor='rgba(0,229,160,.3)';
-    btn.style.color='var(--success)';
-  } else {
-    label.textContent='Classroom';
-    btn.style.background='linear-gradient(135deg,rgba(79,142,255,.12),rgba(124,92,252,.12))';
-    btn.style.borderColor='rgba(124,92,252,.3)';
-    btn.style.color='var(--accent2)';
+function stopLiveLoop() {
+  if (_liveAnimFrame) { cancelAnimationFrame(_liveAnimFrame); _liveAnimFrame = null; }
+  _liveHighlight = null;
+}
+
+// Capture a JPEG from live video for AI (but don't show/freeze it)
+function captureLiveFrame() {
+  const video = document.getElementById('live-video');
+  if (!video || !video.videoWidth) return null;
+  const canvas = document.createElement('canvas');
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  if (_liveFacing === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+  ctx.drawImage(video, 0, 0);
+  return canvas.toDataURL('image/jpeg', 0.82).split(',')[1];
+}
+
+async function liveAsk() {
+  if (_liveAsking) return;
+  const input = document.getElementById('live-text-input');
+  const question = input.value.trim() || 'What do you see? Describe the main objects.';
+  input.value = '';
+  _liveAsking = true;
+
+  const base64 = captureLiveFrame();
+  if (!base64) { _liveAsking = false; return; }
+
+  // Show thinking
+  const thinking = document.getElementById('live-thinking');
+  thinking.textContent = '🎯 Analysing…';
+  thinking.classList.add('visible');
+  closeLiveAnswer();
+
+  try {
+    const res = await fetch(API_URL + '/image-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: question + '\n\nIMPORTANT: If the question asks to compare objects or identify something specific, respond with this exact JSON at the start of your answer (before your explanation):\n{"highlight":{"x":0.2,"y":0.3,"w":0.15,"h":0.2,"label":"Object Name"}}\nUse fractional coordinates (0–1). x,y = top-left corner. w,h = size. If no specific object to highlight, skip the JSON.',
+        images: [base64],
+        history: []
+      })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    let reply = data.reply || 'Could not analyse the scene.';
+
+    // Try to extract highlight JSON from reply
+    const jsonMatch = reply.match(/\{"highlight":\s*\{[^}]+\}\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const hl = parsed.highlight;
+        _liveHighlight = { x: hl.x, y: hl.y, w: hl.w, h: hl.h, label: hl.label || '✓', alpha: 1 };
+        _liveHighlightTs = Date.now();
+        // Dark vignette for 3 seconds
+        document.getElementById('live-dark-vignette').classList.add('active');
+        setTimeout(() => document.getElementById('live-dark-vignette').classList.remove('active'), 3000);
+      } catch(e) {}
+      reply = reply.replace(jsonMatch[0], '').trim();
+    }
+
+    // Show answer
+    const body = document.getElementById('live-answer-body');
+    body.innerHTML = parseMarkdown(reply);
+    renderMath(body);
+    document.getElementById('live-answer-card').classList.add('visible');
+
+  } catch(err) {
+    const body = document.getElementById('live-answer-body');
+    body.textContent = '❌ Could not analyse: ' + err.message;
+    document.getElementById('live-answer-card').classList.add('visible');
   }
+
+  thinking.classList.remove('visible');
+  _liveAsking = false;
 }
 
-function settingsJoinSchool() {
-  const raw=document.getElementById('settings-school-code-input').value.trim().toUpperCase();
-  const errEl=document.getElementById('settings-school-error');
-  errEl.style.display='none';
-  if (!raw){errEl.textContent='Enter a school code.';errEl.style.display='block';return;}
-  // Support both SEDY-S-XXXX / SEDY-T-XXXX and legacy SEDY-XXXX
-  let code=raw, role='student';
-  const mNew=raw.match(/^SEDY-([ST])-([A-Z0-9]{4})$/);
-  const mOld=raw.match(/^SEDY-([A-Z0-9]{4})$/);
-  if (mNew){role=mNew[1]==='T'?'teacher':'student';code='SEDY-'+mNew[2];}
-  else if (mOld){code=raw;}
-  else{errEl.textContent='Invalid format. Use SEDY-S-XXXX or SEDY-T-XXXX.';errEl.style.display='block';return;}
-  const fb=window._fb;
-  if (!fb||!_currentUser) return;
-  fb.getDoc(fb.doc(fb.db,'schools',code)).then(snap=>{
-    if (!snap.exists()){errEl.textContent='❌ School not found.';errEl.style.display='block';return;}
-    const school=snap.data();
-    _userSchoolCode=code;_userSchoolName=school.name;_userSchoolRole=role;
-    _userProfile={...(_userProfile||{}),schoolCode:code,schoolName:school.name,schoolRole:role};
-    fb.setDoc(fb.doc(fb.db,'users',_currentUser.uid,'profile','data'),_userProfile).catch(()=>{});
-    fb.setDoc(fb.doc(fb.db,'schools',code,'members',_currentUser.uid),
-      {uid:_currentUser.uid,name:_userProfile?.name||'',email:_currentUser.email||'',role,joinedAt:Date.now()}).catch(()=>{});
-    document.getElementById('settings-no-school').style.display='none';
-    document.getElementById('settings-has-school').style.display='flex';
-    document.getElementById('settings-school-name-label').textContent=school.name;
-    document.getElementById('settings-school-role-label').textContent=role+' · '+code;
-    document.getElementById('settings-school-code-label').textContent=code;
-    crUpdateSidebarLabel();
-  }).catch(()=>{errEl.textContent='Could not verify. Check your internet.';errEl.style.display='block';});
+function closeLiveAnswer() {
+  document.getElementById('live-answer-card').classList.remove('visible');
 }
 
-// Restore legacy functions referenced in old HTML
-function crShowSubjectList(){crSwitchPane('subjects');}
 
-// Clear any stale auth error state immediately on load
+// ── Start ─────────────────────────────────────────────────────────────────────
+// Load theme before anything else renders (prevents flash)
+loadTheme();
+// Clear any stale error state immediately on load
 clearAuthError();
 authInit();
-
-// ══════════════════════════════════════════════════════
-// AUTH HELPERS — these were missing, causing the crash
-// ══════════════════════════════════════════════════════
-
-function showAuthError(msg) {
-  const el = document.getElementById('auth-error') || document.getElementById('auth-error-ob');
-  if (!el) return;
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-function clearAuthError() {
-  ['auth-error','auth-error-ob'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
-}
-
-function authSignInGoogle() {
-  const fb = window._fb;
-  if (!fb) { showAuthError('Auth not ready. Refresh the page.'); return; }
-  const authEl  = document.getElementById('auth-loading');
-  const errEl   = document.getElementById('auth-error');
-  if (authEl) { authEl.style.display = 'flex'; document.getElementById('auth-loading-text').textContent = 'Signing in…'; }
-  if (errEl)  errEl.style.display = 'none';
-  const provider = new fb.GoogleAuthProvider();
-  fb.signInWithPopup(fb.auth, provider)
-    .catch(err => {
-      if (authEl) authEl.style.display = 'none';
-      showAuthError(err.message || 'Sign-in failed. Try again.');
-    });
-}
-
-async function authSignOut() {
-  hideUserMenu();
-  const fb = window._fb;
-  if (fb) await fb.signOut(fb.auth).catch(() => {});
-  _currentUser  = null;
-  _userProfile  = null;
-  _userSchoolCode = null;
-  _userSchoolName = null;
-  _userSchoolRole = null;
-  chats = {}; activeChatId = null;
-  try { localStorage.clear(); } catch(e) {}
-  document.getElementById('auth-screen').style.display = 'flex';
-  document.getElementById('session-loader').style.display = 'none';
-  document.getElementById('sb-user').style.display = 'none';
-  document.getElementById('auth-step-login').style.display = 'block';
-  document.getElementById('auth-step-onboard').style.display = 'none';
-}
-
-async function _afterLogin(user, isNew) {
-  _currentUser = user;
-  _isNewUser   = isNew;
-
-  // Load or set preferred language
-  if (_userProfile?.language) _userPreferredLang = _userProfile.language;
-
-  // Update sidebar avatar
-  const sbUser   = document.getElementById('sb-user');
-  const sbAvatar = document.getElementById('sb-avatar');
-  const umAvatar = document.getElementById('um-avatar');
-  const umName   = document.getElementById('um-name');
-  const umEmail  = document.getElementById('um-email');
-  if (sbUser)   sbUser.style.display  = 'flex';
-  if (sbAvatar) sbAvatar.src = user.photoURL || '';
-  if (umAvatar) umAvatar.src = user.photoURL || '';
-  if (umName)   umName.textContent  = _userProfile?.name || user.displayName || '';
-  if (umEmail)  umEmail.textContent = user.email || '';
-
-  // Hide auth screen
-  document.getElementById('auth-screen').style.display  = 'none';
-  document.getElementById('session-loader').style.display = 'none';
-
-  // Set school globals from profile
-  _userSchoolCode = _userProfile?.schoolCode || null;
-  _userSchoolName = _userProfile?.schoolName || null;
-  _userSchoolRole = _userProfile?.schoolRole || null;
-  crUpdateSidebarLabel();
-
-  // Boot the main app
-  loadTheme();
-  init();
-}
-
-function authInit() {
-  const fb = window._fb;
-  if (!fb) {
-    // Firebase not loaded yet — retry
-    setTimeout(authInit, 300);
-    return;
-  }
-  fb.onAuthStateChanged(fb.auth, async (user) => {
-    if (user) {
-      _currentUser = user;
-      // Load profile from Firestore
-      try {
-        const snap = await fb.getDoc(fb.doc(fb.db, 'users', user.uid, 'profile', 'data'));
-        _userProfile = snap.exists() ? snap.data() : null;
-      } catch(e) { _userProfile = null; }
-
-      const isNew = !_userProfile;
-
-      if (isNew) {
-        // First-time user → show onboarding
-        document.getElementById('session-loader').style.display = 'none';
-        document.getElementById('auth-screen').style.display    = 'flex';
-        _showOnboarding();
-      } else {
-        // Returning user → load data and go
-        try { await loadUserDataFromFirestore(); } catch(e) {}
-        await _afterLogin(user, false);
-      }
-    } else {
-      // Not signed in → show login
-      document.getElementById('session-loader').style.display = 'none';
-      document.getElementById('auth-screen').style.display    = 'flex';
-    }
-  });
-}
 </script>
 <!-- User menu popup -->
 <div id="user-menu" style="
@@ -6950,394 +6011,56 @@ function authInit() {
     <!-- Save button -->
     <button class="settings-save-btn" onclick="settingsSave()">Save Changes</button>
 
-    <!-- School / Classroom -->
-    <div>
-      <div class="settings-section-title">Classroom</div>
-      <!-- No school state -->
-      <div id="settings-no-school" class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
-        <div>
-          <div class="settings-row-label">🏫 Sedy Classroom</div>
-          <div class="settings-row-sub">Join your school or create one</div>
-        </div>
-        <div style="display:flex;gap:8px;width:100%;">
-          <input id="settings-school-code-input" type="text" class="settings-select"
-            placeholder="SEDY-S-XXXX or SEDY-T-XXXX"
-            style="flex:1;text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;"
-            oninput="this.value=this.value.toUpperCase()">
-          <button onclick="settingsJoinSchool()" style="
-            padding:7px 14px;background:linear-gradient(135deg,var(--accent2),var(--accent));
-            border:none;border-radius:9px;color:white;font-size:12px;font-weight:700;
-            cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap;
-          ">Join →</button>
-        </div>
-        <div id="settings-school-error" style="font-size:11px;color:var(--danger);font-family:'DM Mono',monospace;display:none;"></div>
-        <button onclick="closeSettings();openUpgrades()" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;padding:0;">
-          Or create your own school →
-        </button>
-      </div>
-      <!-- Has school state -->
-      <div id="settings-has-school" class="settings-row" style="display:none;">
-        <div>
-          <div class="settings-row-label" id="settings-school-name-label">Your School</div>
-          <div class="settings-row-sub" id="settings-school-role-label">Student</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-          <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent2);letter-spacing:1px;" id="settings-school-code-label"></div>
-          <button onclick="closeSettings();openClassroom()" style="padding:5px 12px;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.3);border-radius:8px;color:var(--accent2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;">Open →</button>
-        </div>
-      </div>
-    </div>
 
   </div>
 </div>
 </div>
+
 
 <!-- ══════════════════════════════════════════════════════
-     UPGRADES PANEL
+     SEDY LIVE — real-time highlight camera
 ════════════════════════════════════════════════════════ -->
-<div class="upgrades-overlay" id="upgrades-overlay" onclick="if(event.target===this)closeUpgrades()">
-<div class="upgrades-panel">
-  <div class="upgrades-header">
-    <div class="upgrades-title">⭐ Sedy Plus</div>
-    <button class="settings-close" onclick="closeUpgrades()">✕</button>
+<div class="live-overlay" id="live-overlay">
+  <!-- Top bar -->
+  <div class="live-topbar">
+    <div class="live-logo">🎯 Sedy Live</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="live-flip-btn" onclick="liveFlipCamera()">🔄</button>
+      <button class="live-close-btn" onclick="closeSedyLive()">✕</button>
+    </div>
   </div>
-  <div class="upgrades-body">
 
-    <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;line-height:1.6;margin-bottom:4px;">
-      Unlock more of Sedy — for yourself or your entire school.
-    </div>
-
-    <!-- Personal Plus — coming soon placeholder -->
-    <div class="upgrade-card" style="opacity:.6;cursor:default;">
-      <div class="upgrade-card-top">
-        <div class="upgrade-card-icon" style="background:linear-gradient(135deg,rgba(255,181,71,.2),rgba(255,181,71,.1));">⚡</div>
-        <div class="upgrade-card-info">
-          <div class="upgrade-card-name">Personal Plus</div>
-          <div class="upgrade-card-sub">More models · more memory · priority speed</div>
+  <!-- Video + canvas -->
+  <div class="live-video-wrap" id="live-video-wrap">
+    <video id="live-video" autoplay playsinline muted></video>
+    <!-- Dark vignette shown when something is highlighted -->
+    <div class="live-dark-vignette" id="live-dark-vignette"></div>
+    <!-- Highlight canvas draws glowing box on detected object; video stays live underneath -->
+    <canvas id="live-highlight-canvas"></canvas>
+    <!-- Thinking indicator -->
+    <div class="live-thinking" id="live-thinking">🎯 Analysing…</div>
+    <!-- Answer card -->
+    <div class="live-answer-card" id="live-answer-card">
+      <div class="live-answer-header">
+        <div class="live-answer-badge">
+          <div class="live-answer-dot"></div>
+          <span>Sedy Live</span>
         </div>
-        <div class="upgrade-card-badge" style="background:rgba(255,255,255,.07);color:var(--text3);">Coming soon</div>
+        <button class="live-answer-close" onclick="closeLiveAnswer()">✕</button>
       </div>
-      <div class="upgrade-card-features">
-        <div class="upgrade-feature">Unlimited conversations</div>
-        <div class="upgrade-feature">GPT-4o + Claude access</div>
-        <div class="upgrade-feature">Priority response speed</div>
-      </div>
+      <div class="live-answer-body" id="live-answer-body"></div>
     </div>
+  </div>
 
-    <!-- School Premium — FREE, active now -->
-    <div class="upgrade-card" onclick="closeUpgrades();openSchoolSetup()" style="border-color:rgba(124,92,252,.4);">
-      <div class="upgrade-card-top" style="background:linear-gradient(135deg,rgba(124,92,252,.08),transparent);">
-        <div class="upgrade-card-icon" style="background:linear-gradient(135deg,rgba(124,92,252,.3),rgba(79,142,255,.2));">🏫</div>
-        <div class="upgrade-card-info">
-          <div class="upgrade-card-name">Sedy Classroom</div>
-          <div class="upgrade-card-sub">For schools · principals · teachers · students</div>
-        </div>
-        <div class="upgrade-card-badge" style="background:rgba(0,229,160,.15);color:var(--success);border:1px solid rgba(0,229,160,.3);">FREE</div>
-      </div>
-      <div class="upgrade-card-features">
-        <div class="upgrade-feature">AI reads your school timetable automatically</div>
-        <div class="upgrade-feature">Teachers upload class materials</div>
-        <div class="upgrade-feature">Students ask AI doubts from class content</div>
-        <div class="upgrade-feature">School announcements &amp; chat</div>
-        <div class="upgrade-feature">Principal dashboard &amp; member management</div>
-      </div>
-      <button class="upgrade-action-btn" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:white;">
-        Set Up My School →
-      </button>
+  <!-- Bottom bar -->
+  <div class="live-bar">
+    <div class="live-input-wrap">
+      <input type="text" id="live-text-input" placeholder="Ask about what you see… (e.g. which is cheesier?)" onkeydown="if(event.key==='Enter')liveAsk()">
     </div>
-
+    <button class="live-ask-btn" onclick="liveAsk()" title="Ask AI about live view">🎯</button>
   </div>
 </div>
-</div>
 
-<!-- ══════════════════════════════════════════════════════
-     SCHOOL SETUP WIZARD
-════════════════════════════════════════════════════════ -->
-<div class="school-setup-overlay" id="school-setup-overlay" onclick="if(event.target===this)closeSchoolSetup()">
-<div class="school-setup-panel">
-  <div class="school-setup-header">
-    <div id="school-setup-title" class="school-setup-title">🏫 Set Up Your School</div>
-    <button class="settings-close" onclick="closeSchoolSetup()">✕</button>
-  </div>
-
-  <!-- Step 1: Enter school details -->
-  <div id="school-setup-step1" class="school-setup-body">
-    <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;line-height:1.6;">
-      Create your school on Sedy Classroom. You'll get a unique join code to share with your teachers and students.
-    </div>
-    <div class="setup-step">
-      <div class="setup-label">School Name</div>
-      <input id="school-setup-name" type="text" class="setup-input" placeholder="e.g. Delhi Public School, Sector 15" maxlength="60">
-    </div>
-    <div class="setup-step">
-      <div class="setup-label">Your Role</div>
-      <div style="display:flex;gap:8px;">
-        <div class="ob-opt selected" id="school-role-principal" onclick="schoolSetupSelectRole('principal')" style="flex:1;padding:10px;">👑 Principal</div>
-        <div class="ob-opt" id="school-role-teacher" onclick="schoolSetupSelectRole('teacher')" style="flex:1;padding:10px;">📖 Teacher</div>
-      </div>
-    </div>
-    <div id="school-setup-error" class="auth-error-box" style="display:none;"></div>
-  </div>
-
-  <!-- Step 2: Code generated -->
-  <div id="school-setup-step2" class="school-setup-body" style="display:none;">
-    <div style="text-align:center;">
-      <div style="font-size:40px;margin-bottom:8px;">🎉</div>
-      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);margin-bottom:6px;">Your school is ready!</div>
-      <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;">Share this code with your teachers and students</div>
-    </div>
-    <div class="school-code-display">
-      <div style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:4px;">SCHOOL JOIN CODE</div>
-      <div class="school-code-value" id="school-setup-code-value">SEDY-????</div>
-      <div style="font-size:12px;color:var(--text3);font-family:'DM Sans',sans-serif;margin-bottom:12px;" id="school-setup-code-name">School Name</div>
-      <button class="school-code-copy" onclick="schoolCopyCode()" id="school-copy-btn">📋 Copy Code</button>
-    </div>
-    <div style="background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.2);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--warning);font-family:'DM Sans',sans-serif;line-height:1.6;">
-      ⚠️ Save this code somewhere safe. Anyone with this code can join your school.
-    </div>
-  </div>
-
-  <div class="setup-actions" id="school-setup-actions">
-    <button class="setup-btn-secondary" onclick="closeSchoolSetup()">Cancel</button>
-    <button class="setup-btn-primary" id="school-setup-btn" onclick="schoolSetupNext()">Create School →</button>
-  </div>
-</div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════
-     CLASSROOM — Full Screen
-════════════════════════════════════════════════════════ -->
-<div class="classroom-overlay" id="classroom-overlay">
-  <div class="classroom-topbar">
-    <button class="classroom-back" onclick="closeClassroom()">←</button>
-    <div id="cr-school-logo-sm" style="width:28px;height:28px;border-radius:7px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;"></div>
-    <div class="classroom-logo" id="cr-topbar-title">🏫 Sedy Classroom</div>
-    <div class="classroom-school-badge" id="cr-school-badge">No School</div>
-  </div>
-
-  <!-- Locked state -->
-  <div class="classroom-locked" id="classroom-locked">
-    <div class="classroom-lock-icon">🔒</div>
-    <div class="classroom-lock-title">Classroom Locked</div>
-    <div class="classroom-lock-sub">You need a school key to access Sedy Classroom.<br><br>Ask your principal or teacher for the key, or set up your own school.</div>
-    <button class="classroom-lock-btn" onclick="closeClassroom();openUpgrades()">Set Up / Join a School →</button>
-    <button onclick="closeClassroom()" style="background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;font-family:'DM Mono',monospace;margin-top:-8px;">← Back to Sedy</button>
-  </div>
-
-  <!-- Active classroom -->
-  <div class="classroom-body" id="classroom-active" style="display:none;">
-    <!-- Side nav -->
-    <div class="classroom-nav" id="cr-sidenav">
-      <button class="classroom-nav-btn active" data-pane="dashboard" data-tooltip="Dashboard" onclick="crSwitchPane('dashboard')">🏠</button>
-      <!-- Student nav -->
-      <button class="classroom-nav-btn cr-nav-student" data-pane="myclass" data-tooltip="My Class" onclick="crSwitchPane('myclass')" style="display:none;">🎓</button>
-      <!-- Teacher nav -->
-      <button class="classroom-nav-btn cr-nav-teacher" data-pane="myclasses" data-tooltip="My Classes" onclick="crSwitchPane('myclasses')" style="display:none;">📖</button>
-      <!-- Principal nav -->
-      <button class="classroom-nav-btn cr-nav-principal" data-pane="allclasses" data-tooltip="All Classes" onclick="crSwitchPane('allclasses')" style="display:none;">🏫</button>
-      <!-- Common -->
-      <button class="classroom-nav-btn" data-pane="announce" data-tooltip="Announcements" onclick="crSwitchPane('announce')">📢</button>
-      <button class="classroom-nav-btn" data-pane="members" data-tooltip="Members" onclick="crSwitchPane('members')">👥</button>
-      <button class="classroom-nav-btn cr-nav-staff" data-pane="timetable" data-tooltip="Timetable" onclick="crSwitchPane('timetable')" style="display:none;">📅</button>
-    </div>
-
-    <!-- ── DASHBOARD ── -->
-    <div class="classroom-pane active" id="cr-pane-dashboard">
-      <div class="cr-section-title">Welcome to <span id="cr-school-name-header">your school</span></div>
-      <div id="cr-dashboard-content"></div>
-    </div>
-
-    <!-- ── STUDENT: MY CLASS ── -->
-    <div class="classroom-pane" id="cr-pane-myclass">
-      <div id="cr-myclass-home">
-        <!-- class chat + subject list -->
-        <div id="cr-class-chat-section" style="margin-bottom:18px;">
-          <div class="cr-section-title">💬 Class Chat</div>
-          <div id="cr-class-chat-msgs" style="height:200px;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
-          <div style="display:flex;gap:8px;">
-            <input type="text" id="cr-class-chat-input" class="cr-doubt-input" placeholder="Send a message to your class…" onkeydown="if(event.key==='Enter')crSendClassMsg()">
-            <button class="cr-doubt-send" onclick="crSendClassMsg()">→</button>
-          </div>
-        </div>
-        <div class="cr-section-title">📚 My Subjects</div>
-        <div id="cr-my-subjects-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-      </div>
-    </div>
-
-    <!-- ── SUBJECT ROOM (full screen within classroom) ── -->
-    <div class="classroom-pane" id="cr-pane-subjectroom" style="display:none;padding:0;">
-      <div style="display:flex;flex-direction:column;height:100%;">
-        <!-- Subject room header -->
-        <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2);">
-          <button class="cr-back-btn" onclick="crCloseSubjectRoom()">← Back</button>
-          <div id="sr-subject-icon" style="font-size:22px;"></div>
-          <div>
-            <div id="sr-subject-name" style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);"></div>
-            <div id="sr-class-name" style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;"></div>
-          </div>
-        </div>
-        <!-- Subject room tabs -->
-        <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2);">
-          <button class="files-tab active" id="sr-tab-ai" onclick="srSwitchTab('ai')">🤖 AI Chat</button>
-          <button class="files-tab" id="sr-tab-notes" onclick="srSwitchTab('notes')">📄 Notes</button>
-          <button class="files-tab" id="sr-tab-chat" onclick="srSwitchTab('chat')">💬 Subject Chat</button>
-          <button class="files-tab" id="sr-tab-doubts" onclick="srSwitchTab('doubts')">❓ Doubts</button>
-          <button class="files-tab cr-nav-staff" id="sr-tab-upload" onclick="srSwitchTab('upload')" style="display:none;">📤 Upload</button>
-        </div>
-        <!-- Tab: AI Chat -->
-        <div id="sr-pane-ai" class="sr-tab-pane active" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;">
-          <div id="sr-ai-msgs" style="flex:1;display:flex;flex-direction:column;gap:8px;"></div>
-          <div style="display:flex;gap:8px;flex-shrink:0;">
-            <input type="text" id="sr-ai-input" class="cr-doubt-input" placeholder="Ask AI about this subject…" onkeydown="if(event.key==='Enter')srSendAI()">
-            <button class="cr-doubt-send" onclick="srSendAI()">✦</button>
-          </div>
-        </div>
-        <!-- Tab: Notes -->
-        <div id="sr-pane-notes" class="sr-tab-pane" style="flex:1;overflow-y:auto;padding:14px;display:none;">
-          <div id="sr-notes-list" style="display:flex;flex-direction:column;gap:10px;"></div>
-          <div id="sr-notes-empty" style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;padding:16px 0;text-align:center;">No notes uploaded yet.</div>
-        </div>
-        <!-- Tab: Subject Chat (WhatsApp style) -->
-        <div id="sr-pane-chat" class="sr-tab-pane" style="flex:1;display:none;flex-direction:column;">
-          <div id="sr-chat-msgs" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;"></div>
-          <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;">
-            <input type="text" id="sr-chat-input" class="cr-doubt-input" placeholder="Message subject room…" onkeydown="if(event.key==='Enter')srSendChat()">
-            <button class="cr-doubt-send" onclick="srSendChat()">→</button>
-          </div>
-        </div>
-        <!-- Tab: Doubts -->
-        <div id="sr-pane-doubts" class="sr-tab-pane" style="flex:1;display:none;flex-direction:column;">
-          <div id="sr-doubts-list" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;"></div>
-          <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;">
-            <input type="text" id="sr-doubt-input" class="cr-doubt-input" placeholder="Ask a doubt…" onkeydown="if(event.key==='Enter')srSendDoubt()">
-            <button class="cr-doubt-send" onclick="srSendDoubt()">Ask</button>
-          </div>
-        </div>
-        <!-- Tab: Upload (teacher/principal only) -->
-        <div id="sr-pane-upload" class="sr-tab-pane" style="flex:1;overflow-y:auto;padding:14px;display:none;">
-          <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;margin-bottom:14px;">Upload notes, PDFs, or study material for students.</div>
-          <div id="sr-upload-drop" class="ssw-upload-area" onclick="document.getElementById('sr-upload-file').click()" ondragover="event.preventDefault()" ondrop="srHandleUploadDrop(event)">
-            <div class="ssw-upload-icon">📤</div>
-            <div class="ssw-upload-title">Drop files here or click to upload</div>
-            <div class="ssw-upload-sub">PDF, images, documents</div>
-            <input type="file" id="sr-upload-file" accept=".pdf,image/*,.doc,.docx,.ppt,.pptx" style="display:none" onchange="srUploadFile(this)">
-          </div>
-          <div id="sr-upload-status" style="margin-top:12px;display:none;" class="ssw-parsing-status">
-            <div class="ssw-parse-spinner"></div><span id="sr-upload-text">Uploading…</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── TEACHER: MY CLASSES ── -->
-    <div class="classroom-pane" id="cr-pane-myclasses">
-      <div class="cr-section-title">📖 My Classes</div>
-      <div id="cr-teacher-classes-list" style="display:flex;flex-direction:column;gap:10px;"></div>
-    </div>
-
-    <!-- ── PRINCIPAL: ALL CLASSES ── -->
-    <div class="classroom-pane" id="cr-pane-allclasses">
-      <div class="cr-section-title">🏫 All Classes</div>
-      <div id="cr-principal-classes-list" style="display:flex;flex-direction:column;gap:10px;"></div>
-    </div>
-
-    <!-- ── CLASS ROOM (full screen — used by teacher + principal) ── -->
-    <div class="classroom-pane" id="cr-pane-classroom" style="display:none;padding:0;">
-      <div style="display:flex;flex-direction:column;height:100%;">
-        <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2);">
-          <button class="cr-back-btn" onclick="crCloseClassRoom()">← Back</button>
-          <div id="clr-class-name" style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);flex:1;"></div>
-          <div id="clr-subject-btn-wrap" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
-        </div>
-        <!-- Class Chat -->
-        <div style="flex:1;display:flex;flex-direction:column;padding:14px;gap:10px;overflow:hidden;">
-          <div style="font-size:12px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;">Class Chat</div>
-          <div id="clr-chat-msgs" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
-          <div style="display:flex;gap:8px;flex-shrink:0;">
-            <input type="text" id="clr-chat-input" class="cr-doubt-input" placeholder="Message the class…" onkeydown="if(event.key==='Enter')clrSendMsg()">
-            <button class="cr-doubt-send" onclick="clrSendMsg()">→</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── ANNOUNCEMENTS ── -->
-    <div class="classroom-pane" id="cr-pane-announce">
-      <div class="cr-section-title">📢 Announcements & Class Chat</div>
-      <div id="cr-announce-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-      <div id="cr-announce-empty" style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;padding:12px 0;display:none;">No announcements yet.</div>
-      <div id="cr-post-announce" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;">
-        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:8px;letter-spacing:.5px;text-transform:uppercase;">Post Announcement</div>
-        <textarea id="cr-announce-input" style="width:100%;padding:10px 12px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;resize:vertical;min-height:72px;box-sizing:border-box;" placeholder="Type your announcement…" onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
-        <div style="display:flex;gap:8px;margin-top:8px;">
-          <button onclick="crAIDraftAnnouncement()" style="padding:7px 14px;background:none;border:1px solid var(--border2);border-radius:9px;color:var(--text2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;">✦ AI Draft</button>
-          <button onclick="crPostAnnouncement()" style="padding:7px 16px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:9px;color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;margin-left:auto;">Post →</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── MEMBERS ── -->
-    <div class="classroom-pane" id="cr-pane-members">
-      <div class="cr-section-title">👥 School Members</div>
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-        <button onclick="crFilterMembers('all')" class="cr-back-btn" id="cr-filter-all" style="background:rgba(124,92,252,.12);border-color:var(--accent2);color:var(--accent2);">All</button>
-        <button onclick="crFilterMembers('teacher')" class="cr-back-btn" id="cr-filter-teacher">Teachers</button>
-        <button onclick="crFilterMembers('student')" class="cr-back-btn" id="cr-filter-student">Students</button>
-        <button onclick="crFilterMembers('principal')" class="cr-back-btn" id="cr-filter-principal">Principal</button>
-      </div>
-      <div id="cr-members-list"></div>
-    </div>
-
-    <!-- ── TIMETABLE (principal/teacher only) ── -->
-    <div class="classroom-pane" id="cr-pane-timetable">
-      <div class="cr-section-title">📅 Timetable Manager</div>
-      <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;margin-bottom:16px;line-height:1.6;">Upload school timetable. AI will extract teacher names, classes, subjects and schedules.</div>
-      <div id="cr-timetable-upload-area" style="border:2px dashed var(--border2);border-radius:14px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;" onclick="document.getElementById('cr-timetable-file').click()" ondragover="event.preventDefault();this.style.borderColor='var(--accent2)'" ondragleave="this.style.borderColor='var(--border2)'" ondrop="crHandleTimetableDrop(event)">
-        <div style="font-size:36px;margin-bottom:8px;">📅</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;">Drop timetable here or click to upload</div>
-        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;">Excel, PDF, image — AI reads it all</div>
-        <input type="file" id="cr-timetable-file" accept=".xlsx,.xls,.pdf,image/*" style="display:none" onchange="crHandleTimetableFile(this)">
-      </div>
-      <div style="margin-top:12px;">
-        <textarea id="cr-timetable-text" style="width:100%;padding:10px 12px;background:var(--card);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-size:12px;font-family:'DM Mono',monospace;outline:none;resize:vertical;min-height:100px;box-sizing:border-box;" placeholder="Or paste timetable text here…"></textarea>
-        <button onclick="crParseTimetable()" id="cr-parse-btn" style="margin-top:8px;padding:10px 24px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:12px;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">✦ Parse Timetable with AI</button>
-      </div>
-      <div id="cr-timetable-result" style="margin-top:16px;display:none;"></div>
-    </div>
-
-  </div><!-- classroom-body -->
-</div><!-- classroom-overlay -->
-
-<!-- Subject Room CSS extras (inline) -->
-<style>
-.sr-tab-pane{display:none;}
-.sr-tab-pane.active{display:flex;flex-direction:column;}
-.cr-chat-bubble{padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.5;max-width:85%;}
-.cr-chat-bubble.mine{background:linear-gradient(135deg,rgba(79,142,255,.25),rgba(124,92,252,.2));border:1px solid rgba(79,142,255,.3);align-self:flex-end;color:var(--text);}
-.cr-chat-bubble.theirs{background:var(--card);border:1px solid var(--border);align-self:flex-start;color:var(--text);}
-.cr-chat-sender{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);margin-bottom:3px;}
-.cr-chat-tag{display:inline-block;padding:1px 7px;border-radius:6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;letter-spacing:.3px;margin-left:5px;vertical-align:middle;}
-.cr-chat-tag.principal{background:rgba(255,181,71,.15);color:var(--warning);border:1px solid rgba(255,181,71,.3);}
-.cr-chat-tag.class-teacher{background:rgba(0,229,192,.12);color:var(--accent3);border:1px solid rgba(0,229,192,.3);}
-.cr-chat-tag.teacher{background:rgba(124,92,252,.12);color:var(--accent2);border:1px solid rgba(124,92,252,.3);}
-.cr-subject-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:12px;}
-.cr-subject-card:hover{border-color:var(--accent);transform:translateY(-1px);}
-.cr-subject-card-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
-.cr-subject-card-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
-.cr-subject-card-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;}
-.cr-class-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .18s;}
-.cr-class-card:hover{border-color:var(--accent2);}
-.cr-class-card-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
-.cr-class-card-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:3px;}
-.cr-note-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px;cursor:pointer;transition:all .18s;}
-.cr-note-card:hover{border-color:var(--accent);}
-.cr-note-title{font-size:13px;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;}
-.cr-note-meta{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:3px;}
-.cr-doubt-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px;margin-bottom:2px;}
-.cr-doubt-q{font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;margin-bottom:6px;}
-.cr-doubt-a{font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif;line-height:1.6;}
-.cr-doubt-meta{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:4px;}
-</style>
 
 
 </body>

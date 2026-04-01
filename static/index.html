@@ -2970,19 +2970,24 @@ async function sendMessage(){
 
 async function _sendChat(text){
   try{
-    const res=await fetch(API_URL+'/chat',{...});
+    // Send preferred_language as a proper API field — backend uses it to override system prompt.
+    // Empty string = auto-detect (default). 'English', 'Hindi', 'Tamil' etc = enforce that language.
+    const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      message: text,
+      model: activeModel,
+      history: getChatHistory().slice(-20),
+      preferred_language: _userPreferredLang || 'English',
+      force_language: true,
+    })});
     if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}
-    if(!res.ok){
-      const errText = await res.text();
-      console.error('Chat error:', res.status, errText);  // ADD THIS
-      throw new Error('HTTP '+res.status);
-    }
-    ...
-  }catch(err){
-    hideTyping();
-    console.error('_sendChat caught:', err);  // ADD THIS
-    addMsg('ai','Could not reach Sedy. Please check your connection.');
-  }
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();hideTyping();
+    const reply=data.reply||'Sorry, no response.';pushHistory('assistant',reply);
+    if(reply.includes('```')){const match=reply.match(/```(\w+)\n([\s\S]*?)```/);if(match){const lang=match[1].toLowerCase();const code=match[2].trim();if(['python','javascript','js','html'].includes(lang)){addMsg('ai',reply);showRunPrompt(lang,code);return;}}}
+    const msgDiv=addMsg('ai',reply);msgDiv._rawText=reply;
+    const suggestionTrigger=/\b(explain|tell me|describe|what is|how does)\b/i;
+    if(suggestionTrigger.test(text)&&reply.length>200)showSuggestions(reply,text);
+  }catch(err){hideTyping();addMsg('ai','Could not reach Sedy. Please check your connection.');}
 }
 function showRunPrompt(lang,code){const id='run_'+Date.now();const wrap=document.getElementById('chat-messages');const div=document.createElement('div');div.className='msg ai';div.innerHTML=`<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble" style="padding:0;background:none;border:none;">${renderCodeBlock(code,lang,id)}</div></div>`;wrap.appendChild(div);try{hljs.highlightElement(document.getElementById(id));}catch(e){}scrollBottom();}
 

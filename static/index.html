@@ -4916,6 +4916,88 @@ function speakVoice(text, langCode) {
 
 (function(){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';document.head.appendChild(s);})();
 
+// ── Files panel ──
+function loadFiles() {
+  try { return JSON.parse(localStorage.getItem(FILES_KEY) || '[]'); } catch(e) { return []; }
+}
+function updateFilesBadge() {
+  const files = loadFiles();
+  const count = document.getElementById('files-count');
+  if (count) {
+    count.textContent = files.length;
+    count.classList.toggle('visible', files.length > 0);
+  }
+}
+function saveFile(cardId, type, topic) {
+  const files = loadFiles();
+  if (files.length >= FILES_MAX) { alert('Max ' + FILES_MAX + ' files saved.'); return; }
+  const contentEl = document.getElementById(cardId);
+  const entry = { id: 'f_' + Date.now(), type, topic, content: contentEl ? contentEl.innerText : '', createdAt: Date.now() };
+  files.unshift(entry);
+  saveFiles(files);
+  updateFilesBadge();
+  const btn = document.getElementById('save_' + cardId);
+  if (btn) { btn.textContent = '✓ Saved'; setTimeout(() => { btn.textContent = '💾 Save'; }, 2000); }
+}
+function openFilesPanel() {
+  document.getElementById('files-overlay').classList.add('visible');
+  document.getElementById('files-panel').classList.add('visible');
+  renderFilesList();
+}
+function closeFilesPanel() {
+  document.getElementById('files-overlay').classList.remove('visible');
+  document.getElementById('files-panel').classList.remove('visible');
+}
+function switchFilesTab(tab) {
+  activeFilesTab = tab;
+  ['notes','formula','flowchart'].forEach(t => {
+    document.getElementById('ftab-' + t)?.classList.toggle('active', t === tab);
+  });
+  renderFilesList();
+}
+function renderFilesList() {
+  const list = document.getElementById('files-list');
+  if (!list) return;
+  const files = loadFiles().filter(f => f.type === activeFilesTab);
+  if (!files.length) {
+    list.innerHTML = `<div class="files-empty"><div class="files-empty-icon">📭</div><div class="files-empty-text">No ${activeFilesTab} saved yet.<br>Generate some and hit 💾 Save!</div></div>`;
+    return;
+  }
+  list.innerHTML = files.map(f => `
+    <div class="file-card">
+      <div class="file-card-top">
+        <div class="file-card-icon ${f.type}">${f.type==='notes'?'📝':f.type==='formula'?'📐':'🔀'}</div>
+        <div class="file-card-info">
+          <div class="file-card-topic">${_esc(f.topic)}</div>
+          <div class="file-card-meta">${new Date(f.createdAt).toLocaleDateString()}</div>
+        </div>
+      </div>
+      <div class="file-card-actions">
+        <button class="file-open-btn" onclick="openFile('${f.id}')">Open</button>
+        <button class="file-del-btn" onclick="deleteFile('${f.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function openFile(id) {
+  const files = loadFiles();
+  const file = files.find(f => f.id === id);
+  if (!file) return;
+  closeFilesPanel();
+  if (file.type === 'notes') renderNotesMsg(file.content, file.topic);
+  else if (file.type === 'formula') renderFormulaMsg(file.content, file.topic);
+}
+function deleteFile(id) {
+  if (!confirm('Delete this file?')) return;
+  const files = loadFiles().filter(f => f.id !== id);
+  saveFiles(files);
+  updateFilesBadge();
+  renderFilesList();
+  if (_currentUser && window._fb) {
+    const fb = window._fb;
+    fb.deleteDoc(fb.doc(fb.db, 'users', _currentUser.uid, 'files', id)).catch(()=>{});
+  }
+}
+
 // ══════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════

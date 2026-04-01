@@ -2771,6 +2771,7 @@ function clearCurrentChat(){
 // ══════════════════════════════════════════════════════
 // SEND MESSAGE (main)
 // ══════════════════════════════════════════════════════
+
 async function sendMessage(){
   let text=document.getElementById('chat-input').value.trim();
   if(!text&&!stagedPdfs.length&&!stagedImages.length&&!stagedTextFiles.length)return;
@@ -2810,91 +2811,121 @@ async function sendMessage(){
   }
 
   addMsg('user',text);
-  // Only check for code context form if user EXPLICITLY asks to write/build/create code
-  if(isCodeRequest(text)&&!isFreeMode){await showCodeContextForm(text);return;}
-  showTyping();
-  let intent='chat';
-  try{const ir=await fetch(API_URL+'/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-6)})});if(ir.ok){const id=await ir.json();intent=id.intent||'chat';}}catch(e){}
-  pushHistory('user',text);
+
+  // ── Smart intent detection — skip for obvious conversational messages ──
+  // This saves one API call per message on short/simple queries
+  const SKIP_INTENT_PATTERN = /^(hi|hello|hey|ok|okay|thanks|thank you|yes|no|sure|what|how|why|who|when|where|explain|tell me|describe|define|what is|what are|what was|how does|how do|can you|could you|please|help|solve|calculate|find|compute|simplify|prove|derive|write|show|list|give me|i need|i want|क्या|कैसे|क्यों|बताओ|समझाओ|हेलो|नमस्ते|ठीक है)/i;
+
+  const isObviousChat = SKIP_INTENT_PATTERN.test(text.trim()) || text.trim().length < 15;
+
+  // Force intent detection for keywords that trigger special UI
+  const FORCE_INTENT_PATTERN = /\b(flashcard|flash card|quiz|notes|note|formula|graph|chart|flowchart|flow chart|practice|practise|फ्लैशकार्ड|क्विज़|नोट्स|सूत्र|ग्राफ|फ्लोचार्ट|अभ्यास|প্রশিক্ষণ|কুইজ|গ্রাফ)\b/i;
+  const needsIntent = FORCE_INTENT_PATTERN.test(text);
+
+  let intent = 'chat';
+
+  if (!isObviousChat || needsIntent) {
+    try {
+      const ir = await fetch(API_URL+'/intent', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({message:text, history:getChatHistory().slice(-6)})
+      });
+      if (ir.ok) {
+        const id = await ir.json();
+        intent = id.intent || 'chat';
+      }
+    } catch(e) {
+      intent = 'chat'; // fallback silently
+    }
+  }
+
+  pushHistory('user', text);
 
   if(intent==='graph'){try{const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Graph: '+data.title+']');renderGraph(data);}catch(err){hideTyping();addMsg('ai','Could not generate the graph.');}return;}
   if(intent==='flowchart'){try{const res=await fetch(API_URL+'/flowchart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Flowchart: '+data.title+']');renderFlowchartMsg(data);}catch(err){hideTyping();addMsg('ai','Could not generate the flowchart.');}return;}
   if(intent==='notes'){try{const res=await fetch(API_URL+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Notes: '+data.topic+']');renderNotesMsg(data.notes,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate notes.');}return;}
-  // formula — ONLY if user explicitly says "formula sheet", "give me formulas", "cheat sheet", etc.
-  // NOT auto-triggered on ambiguous follow-ups
   if(intent==='formula'&&/\b(formula|formulas|formulae|cheat.?sheet|key.?terms|reference.?sheet)\b/i.test(text)){try{const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Formula: '+data.topic+']');renderFormulaMsg(data.sheet,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate formula sheet.');}return;}
   if(intent==='flashcard'||intent==='both'){try{const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();if(intent==='both'){const qres=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(!qres.ok)throw new Error('HTTP '+qres.status);const qdata=await qres.json();hideTyping();pushHistory('assistant','[Flashcards+Quiz: '+data.topic+']');renderFlashcards(data.cards,data.topic);renderQuiz(qdata.questions,qdata.topic,qdata.difficulty);}else{hideTyping();pushHistory('assistant','[Flashcards: '+data.topic+']');renderFlashcards(data.cards,data.topic);}}catch(err){hideTyping();addMsg('ai','Could not generate flashcards.');}return;}
   if(intent==='quiz'){try{const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Quiz: '+data.topic+']');renderQuiz(data.questions,data.topic,data.difficulty);}catch(err){hideTyping();addMsg('ai','Could not generate quiz.');}return;}
 
   if(intent==='practice'){
-    // Extract topic — strip practice/solve/exercise trigger words
-    const practiceStopWords = /\b(practice|practise|solve|exercise|problems?|questions?|on|for|about|me|want|to|i|let|give|whiteboard|do|some|a|an|the|please)\b/gi;
-    let topic = text.replace(practiceStopWords,'').replace(/\s+/g,' ').trim();
-    if(!topic || topic.length < 3) topic = text.trim(); // fallback to full text
-
-    // Detect difficulty from message
-    let difficulty = 'medium';
-    if(/\b(easy|simple|basic|beginner|आसान|सरल)\b/i.test(text)) difficulty = 'easy';
-    else if(/\b(hard|difficult|advanced|tough|challenging|कठिन|मुश्किल)\b/i.test(text)) difficulty = 'hard';
-
+    const practiceStopWords=/\b(practice|practise|solve|exercise|problems?|questions?|on|for|about|me|want|to|i|let|give|whiteboard|do|some|a|an|the|please)\b/gi;
+    let topic=text.replace(practiceStopWords,'').replace(/\s+/g,' ').trim();
+    if(!topic||topic.length<3)topic=text.trim();
+    let difficulty='medium';
+    if(/\b(easy|simple|basic|beginner|आसान|सरल)\b/i.test(text))difficulty='easy';
+    else if(/\b(hard|difficult|advanced|tough|challenging|कठिन|मुश्किल)\b/i.test(text))difficulty='hard';
     hideTyping();
-    pushHistory('assistant', '[Practice: '+topic+']');
-    renderPracticeCard(topic, difficulty);
+    pushHistory('assistant','[Practice: '+topic+']');
+    renderPracticeCard(topic,difficulty);
     return;
   }
 
+  // Only show typing AFTER intent is resolved
+  showTyping();
   await _sendChat(text);
 }
 
 async function _sendChat(text){
   try{
-    // Send preferred_language as a proper API field — backend uses it to override system prompt.
-    // Empty string = auto-detect (default). 'English', 'Hindi', 'Tamil' etc = enforce that language.
-    const res=await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      message: text,
-      model: activeModel,
-      history: getChatHistory().slice(-30),
-      preferred_language: _userPreferredLang || 'English',
-      force_language: true,
-    })});
-    if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const data=await res.json();hideTyping();
-    const reply=data.reply||'Sorry, no response.';pushHistory('assistant',reply);
-    if(reply.includes('```')){const match=reply.match(/```(\w+)\n([\s\S]*?)```/);if(match){const lang=match[1].toLowerCase();const code=match[2].trim();if(['python','javascript','js','html'].includes(lang)){addMsg('ai',reply);showRunPrompt(lang,code);return;}}}
-    const msgDiv=addMsg('ai',reply);msgDiv._rawText=reply;
+    const res=await fetch(API_URL+'/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        message: text,
+        model: activeModel,
+        history: getChatHistory().slice(-30),
+        preferred_language: _userPreferredLang || 'English',
+        force_language: true,
+      })
+    });
+
+    if(res.status===429){
+      const d=await res.json();
+      hideTyping();
+      showRateLimit(d.detail||{});
+      return;
+    }
+    if(!res.ok){
+      hideTyping();
+      addMsg('ai','❌ Server error ('+res.status+'). Please try again in a moment.');
+      return;
+    }
+
+    const data=await res.json();
+    hideTyping();
+    const reply=data.reply||'Sorry, no response.';
+    pushHistory('assistant',reply);
+
+    if(reply.includes('```')){
+      const match=reply.match(/```(\w+)\n([\s\S]*?)```/);
+      if(match){
+        const lang=match[1].toLowerCase();
+        const code=match[2].trim();
+        if(['python','javascript','js','html'].includes(lang)){
+          addMsg('ai',reply);
+          showRunPrompt(lang,code);
+          return;
+        }
+      }
+    }
+
+    const msgDiv=addMsg('ai',reply);
+    msgDiv._rawText=reply;
+
     const suggestionTrigger=/\b(explain|tell me|describe|what is|how does)\b/i;
     if(suggestionTrigger.test(text)&&reply.length>200)showSuggestions(reply,text);
-  }catch(err){hideTyping();addMsg('ai','Could not reach Sedy. Please check your connection.');}
+
+  }catch(err){
+    hideTyping();
+    if(err.message&&err.message.includes('429')){
+      showRateLimit({wait_seconds:60,limit_type:'requests'});
+    } else {
+      addMsg('ai','❌ Could not reach Sedy. Please check your connection.');
+    }
+  }
 }
-function showRunPrompt(lang,code){const id='run_'+Date.now();const wrap=document.getElementById('chat-messages');const div=document.createElement('div');div.className='msg ai';div.innerHTML=`<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble" style="padding:0;background:none;border:none;">${renderCodeBlock(code,lang,id)}</div></div>`;wrap.appendChild(div);try{hljs.highlightElement(document.getElementById(id));}catch(e){}scrollBottom();}
-
-// ── Attach menu ──
-function toggleAttachMenu(e){e.stopPropagation();document.getElementById('attach-menu').classList.toggle('open');}
-function closeAttachMenu(){document.getElementById('attach-menu').classList.remove('open');}
-document.addEventListener('click',(e)=>{if(!e.target.closest('#attach-wrap'))closeAttachMenu();});
-function openWhiteboardFromMenu(){closeAttachMenu();openWhiteboard();}
-function openSedyLensFromMenu(){closeAttachMenu();openSedyLens();}
-
-// ── Screenshot / Crop ──
-let cropCanvas=null,cropCtx=null,cropStream=null,cropStartX=0,cropStartY=0,cropEndX=0,cropEndY=0,cropDragging=false,cropHasSelection=false;
-function startScreenshot(){closeAttachMenu();if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){addMsg('ai','📸 Screen capture not supported. Try Chrome!');return;}navigator.mediaDevices.getDisplayMedia({video:{cursor:'always'},audio:false}).then(stream=>{cropStream=stream;const video=document.createElement('video');video.srcObject=stream;video.play();video.onloadeddata=()=>{const overlay=document.getElementById('crop-overlay');const canvas=document.getElementById('crop-canvas');canvas.width=window.innerWidth;canvas.height=window.innerHeight;const ctx=canvas.getContext('2d');ctx.drawImage(video,0,0,canvas.width,canvas.height);stream.getTracks().forEach(t=>t.stop());cropCanvas=canvas;cropCtx=ctx;cropHasSelection=false;document.getElementById('crop-confirm').style.display='none';document.getElementById('crop-selection').classList.remove('visible');overlay.classList.add('active');setupCropEvents();};}).catch(err=>{if(err.name!=='NotAllowedError')addMsg('ai','Could not capture screen: '+err.message);});}
-function setupCropEvents(){const overlay=document.getElementById('crop-overlay');const selection=document.getElementById('crop-selection');function onDown(e){const r=overlay.getBoundingClientRect();cropStartX=(e.touches?e.touches[0].clientX:e.clientX)-r.left;cropStartY=(e.touches?e.touches[0].clientY:e.clientY)-r.top;cropDragging=true;cropHasSelection=false;document.getElementById('crop-confirm').style.display='none';selection.classList.remove('visible');}function onMove(e){if(!cropDragging)return;e.preventDefault();const r=overlay.getBoundingClientRect();cropEndX=(e.touches?e.touches[0].clientX:e.clientX)-r.left;cropEndY=(e.touches?e.touches[0].clientY:e.clientY)-r.top;const x=Math.min(cropStartX,cropEndX),y=Math.min(cropStartY,cropEndY),w=Math.abs(cropEndX-cropStartX),h=Math.abs(cropEndY-cropStartY);selection.style.left=x+'px';selection.style.top=y+'px';selection.style.width=w+'px';selection.style.height=h+'px';selection.classList.add('visible');}function onUp(){if(!cropDragging)return;cropDragging=false;if(Math.abs(cropEndX-cropStartX)>20&&Math.abs(cropEndY-cropStartY)>20){cropHasSelection=true;document.getElementById('crop-confirm').style.display='';}}overlay.addEventListener('mousedown',onDown);overlay.addEventListener('mousemove',onMove);overlay.addEventListener('mouseup',onUp);overlay.addEventListener('touchstart',onDown,{passive:false});overlay.addEventListener('touchmove',onMove,{passive:false});overlay.addEventListener('touchend',onUp);}
-function captureFullScreen(){if(!cropCanvas)return;cancelCrop();const dataUrl=cropCanvas.toDataURL('image/jpeg',.92);stagedImages.push({dataUrl,base64:dataUrl.split(',')[1],name:'screenshot.jpg'});renderImgStagedRow();}
-function cropAndSend(){if(!cropCanvas||!cropHasSelection)return;const x=Math.min(cropStartX,cropEndX),y=Math.min(cropStartY,cropEndY),w=Math.abs(cropEndX-cropStartX),h=Math.abs(cropEndY-cropStartY);const tc=document.createElement('canvas');tc.width=w;tc.height=h;tc.getContext('2d').drawImage(cropCanvas,x,y,w,h,0,0,w,h);const dataUrl=tc.toDataURL('image/jpeg',.92);cancelCrop();stagedImages.push({dataUrl,base64:dataUrl.split(',')[1],name:'screenshot.jpg'});renderImgStagedRow();}
-function cancelCrop(){document.getElementById('crop-overlay').classList.remove('active');cropHasSelection=false;cropCanvas=null;}
-
-// ── Files panel ──
-function loadFiles(){try{return JSON.parse(localStorage.getItem(FILES_KEY)||'[]');}catch(e){return[];}}
-function saveFiles(files){try{localStorage.setItem(FILES_KEY,JSON.stringify(files));}catch(e){}}
-function updateFilesBadge(){const files=loadFiles();const count=files.length;const el=document.getElementById('files-count');if(el){el.textContent=count;el.classList.toggle('visible',count>0);}}
-function openFilesPanel(){renderFilesList();document.getElementById('files-panel').classList.add('visible');document.getElementById('files-overlay').classList.add('visible');}
-function closeFilesPanel(){document.getElementById('files-panel').classList.remove('visible');document.getElementById('files-overlay').classList.remove('visible');}
-function switchFilesTab(tab){activeFilesTab=tab;document.querySelectorAll('.files-tab').forEach(t=>t.classList.toggle('active',t.id==='ftab-'+tab));renderFilesList();}
-function renderFilesList(){const files=loadFiles().filter(f=>f.type===activeFilesTab);const list=document.getElementById('files-list');list.innerHTML='';if(!files.length){list.innerHTML=`<div class="files-empty"><div class="files-empty-icon">${activeFilesTab==='notes'?'📝':activeFilesTab==='formula'?'📐':'🔀'}</div><div class="files-empty-text">No saved ${activeFilesTab} yet.</div></div>`;return;}files.forEach(file=>{const card=document.createElement('div');card.className='file-card';const icon=file.type==='notes'?'📝':file.type==='formula'?'📐':'🔀';const iconClass=file.type;const date=new Date(file.createdAt||Date.now()).toLocaleDateString('en-US',{month:'short',day:'numeric'});card.innerHTML=`<div class="file-card-top"><div class="file-card-icon ${iconClass}">${icon}</div><div class="file-card-info"><div class="file-card-topic">${_esc(file.topic)}</div><div class="file-card-meta">${date} · ${file.wordCount||0} ${file.type==='flowchart'?'nodes':'words'}</div></div></div><div class="file-card-actions"><button class="file-open-btn" onclick="openFile('${file.id}')">Open</button><button class="file-del-btn" onclick="deleteFile('${file.id}')">🗑</button></div>`;list.appendChild(card);});}
-function saveFile(cardId,type,topic){const el=document.getElementById(cardId);if(!el)return;const files=loadFiles();if(files.length>=FILES_MAX){addMsg('ai','⚠️ Storage full.');return;}const content=el.innerHTML;const wordCount=el.innerText.split(/\s+/).length;const existing=files.findIndex(f=>f.topic===topic&&f.type===type);const entry={id:'f_'+Date.now(),type,topic,content,wordCount,createdAt:Date.now()};if(existing>=0)files[existing]=entry;else files.unshift(entry);saveFiles(files);updateFilesBadge();const btn=document.getElementById('save_'+cardId);if(btn){btn.textContent='✓ Saved';setTimeout(()=>{btn.textContent='💾 Save';},2000);}}
-function openFile(fileId){const files=loadFiles();const file=files.find(f=>f.id===fileId);if(!file)return;closeFilesPanel();if(file.type==='flowchart'&&file.fcData){renderFlowchartMsg(file.fcData);return;}if(file.type==='notes')renderNotesMsg(file.content||'',file.topic);else if(file.type==='formula')renderFormulaMsg(file.content||'',file.topic);}
-function deleteFile(fileId){const files=loadFiles().filter(f=>f.id!==fileId);saveFiles(files);updateFilesBadge();renderFilesList();}
 
 // ── Scope (simplified) ──
 // ══════════════════════════════════════════════════════
@@ -5168,7 +5199,6 @@ function _afterLogin(user, isNew) {
   // Don't override it here.
   init();
   // Update classroom sidebar label based on school membership
-  setTimeout(crUpdateSidebarLabel, 100);
 }
 
 function hideAuthScreen() {

@@ -1708,11 +1708,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         </div>
       </div>
       <div class="header-right">
-        <div class="model-switcher" id="model-switcher">
-          <button class="model-btn active" data-model="auto" onclick="setModel('auto')">✦ Auto</button>
-          <button class="model-btn" data-model="pro" onclick="setModel('pro')">🚀 Pro</button>
-          <button class="model-btn" data-model="flash" onclick="setModel('flash')">⚡ Flash</button>
-          <button class="model-btn" data-model="smart" onclick="setModel('smart')">🧠 Smart</button>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 12px;background:var(--card);border:1px solid var(--border);border-radius:22px;">
+          <span style="font-size:11px;color:var(--accent);font-family:'DM Mono',monospace;">✦ Llama 4 Scout</span>
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 6px var(--success);display:inline-block;"></span>
         </div>
         <button class="files-btn" onclick="openFilesPanel()">📁 <span>Files</span><div class="files-count" id="files-count">0</div></button>
         <button class="clear-header-btn" onclick="clearCurrentChat()">🗑 <span>Clear</span></button>

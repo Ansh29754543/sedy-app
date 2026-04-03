@@ -2484,19 +2484,12 @@ function getChatHistory() {
   if (!activeChatId || !chats[activeChatId]) return [];
   return chats[activeChatId].messages || [];
 }
-function pushHistory(role, content) {
+function pushHistory(role, content, richData) {
   if (!activeChatId) return;
   if (!chats[activeChatId].messages) chats[activeChatId].messages = [];
-  chats[activeChatId].messages.push({ role, content });
-  if (chats[activeChatId].messages.length > 60) chats[activeChatId].messages = chats[activeChatId].messages.slice(-60);
-  chats[activeChatId].updatedAt = Date.now();
-  // Auto-title from first user message
-  const msgs = chats[activeChatId].messages;
-  if (msgs.length === 1 && msgs[0].role === 'user' && chats[activeChatId].title === 'New Chat') {
-    const autoTitle = msgs[0].content.slice(0, 40).trim() || 'New Chat';
-    chats[activeChatId].title = autoTitle;
-    updateHeaderTitle(autoTitle);
-  }
+  const entry = { role, content };
+  if (richData) entry.richData = richData;
+  chats[activeChatId].messages.push(entry);
   saveChats();
   renderChatList();
   updateMemoryBadge();
@@ -2548,8 +2541,22 @@ function renderChatMessages() {
   }
   document.body.classList.add('has-messages');
   msgs.forEach(m => {
-    if (m.role === 'user') addMsg('user', m.content, null, true);
-    else if (m.role === 'assistant') addMsg('ai', m.content, null, true);
+    if (m.role === 'user') {
+      addMsg('user', m.content, null, true);
+    } else if (m.role === 'assistant') {
+      const rd = m.richData;
+      if (rd) {
+        if      (rd.type === 'graph')     renderGraph(rd.data);
+        else if (rd.type === 'flowchart') renderFlowchartMsg(rd.data);
+        else if (rd.type === 'notes')     renderNotesMsg(rd.data.notes, rd.data.topic);
+        else if (rd.type === 'formula')   renderFormulaMsg(rd.data.sheet, rd.data.topic);
+        else if (rd.type === 'flashcard') renderFlashcards(rd.data.cards, rd.data.topic);
+        else if (rd.type === 'quiz')      renderQuiz(rd.data.questions, rd.data.topic, rd.data.difficulty);
+        else                              addMsg('ai', m.content, null, true);
+      } else {
+        addMsg('ai', m.content, null, true);
+      }
+    }
   });
   scrollBottom();
 }
@@ -3146,8 +3153,8 @@ async function sendMessage(){
     const pdf=pdfs[0],pdfBase64=pdf.base64,pdfName=pdf.name;
     const topicFromText=(t)=>t.replace(/^(make|create|generate|give me|show me|flashcards?|quiz|notes?|formula|flowchart)\s+/gi,'').replace(/(notes?|formula sheet?|flashcards?|quiz|flowchart)\s+(on|for|about|of)\s+/gi,'').trim()||pdfName.replace(/\.pdf$/i,'');
     try{
-      if(pdfIntent==='notes'){const res=await fetch(API_URL+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:topicFromText(text),history:getChatHistory().slice(-10),model:activeModel,pdf_base64:pdfBase64,pdf_name:pdfName})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Notes: '+data.topic+']');renderNotesMsg(data.notes,data.topic);return;}
-      if(pdfIntent==='formula'){const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:topicFromText(text),history:getChatHistory().slice(-10),model:activeModel,pdf_base64:pdfBase64,pdf_name:pdfName})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Formula: '+data.topic+']');renderFormulaMsg(data.sheet,data.topic);return;}
+      if(pdfIntent==='notes'){...pushHistory('assistant','[Notes: '+data.topic+']');renderNotesMsg(data.notes,data.topic);return;}
+      if(pdfIntent==='formula'){...pushHistory('assistant','[Formula: '+data.topic+']');renderFormulaMsg(data.sheet,data.topic);return;}
       if(pdfIntent==='flashcard'||pdfIntent==='both'||pdfIntent==='quiz'){
         const extractRes=await fetch(API_URL+'/pdf-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'List all the key concepts, terms and facts.',pdf_base64:pdfBase64,pdf_name:pdfName,history:[],model:activeModel})});
         if(extractRes.status===429){const d=await extractRes.json();hideTyping();showRateLimit(d.detail||{});return;}
@@ -3193,14 +3200,12 @@ async function sendMessage(){
 
   pushHistory('user', text);
 
-  if(intent==='graph'){try{const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Graph: '+data.title+']');renderGraph(data);}catch(err){hideTyping();addMsg('ai','Could not generate the graph.');}return;}
-  if(intent==='flowchart'){try{const res=await fetch(API_URL+'/flowchart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Flowchart: '+data.title+']');renderFlowchartMsg(data);}catch(err){hideTyping();addMsg('ai','Could not generate the flowchart.');}return;}
-  if(intent==='notes'){try{const res=await fetch(API_URL+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Notes: '+data.topic+']');renderNotesMsg(data.notes,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate notes.');}return;}
-  if(intent==='formula'&&/\b(formula|formulas|formulae|cheat.?sheet|key.?terms|reference.?sheet)\b/i.test(text)){try{const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Formula: '+data.topic+']');renderFormulaMsg(data.sheet,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate formula sheet.');}return;}
-  if(intent==='flashcard'||intent==='both'){try{const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();if(intent==='both'){const qres=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(!qres.ok)throw new Error('HTTP '+qres.status);const qdata=await qres.json();hideTyping();pushHistory('assistant','[Flashcards+Quiz: '+data.topic+']');renderFlashcards(data.cards,data.topic);renderQuiz(qdata.questions,qdata.topic,qdata.difficulty);}else{hideTyping();pushHistory('assistant','[Flashcards: '+data.topic+']');renderFlashcards(data.cards,data.topic);}}catch(err){hideTyping();addMsg('ai','Could not generate flashcards.');}return;}
-  if(intent==='quiz'){try{const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Quiz: '+data.topic+']');renderQuiz(data.questions,data.topic,data.difficulty);}catch(err){hideTyping();addMsg('ai','Could not generate quiz.');}return;}
-
-  if(intent==='practice'){
+    if(intent==='graph'){try{const res=await fetch(API_URL+'/graph',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Graph: '+data.title+']',{type:'graph',data});renderGraph(data);}catch(err){hideTyping();addMsg('ai','Could not generate the graph.');}return;}
+    if(intent==='flowchart'){try{const res=await fetch(API_URL+'/flowchart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getChatHistory().slice(-10),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Flowchart: '+data.title+']',{type:'flowchart',data});renderFlowchartMsg(data);}catch(err){hideTyping();addMsg('ai','Could not generate the flowchart.');}return;}
+    if(intent==='notes'){try{const res=await fetch(API_URL+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Notes: '+data.topic+']',{type:'notes',data:{notes:data.notes,topic:data.topic}});renderNotesMsg(data.notes,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate notes.');}return;}
+    if(intent==='formula'&&/\b(formula|formulas|formulae|cheat.?sheet|key.?terms|reference.?sheet)\b/i.test(text)){try{const res=await fetch(API_URL+'/formula-sheet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,history:getChatHistory().slice(-10),model:activeModel,preferred_language:_userPreferredLang||'English'})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Formula: '+data.topic+']',{type:'formula',data:{sheet:data.sheet,topic:data.topic}});renderFormulaMsg(data.sheet,data.topic);}catch(err){hideTyping();addMsg('ai','Could not generate formula sheet.');}return;}
+    if(intent==='flashcard'||intent==='both'){try{const res=await fetch(API_URL+'/flashcards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();if(intent==='both'){const qres=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(!qres.ok)throw new Error('HTTP '+qres.status);const qdata=await qres.json();hideTyping();pushHistory('assistant','[Flashcards+Quiz: '+data.topic+']',{type:'flashcard',data:{cards:data.cards,topic:data.topic}});renderFlashcards(data.cards,data.topic);renderQuiz(qdata.questions,qdata.topic,qdata.difficulty);}else{hideTyping();pushHistory('assistant','[Flashcards: '+data.topic+']',{type:'flashcard',data:{cards:data.cards,topic:data.topic}});renderFlashcards(data.cards,data.topic);}}catch(err){hideTyping();addMsg('ai','Could not generate flashcards.');}return;}
+    if(intent==='quiz'){try{const res=await fetch(API_URL+'/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:text,count:0,history:getChatHistory().slice(-10),model:activeModel})});if(res.status===429){const d=await res.json();hideTyping();showRateLimit(d.detail||{});return;}if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();hideTyping();pushHistory('assistant','[Quiz: '+data.topic+']',{type:'quiz',data:{questions:data.questions,topic:data.topic,difficulty:data.difficulty}});renderQuiz(data.questions,data.topic,data.difficulty);}catch(err){hideTyping();addMsg('ai','Could not generate quiz.');}return;}
     const practiceStopWords=/\b(practice|practise|solve|exercise|problems?|questions?|on|for|about|me|want|to|i|let|give|whiteboard|do|some|a|an|the|please)\b/gi;
     let topic=text.replace(practiceStopWords,'').replace(/\s+/g,' ').trim();
     if(!topic||topic.length<3)topic=text.trim();

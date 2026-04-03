@@ -2844,6 +2844,40 @@ function renderStagedRow(){const row=document.getElementById('pdf-staged-row');i
 function removeStagedPdf(idx){stagedPdfs.splice(idx,1);renderStagedRow();}
 function removeStagedText(idx){stagedTextFiles.splice(idx,1);renderStagedRow();}
 function handleAnyFile(event){const files=Array.from(event.target.files);event.target.value='';if(!files.length)return;files.forEach(file=>{const ext=file.name.split('.').pop().toLowerCase();if(file.type==='application/pdf'||ext==='pdf'){const reader=new FileReader();reader.onload=async(e)=>{const ab=e.target.result;const b64=arrayBufferToBase64(ab);const sizeKb=Math.round(file.size/1024);let thumbDataUrl=null,pageCount=null;const rendered=await renderPdfFirstPage(ab.slice(0));if(rendered){thumbDataUrl=makeThumb(rendered.canvas);pageCount=rendered.pageCount;}stagedPdfs.push({name:file.name,base64:b64,sizeKb,pageCount,thumbDataUrl});renderStagedRow();};reader.readAsArrayBuffer(file);return;}if(file.type.startsWith('image/')){const reader=new FileReader();reader.onload=(e)=>{const dataUrl=e.target.result;stagedImages.push({dataUrl,base64:dataUrl.split(',')[1],name:file.name});renderImgStagedRow();};reader.readAsDataURL(file);return;}const textExts=['txt','md','csv','json','js','ts','py','html','css','xml','yml','yaml','sh','sql'];if(textExts.includes(ext)||file.type.startsWith('text/')){const reader=new FileReader();reader.onload=(e)=>{stagedTextFiles.push({name:file.name,content:e.target.result,sizeKb:Math.round(file.size/1024),ext});renderStagedRow();};reader.readAsText(file);return;}addMsg('ai','⚠️ Unsupported file type: .'+ext);});}
+
+// ── Attach menu toggle / close ──
+function toggleAttachMenu(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('attach-menu');
+  const isOpen = menu.classList.contains('open');
+  if (isOpen) {
+    menu.classList.remove('open');
+  } else {
+    menu.classList.add('open');
+    // Close when clicking anywhere outside
+    setTimeout(() => {
+      document.addEventListener('click', _attachOutsideHandler);
+    }, 0);
+  }
+}
+function _attachOutsideHandler(e) {
+  const menu = document.getElementById('attach-menu');
+  const btn  = document.getElementById('attach-btn');
+  if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+    menu.classList.remove('open');
+    document.removeEventListener('click', _attachOutsideHandler);
+  }
+}
+function closeAttachMenu() {
+  const menu = document.getElementById('attach-menu');
+  if (menu) menu.classList.remove('open');
+  document.removeEventListener('click', _attachOutsideHandler);
+}
+function openWhiteboardFromMenu() {
+  closeAttachMenu();
+  openWhiteboard();
+}
+
 function pickAnyFile(){closeAttachMenu();document.getElementById('file-input').click();}
 
 // ── Selection context ──

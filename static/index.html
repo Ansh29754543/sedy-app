@@ -17,7 +17,8 @@
     getAuth, GoogleAuthProvider,
     signInWithPopup, signOut, onAuthStateChanged,
     updateProfile,
-    createUserWithEmailAndPassword, signInWithEmailAndPassword
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    sendEmailVerification
   } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
   import {
     getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
@@ -45,6 +46,7 @@
     signInWithPopup, signOut, onAuthStateChanged,
     updateProfile,
     createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    sendEmailVerification,
     doc, getDoc, setDoc, updateDoc, deleteDoc,
     collection, getDocs, writeBatch, serverTimestamp
   };
@@ -1717,26 +1719,28 @@ body::after{
   <!-- ── STEP 1: Login / Signup ── -->
   <div id="auth-step-login" class="auth-card">
 
-    <div style="text-align:center;margin-bottom:24px;">
+    <div style="text-align:center;margin-bottom:20px;">
       <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#e8edf5;margin-bottom:6px;">Welcome to Sedy 👋</div>
-      <div style="font-size:13px;color:rgba(136,153,187,.65);font-family:'DM Sans',sans-serif;line-height:1.6;">Sign in to access your AI study companion</div>
+      <div style="font-size:13px;color:rgba(136,153,187,.65);font-family:'DM Sans',sans-serif;line-height:1.6;">Your AI study companion</div>
     </div>
 
-    <!-- Google Sign-In Button -->
-    <button class="auth-social-btn" onclick="authSignInGoogle()" style="background:#fff;color:#1f2937;border-color:#fff;font-size:15px;padding:14px 20px;box-shadow:0 4px 16px rgba(0,0,0,.3);">
-      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
-      Continue with Google
-    </button>
+    <!-- ── SIGN IN PANEL ── -->
+    <div id="auth-panel-signin">
 
-    <!-- OR divider -->
-    <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
-      <div style="flex:1;height:1px;background:rgba(255,255,255,.1);"></div>
-      <div style="font-size:11px;color:rgba(136,153,187,.45);font-family:'DM Mono',monospace;white-space:nowrap;">or use email</div>
-      <div style="flex:1;height:1px;background:rgba(255,255,255,.1);"></div>
-    </div>
+      <!-- Google Sign-In Button -->
+      <button class="auth-social-btn" onclick="authSignInGoogle()" style="background:#fff;color:#1f2937;border-color:#fff;font-size:15px;padding:14px 20px;box-shadow:0 4px 16px rgba(0,0,0,.3);">
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+        Continue with Google
+      </button>
 
-    <!-- Email/Password fields -->
-    <div id="auth-email-fields">
+      <!-- OR divider -->
+      <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.1);"></div>
+        <div style="font-size:11px;color:rgba(136,153,187,.45);font-family:'DM Mono',monospace;white-space:nowrap;">or use email</div>
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.1);"></div>
+      </div>
+
+      <!-- Email/Password Sign In -->
       <input id="auth-email-input" type="email" class="auth-input" placeholder="Email address"
         style="margin-bottom:10px;"
         oninput="clearAuthError()"
@@ -1744,21 +1748,99 @@ body::after{
       <input id="auth-pw-input" type="password" class="auth-input" placeholder="Password"
         style="margin-bottom:14px;"
         oninput="clearAuthError()"
-        onkeydown="if(event.key==='Enter')authEmailAction()">
-      <div style="display:flex;gap:8px;">
-        <button onclick="authEmailSignIn()" style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent2,#7c5cfc),var(--accent,#4f8eff));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">Sign In</button>
-        <button onclick="authEmailSignUp()" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:none;color:rgba(255,255,255,.8);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign Up</button>
+        onkeydown="if(event.key==='Enter')authEmailSignIn()">
+      <button onclick="authEmailSignIn()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent2,#7c5cfc),var(--accent,#4f8eff));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:opacity .2s;">Sign In</button>
+
+      <!-- Switch to Sign Up -->
+      <div style="margin-top:16px;text-align:center;">
+        <span style="font-size:13px;color:rgba(136,153,187,.55);font-family:'DM Sans',sans-serif;">Don't have an account?</span>
+        <button onclick="authShowSignUp()" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--accent,#4f8eff);font-family:'DM Sans',sans-serif;margin-left:5px;padding:0;">Create it</button>
       </div>
-    </div>
 
-    <!-- Error + Loading -->
-    <div id="auth-error" class="auth-error-box" style="display:none;margin-top:14px;"></div>
-    <div id="auth-loading" class="auth-loading-box" style="display:none;margin-top:14px;">
-      <div class="auth-spinner"></div>
-      <span id="auth-loading-text">Signing in…</span>
-    </div>
+      <!-- Error + Loading -->
+      <div id="auth-error" class="auth-error-box" style="display:none;margin-top:14px;"></div>
+      <div id="auth-loading" class="auth-loading-box" style="display:none;margin-top:14px;">
+        <div class="auth-spinner"></div>
+        <span id="auth-loading-text">Signing in…</span>
+      </div>
+    </div><!-- /auth-panel-signin -->
 
-    <div style="margin-top:20px;font-size:10px;color:rgba(136,153,187,.35);font-family:'DM Mono',monospace;text-align:center;line-height:1.7;">
+    <!-- ── SIGN UP PANEL — Step 1: Email + Password ── -->
+    <div id="auth-panel-signup" style="display:none;">
+
+      <div style="margin-bottom:18px;">
+        <div style="font-size:16px;font-weight:700;color:#e8edf5;font-family:'Syne',sans-serif;margin-bottom:4px;">Create your account</div>
+        <div style="font-size:12px;color:rgba(136,153,187,.55);font-family:'DM Sans',sans-serif;">Enter your email and choose a password</div>
+      </div>
+
+      <input id="signup-email-input" type="email" class="auth-input" placeholder="Email address"
+        style="margin-bottom:10px;"
+        oninput="clearAuthError()"
+        onkeydown="if(event.key==='Enter')document.getElementById('signup-pw-input').focus()">
+      <input id="signup-pw-input" type="password" class="auth-input" placeholder="Choose a password (min 6 chars)"
+        style="margin-bottom:14px;"
+        oninput="clearAuthError()"
+        onkeydown="if(event.key==='Enter')authSignUpNext()">
+
+      <button onclick="authSignUpNext()" id="signup-next-btn" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent2,#7c5cfc),var(--accent,#4f8eff));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:opacity .2s;">Next →</button>
+
+      <!-- Switch back to Sign In -->
+      <div style="margin-top:16px;text-align:center;">
+        <span style="font-size:13px;color:rgba(136,153,187,.55);font-family:'DM Sans',sans-serif;">Already have an account?</span>
+        <button onclick="authShowSignIn()" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--accent,#4f8eff);font-family:'DM Sans',sans-serif;margin-left:5px;padding:0;">Sign In</button>
+      </div>
+
+      <!-- Error + Loading (reused ids — safe since only one panel visible at a time) -->
+      <div id="auth-error-signup" class="auth-error-box" style="display:none;margin-top:14px;"></div>
+      <div id="auth-loading-signup" class="auth-loading-box" style="display:none;margin-top:14px;">
+        <div class="auth-spinner"></div>
+        <span>Sending code…</span>
+      </div>
+    </div><!-- /auth-panel-signup -->
+
+    <!-- ── SIGN UP PANEL — Step 2: OTP Verification ── -->
+    <div id="auth-panel-otp" style="display:none;">
+
+      <!-- Back arrow -->
+      <button onclick="authOtpBack()" style="background:none;border:none;cursor:pointer;color:rgba(136,153,187,.6);font-size:13px;font-family:'DM Sans',sans-serif;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:5px;">
+        ← Back
+      </button>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-size:16px;font-weight:700;color:#e8edf5;font-family:'Syne',sans-serif;margin-bottom:6px;">Check your email 📬</div>
+        <div style="font-size:12px;color:rgba(136,153,187,.55);font-family:'DM Sans',sans-serif;line-height:1.6;">
+          We sent a 6-digit code to<br>
+          <span id="otp-email-display" style="color:var(--accent,#4f8eff);font-weight:600;"></span>
+        </div>
+      </div>
+
+      <!-- 6 OTP digit boxes -->
+      <div id="otp-boxes" style="display:flex;gap:8px;justify-content:center;margin-bottom:20px;">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" style="width:44px;height:52px;text-align:center;font-size:22px;font-weight:700;font-family:'Syne',sans-serif;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;color:#e8edf5;outline:none;transition:border-color .2s;" oninput="otpInput(this,0)" onkeydown="otpKeyDown(event,this,0)">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" style="width:44px;height:52px;text-align:center;font-size:22px;font-weight:700;font-family:'Syne',sans-serif;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;color:#e8edf5;outline:none;transition:border-color .2s;" oninput="otpInput(this,1)" onkeydown="otpKeyDown(event,this,1)">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" style="width:44px;height:52px;text-align:center;font-size:22px;font-weight:700;font-family:'Syne',sans-serif;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;color:#e8edf5;outline:none;transition:border-color .2s;" oninput="otpInput(this,2)" onkeydown="otpKeyDown(event,this,2)">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" style="width:44px;height:52px;text-align:center;font-size:22px;font-weight:700;font-family:'Syne',sans-serif;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;color:#e8edf5;outline:none;transition:border-color .2s;" oninput="otpInput(this,3)" onkeydown="otpKeyDown(event,this,3)">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" style="width:44px;height:52px;text-align:center;font-size:22px;font-weight:700;font-family:'Syne',sans-serif;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;color:#e8edf5;outline:none;transition:border-color .2s;" oninput="otpInput(this,4)" onkeydown="otpKeyDown(event,this,4)">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" style="width:44px;height:52px;text-align:center;font-size:22px;font-weight:700;font-family:'Syne',sans-serif;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;color:#e8edf5;outline:none;transition:border-color .2s;" oninput="otpInput(this,5)" onkeydown="otpKeyDown(event,this,5)">
+      </div>
+
+      <!-- Verify button -->
+      <button onclick="authVerifyOtp()" id="otp-verify-btn" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent2,#7c5cfc),var(--accent,#4f8eff));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:opacity .2s;">Verify & Create Account</button>
+
+      <!-- Resend + timer -->
+      <div style="margin-top:14px;text-align:center;">
+        <span id="otp-resend-timer" style="font-size:12px;color:rgba(136,153,187,.45);font-family:'DM Mono',monospace;"></span>
+        <button id="otp-resend-btn" onclick="authResendOtp()" style="display:none;background:none;border:none;cursor:pointer;font-size:12px;color:var(--accent,#4f8eff);font-family:'DM Sans',sans-serif;font-weight:600;padding:0;">Resend code</button>
+      </div>
+
+      <div id="auth-error-otp" class="auth-error-box" style="display:none;margin-top:12px;"></div>
+      <div id="auth-loading-otp" class="auth-loading-box" style="display:none;margin-top:12px;">
+        <div class="auth-spinner"></div>
+        <span>Verifying…</span>
+      </div>
+    </div><!-- /auth-panel-otp -->
+
+    <div style="margin-top:20px;font-size:10px;color:rgba(136,153,187,.25);font-family:'DM Mono',monospace;text-align:center;line-height:1.7;">
       Your data is stored securely · Only you can see it<br>Made by Ansh Verma 🚀
     </div>
   </div>
@@ -5373,23 +5455,283 @@ async function authEmailSignIn() {
   }
 }
 
-// ── EMAIL SIGN UP ─────────────────────────────────────────────────────────────
-async function authEmailSignUp() {
-  const email = document.getElementById('auth-email-input')?.value.trim();
-  const pw    = document.getElementById('auth-pw-input')?.value;
-  if (!email) { showAuthError('Enter your email address.'); return; }
-  if (!pw || pw.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+// ── SIGN UP / OTP STATE ──────────────────────────────────────────────────────
+let _signupEmail    = '';
+let _signupPassword = '';
+let _otpCode        = '';          // the 6-digit code we generated
+let _otpExpiry      = 0;           // timestamp ms
+let _otpResendTimer = null;        // setInterval reference
+
+// ── PANEL SWITCHES ────────────────────────────────────────────────────────────
+function authShowSignUp() {
+  document.getElementById('auth-panel-signin').style.display  = 'none';
+  document.getElementById('auth-panel-signup').style.display  = 'block';
+  document.getElementById('auth-panel-otp').style.display     = 'none';
+  clearAuthError();
+  document.getElementById('signup-email-input').focus();
+}
+function authShowSignIn() {
+  document.getElementById('auth-panel-signin').style.display  = 'block';
+  document.getElementById('auth-panel-signup').style.display  = 'none';
+  document.getElementById('auth-panel-otp').style.display     = 'none';
+  clearAuthError();
+}
+function authOtpBack() {
+  _clearOtpResendTimer();
+  document.getElementById('auth-panel-signin').style.display  = 'none';
+  document.getElementById('auth-panel-signup').style.display  = 'block';
+  document.getElementById('auth-panel-otp').style.display     = 'none';
+  clearAuthError();
+}
+
+// ── STEP 1 → NEXT (validate + generate + store OTP) ──────────────────────────
+async function authSignUpNext() {
+  const email = (document.getElementById('signup-email-input')?.value || '').trim();
+  const pw    = (document.getElementById('signup-pw-input')?.value   || '');
+
+  if (!email)        { _showSignupError('Enter your email address.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { _showSignupError('Invalid email address.'); return; }
+  if (!pw || pw.length < 6) { _showSignupError('Password must be at least 6 characters.'); return; }
+
+  _signupEmail    = email;
+  _signupPassword = pw;
+
+  const btn = document.getElementById('signup-next-btn');
+  btn.disabled = true;
+  document.getElementById('auth-loading-signup').style.display = 'flex';
+  _showSignupError('');
+
+  // Generate 6-digit OTP
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  _otpCode   = code;
+  _otpExpiry = Date.now() + 10 * 60 * 1000; // 10 min
+
+  // Store in Firestore so it can survive page refresh (optional but robust)
+  try {
+    const fb = window._fb;
+    if (fb) {
+      await fb.setDoc(fb.doc(fb.db, '_otpPending', email.replace(/\./g,'_')), {
+        code, expiresAt: _otpExpiry, email, createdAt: Date.now()
+      });
+    }
+  } catch(e) { /* non-fatal — code is still in memory */ }
+
+  // Send OTP email via EmailJS (free, no backend needed)
+  const sent = await _sendOtpEmail(email, code);
+
+  btn.disabled = false;
+  document.getElementById('auth-loading-signup').style.display = 'none';
+
+  if (!sent) {
+    _showSignupError('Could not send email. Check your connection and try again.');
+    return;
+  }
+
+  // Show OTP panel
+  document.getElementById('otp-email-display').textContent = email;
+  document.getElementById('auth-panel-signup').style.display = 'none';
+  document.getElementById('auth-panel-otp').style.display    = 'block';
+  _clearOtpBoxes();
+  document.querySelectorAll('.otp-box')[0]?.focus();
+  _startResendTimer(60); // 60s cooldown before resend
+}
+
+// ── SEND EMAIL (uses EmailJS free tier — no backend needed) ───────────────────
+// To use this: sign up free at emailjs.com, create a service + template,
+// paste your serviceId, templateId, publicKey below.
+// Template variables: {{to_email}}, {{otp_code}}, {{app_name}}
+// If not configured, the OTP is shown as an alert for testing.
+const _EMAILJS_SERVICE_ID  = 'service_mpbg7bb', 'service_7mugvgw', 'service_3knfclg';   // ← replace
+const _EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';  // ← replace
+const _EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';   // ← replace
+const _EMAILJS_CONFIGURED  = !_EMAILJS_SERVICE_ID.startsWith('YOUR_');
+
+async function _sendOtpEmail(toEmail, code) {
+  // If EmailJS not configured → show alert for testing
+  if (!_EMAILJS_CONFIGURED) {
+    alert(`[DEV MODE] Your OTP code is: ${code}\n\nConfigure EmailJS in the script to send real emails.`);
+    return true;
+  }
+  try {
+    // Load EmailJS SDK if not already loaded
+    if (!window.emailjs) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+      window.emailjs.init({ publicKey: _EMAILJS_PUBLIC_KEY });
+    }
+    await window.emailjs.send(_EMAILJS_SERVICE_ID, _EMAILJS_TEMPLATE_ID, {
+      to_email: toEmail,
+      otp_code: code,
+      app_name: 'Sedy'
+    });
+    return true;
+  } catch(e) {
+    console.error('EmailJS send error:', e);
+    return false;
+  }
+}
+
+// ── OTP BOX INTERACTIONS ──────────────────────────────────────────────────────
+function otpInput(el, idx) {
+  const v = el.value.replace(/\D/g, '');
+  el.value = v ? v[0] : '';
+  el.style.borderColor = el.value ? 'var(--accent,#4f8eff)' : 'rgba(255,255,255,.12)';
+  if (el.value) {
+    const boxes = document.querySelectorAll('.otp-box');
+    if (idx < 5) boxes[idx + 1].focus();
+    // Auto-verify when all 6 filled
+    const code = Array.from(boxes).map(b => b.value).join('');
+    if (code.length === 6) authVerifyOtp();
+  }
+}
+function otpKeyDown(e, el, idx) {
+  if (e.key === 'Backspace' && !el.value && idx > 0) {
+    const boxes = document.querySelectorAll('.otp-box');
+    boxes[idx - 1].focus();
+    boxes[idx - 1].value = '';
+    boxes[idx - 1].style.borderColor = 'rgba(255,255,255,.12)';
+  }
+  if (e.key === 'Enter') authVerifyOtp();
+}
+function _clearOtpBoxes() {
+  document.querySelectorAll('.otp-box').forEach(b => {
+    b.value = '';
+    b.style.borderColor = 'rgba(255,255,255,.12)';
+  });
+  _showOtpError('');
+}
+
+// ── VERIFY OTP ────────────────────────────────────────────────────────────────
+async function authVerifyOtp() {
+  const boxes   = document.querySelectorAll('.otp-box');
+  const entered = Array.from(boxes).map(b => b.value).join('');
+
+  if (entered.length < 6) { _showOtpError('Enter all 6 digits.'); return; }
+
+  // Check expiry
+  if (Date.now() > _otpExpiry) {
+    _showOtpError('Code expired. Please request a new one.');
+    return;
+  }
+
+  // Try to fetch from Firestore (in case page was refreshed)
+  let expectedCode = _otpCode;
+  if (!expectedCode) {
+    const fb = window._fb;
+    if (fb) {
+      try {
+        const snap = await fb.getDoc(fb.doc(fb.db, '_otpPending', _signupEmail.replace(/\./g,'_')));
+        if (snap.exists()) {
+          const d = snap.data();
+          if (Date.now() > d.expiresAt) { _showOtpError('Code expired. Please request a new one.'); return; }
+          expectedCode = d.code;
+        }
+      } catch(e) { /* ignore */ }
+    }
+  }
+
+  if (entered !== expectedCode) {
+    // Flash boxes red
+    boxes.forEach(b => { b.style.borderColor = 'var(--danger,#ff4d6d)'; });
+    setTimeout(() => boxes.forEach(b => { b.style.borderColor = b.value ? 'var(--accent,#4f8eff)' : 'rgba(255,255,255,.12)'; }), 600);
+    _showOtpError('Incorrect code. Try again.');
+    return;
+  }
+
+  // ✅ Code correct — create Firebase account
+  const btn = document.getElementById('otp-verify-btn');
+  btn.disabled = true;
+  document.getElementById('auth-loading-otp').style.display = 'flex';
+  _showOtpError('');
+
   const fb = window._fb;
-  if (!fb) { showAuthError('Firebase not ready.'); return; }
-  showAuthLoadingMsg('Creating account…');
+  if (!fb) { _showOtpError('Firebase not ready. Refresh and try again.'); btn.disabled = false; document.getElementById('auth-loading-otp').style.display='none'; return; }
+
   try {
     _isNewUser = true;
-    await fb.createUserWithEmailAndPassword(fb.auth, email, pw);
+    await fb.createUserWithEmailAndPassword(fb.auth, _signupEmail, _signupPassword);
+
+    // Clean up OTP record
+    try { await fb.deleteDoc(fb.doc(fb.db, '_otpPending', _signupEmail.replace(/\./g,'_'))); } catch(e) {}
+    _clearOtpResendTimer();
   } catch(err) {
-    hideAuthLoading();
+    btn.disabled = false;
+    document.getElementById('auth-loading-otp').style.display = 'none';
     _isNewUser = false;
-    showAuthError(friendlyError(err.code));
+    _showOtpError(friendlyError(err.code));
   }
+}
+
+// ── RESEND OTP ────────────────────────────────────────────────────────────────
+async function authResendOtp() {
+  document.getElementById('otp-resend-btn').style.display = 'none';
+  _clearOtpBoxes();
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  _otpCode   = code;
+  _otpExpiry = Date.now() + 10 * 60 * 1000;
+
+  try {
+    const fb = window._fb;
+    if (fb) {
+      await fb.setDoc(fb.doc(fb.db, '_otpPending', _signupEmail.replace(/\./g,'_')), {
+        code, expiresAt: _otpExpiry, email: _signupEmail, createdAt: Date.now()
+      });
+    }
+  } catch(e) {}
+
+  const sent = await _sendOtpEmail(_signupEmail, code);
+  if (!sent) { _showOtpError('Could not resend. Check your connection.'); return; }
+
+  _startResendTimer(60);
+  document.querySelectorAll('.otp-box')[0]?.focus();
+}
+
+// ── RESEND COUNTDOWN TIMER ────────────────────────────────────────────────────
+function _startResendTimer(seconds) {
+  _clearOtpResendTimer();
+  let s = seconds;
+  const timerEl  = document.getElementById('otp-resend-timer');
+  const resendBtn = document.getElementById('otp-resend-btn');
+  resendBtn.style.display = 'none';
+  timerEl.textContent = `Resend in ${s}s`;
+  _otpResendTimer = setInterval(() => {
+    s--;
+    if (s <= 0) {
+      _clearOtpResendTimer();
+      timerEl.textContent = '';
+      resendBtn.style.display = 'inline';
+    } else {
+      timerEl.textContent = `Resend in ${s}s`;
+    }
+  }, 1000);
+}
+function _clearOtpResendTimer() {
+  if (_otpResendTimer) { clearInterval(_otpResendTimer); _otpResendTimer = null; }
+}
+
+// ── ERROR HELPERS ─────────────────────────────────────────────────────────────
+function _showSignupError(msg) {
+  const el = document.getElementById('auth-error-signup');
+  if (!el) return;
+  if (msg) { el.textContent = msg; el.style.display = 'block'; }
+  else      { el.textContent = ''; el.style.display = 'none'; }
+}
+function _showOtpError(msg) {
+  const el = document.getElementById('auth-error-otp');
+  if (!el) return;
+  if (msg) { el.textContent = msg; el.style.display = 'block'; }
+  else      { el.textContent = ''; el.style.display = 'none'; }
+}
+
+// ── EMAIL SIGN UP (legacy — replaced by new flow, kept for safety) ────────────
+async function authEmailSignUp() {
+  // Redirect to new flow
+  authShowSignUp();
 }
 
 
@@ -5420,14 +5762,14 @@ function showAuthError(msg) {
   hideAuthLoading();
 }
 function clearAuthError() {
-  ['auth-error','auth-error-ob'].forEach(id => {
+  ['auth-error','auth-error-ob','auth-error-signup','auth-error-otp'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.style.display='none'; el.textContent=''; }
   });
 }
 function showAuthLoadingMsg(msg) {
   const el = document.getElementById('auth-loading');
-  if (el) { el.style.display='flex'; el.querySelector('span').textContent = msg || 'Please wait…'; }
+  if (el) { el.style.display='flex'; const sp = el.querySelector('span'); if(sp) sp.textContent = msg || 'Please wait…'; }
 }
 function hideAuthLoading() {
   const el = document.getElementById('auth-loading');

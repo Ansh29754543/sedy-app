@@ -1841,6 +1841,43 @@ body::after{
 .cr-sidebar-btn:hover{border-color:rgba(124,92,252,.5);color:var(--accent2);background:rgba(124,92,252,.15);}
 .cr-sidebar-btn-icon{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
 
+/* ══════════════════════════════════════════════════════
+   UPGRADES / CLASSROOM GATE PANEL
+══════════════════════════════════════════════════════ */
+.upgrades-overlay{position:fixed;inset:0;z-index:8200;background:rgba(8,11,18,.88);backdrop-filter:blur(12px);display:none;align-items:flex-end;justify-content:center;padding:0;}
+.upgrades-overlay.open{display:flex;}
+@keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.upgrades-sheet{background:var(--bg2);border-radius:28px 28px 0 0;border:1px solid var(--border2);border-bottom:none;width:100%;max-width:480px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;animation:sheetUp .32s cubic-bezier(.34,1.2,.64,1);}
+.upgrades-handle{width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:4px;margin:12px auto 0;flex-shrink:0;}
+.upgrades-header{padding:20px 24px 0;flex-shrink:0;}
+.upgrades-close{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.upgrades-body{overflow-y:auto;padding:16px 24px 32px;display:flex;flex-direction:column;gap:14px;}
+.upg-hero{text-align:center;padding:16px 0 8px;}
+.upg-hero-icon{font-size:56px;margin-bottom:8px;}
+.upg-hero-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.upg-hero-sub{font-size:13px;color:var(--text2);line-height:1.6;font-family:'DM Sans',sans-serif;}
+.upg-features-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.upg-feature{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:5px;}
+.upg-feature-icon{font-size:22px;}
+.upg-feature-name{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text);}
+.upg-feature-sub{font-size:10px;color:var(--text3);font-family:'DM Sans',sans-serif;line-height:1.4;}
+.upg-divider{height:1px;background:var(--border);margin:4px 0;}
+.upg-action-card{background:linear-gradient(135deg,rgba(124,92,252,.15),rgba(79,142,255,.1));border:1px solid rgba(124,92,252,.3);border-radius:18px;padding:18px;}
+.upg-action-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.upg-action-sub{font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif;margin-bottom:14px;line-height:1.5;}
+.upg-btn-primary{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:14px;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;box-shadow:0 4px 20px rgba(124,92,252,.4);}
+.upg-btn-primary:hover{transform:scale(1.02);box-shadow:0 6px 28px rgba(124,92,252,.55);}
+.upg-btn-secondary{width:100%;padding:12px;background:none;border:1px solid var(--border2);border-radius:14px;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;transition:all .2s;}
+.upg-btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.upg-join-row{display:flex;gap:8px;margin-top:10px;}
+.upg-join-input{flex:1;padding:11px 14px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Mono',monospace;outline:none;letter-spacing:1px;text-transform:uppercase;transition:border-color .2s;}
+.upg-join-input:focus{border-color:var(--accent2);}
+.upg-join-btn{padding:11px 18px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:12px;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap;}
+.upg-error{font-size:11px;color:var(--danger);font-family:'DM Mono',monospace;margin-top:4px;display:none;}
+/* Click ripple for sidebar button */
+@keyframes crBtnPulse{0%{box-shadow:0 0 0 0 rgba(124,92,252,.5);}70%{box-shadow:0 0 0 10px rgba(124,92,252,0);}100%{box-shadow:0 0 0 0 rgba(124,92,252,0);}}
+.cr-sidebar-btn.pulse{animation:crBtnPulse .5s ease-out;}
+
 /* Sedy Notes detail view */
 .cr-note-detail{flex:1;overflow-y:auto;padding:16px;}
 .cr-note-detail-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
@@ -2042,10 +2079,11 @@ body::after{
   <!-- ── STEP 2: Onboarding (shown after first login) ── -->
   <div id="auth-step-onboard" class="auth-card" style="display:none;">
 
-    <!-- Progress dots: 2 steps -->
+    <!-- Progress dots: 3 steps -->
     <div style="display:flex;gap:6px;margin-bottom:28px;">
       <div class="onboard-step-dot active" id="ob-dot-0"></div>
       <div class="onboard-step-dot" id="ob-dot-1"></div>
+      <div class="onboard-step-dot" id="ob-dot-2"></div>
     </div>
 
     <!-- Step 0: Name -->
@@ -2075,6 +2113,34 @@ body::after{
         <div class="ob-opt multi" onclick="obToggle(this,'interest')">🎨 Arts</div>
         <div class="ob-opt multi" onclick="obToggle(this,'interest')">🎵 Music</div>
         <div class="ob-opt multi" onclick="obToggle(this,'interest')">⚽ Sports</div>
+      </div>
+    </div>
+
+    <!-- Step 2: School key -->
+    <div id="ob-page-2" class="ob-page" style="display:none;">
+      <div class="ob-emoji">🏫</div>
+      <div class="ob-title">Do you have a school key?</div>
+      <div class="ob-sub">Your school gave you a code like <strong style="color:#4f8eff;">SEDY-S-XXXX</strong> or <strong style="color:#7c5cfc;">SEDY-T-XXXX</strong>. Enter it below — or skip to continue as a normal user.</div>
+      <!-- Yes/No choice -->
+      <div style="display:flex;gap:10px;width:100%;margin-top:12px;" id="ob-key-choice">
+        <button class="ob-school-choice-btn" id="ob-key-yes" onclick="obShowKeyInput()">
+          <span style="font-size:28px;">🔑</span>
+          <span style="font-weight:700;color:#e8edf5;">Yes, I have a key</span>
+        </button>
+        <button class="ob-school-choice-btn" id="ob-key-no" onclick="obKeySkip()">
+          <span style="font-size:28px;">➡️</span>
+          <span style="font-weight:700;color:#e8edf5;">No, skip</span>
+        </button>
+      </div>
+      <!-- Key input (hidden until Yes clicked) -->
+      <div id="ob-key-input-wrap" style="display:none;width:100%;margin-top:14px;">
+        <input id="ob-school-key" type="text" class="auth-input"
+          placeholder="SEDY-S-XXXX or SEDY-T-XXXX"
+          style="text-transform:uppercase;letter-spacing:1.5px;font-family:'DM Mono',monospace;"
+          maxlength="20" onkeydown="if(event.key==='Enter')obNext()">
+        <div id="ob-key-error" style="display:none;font-size:11px;color:#ff4f6a;font-family:'DM Mono',monospace;margin-top:4px;"></div>
+        <!-- Role preview — shown after key validated -->
+        <div id="ob-key-preview" style="display:none;background:rgba(0,229,192,.07);border:1px solid rgba(0,229,192,.2);border-radius:12px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--accent3,#00e5c0);font-family:'DM Mono',monospace;line-height:1.6;"></div>
       </div>
     </div>
 
@@ -5613,7 +5679,7 @@ let _obStep    = 0;
 let _obData    = {};
 let _isNewUser = false;
 
-const OB_STEPS = 2;  // Name + Interests
+const OB_STEPS = 3;  // Name + Interests + School Key
 
 // ── Wait for Firebase module ──────────────────────────────────────────────────
 function _waitFb() {
@@ -6116,12 +6182,12 @@ function _showOnboarding() {
 }
 
 function _obRenderStep(step) {
-  // Show/hide pages — page 0 and page 1
+  // Show/hide pages — pages 0, 1, 2
   for (let i = 0; i < OB_STEPS; i++) {
     const page = document.getElementById('ob-page-'+i);
     if (page) page.style.display = i === step ? 'flex' : 'none';
   }
-  // Dots — only 2
+  // Dots
   for (let i = 0; i < OB_STEPS; i++) {
     const dot = document.getElementById('ob-dot-'+i);
     if (!dot) continue;
@@ -6132,7 +6198,12 @@ function _obRenderStep(step) {
   if (backBtn) backBtn.style.display = step > 0 ? 'block' : 'none';
   // Next button label
   const nextBtn = document.getElementById('ob-next-btn');
-  if (nextBtn) nextBtn.textContent = step === OB_STEPS - 1 ? "Let's go 🚀" : 'Next →';
+  if (nextBtn) {
+    nextBtn.disabled = false;
+    if (step === 0) nextBtn.textContent = 'Next →';
+    else if (step === 1) nextBtn.textContent = 'Next →';
+    else nextBtn.textContent = 'Skip & Continue →'; // step 2 default; changes to "Let's go" when key selected
+  }
 }
 
 function obSelect(el, key) {
@@ -6152,10 +6223,33 @@ function obToggle(el, key) {
   }
 }
 
+// Helpers for ob step 2
+function obShowKeyInput() {
+  document.getElementById('ob-key-yes')?.classList.add('selected');
+  document.getElementById('ob-key-no')?.classList.remove('selected');
+  const wrap = document.getElementById('ob-key-input-wrap');
+  if (wrap) wrap.style.display = 'block';
+  document.getElementById('ob-school-key')?.focus();
+  _obData._wantsKey = true;
+  // Update next button
+  const next = document.getElementById('ob-next-btn');
+  if (next) next.textContent = "Let's go 🚀";
+}
+function obKeySkip() {
+  document.getElementById('ob-key-no')?.classList.add('selected');
+  document.getElementById('ob-key-yes')?.classList.remove('selected');
+  const wrap = document.getElementById('ob-key-input-wrap');
+  if (wrap) wrap.style.display = 'none';
+  _obData._wantsKey = false;
+  _obData._schoolKey = '';
+  const next = document.getElementById('ob-next-btn');
+  if (next) next.textContent = "Let's go 🚀";
+}
+
 async function obNext() {
   clearAuthError();
 
-  // Step 0 — name validation
+  // Step 0 — name
   if (_obStep === 0) {
     const name = document.getElementById('ob-name')?.value.trim();
     if (!name) { showAuthError('Please enter your name.'); return; }
@@ -6165,12 +6259,63 @@ async function obNext() {
     return;
   }
 
-  // Step 1 — interests (need at least 1)
+  // Step 1 — interests
   if (_obStep === 1) {
     if (!_obData.interest || !_obData.interest.length) {
       showAuthError('Please pick at least one interest.');
       return;
     }
+    _obStep = 2;
+    _obRenderStep(2);
+    return;
+  }
+
+  // Step 2 — school key (optional)
+  if (_obStep === 2) {
+    // If user chose "Yes" and typed a key → validate it
+    if (_obData._wantsKey) {
+      const rawKey = (document.getElementById('ob-school-key')?.value || '').trim().toUpperCase();
+      const errEl  = document.getElementById('ob-key-error');
+      if (!rawKey) {
+        if (errEl) { errEl.textContent = 'Enter your school key or click Skip.'; errEl.style.display = 'block'; }
+        return;
+      }
+      // Verify key in Firestore
+      const fb = window._fb;
+      const btn = document.getElementById('ob-next-btn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
+      try {
+        const snap = await fb.getDoc(fb.doc(fb.db, 'schools', rawKey));
+        if (!snap.exists()) {
+          if (errEl) { errEl.textContent = '❌ Key not found. Double-check and try again.'; errEl.style.display = 'block'; }
+          if (btn) { btn.disabled = false; btn.textContent = "Let's go 🚀"; }
+          return;
+        }
+        const school = snap.data();
+        if (school.active === false) {
+          if (errEl) { errEl.textContent = '❌ This key has been deactivated.'; errEl.style.display = 'block'; }
+          if (btn) { btn.disabled = false; btn.textContent = "Let's go 🚀"; }
+          return;
+        }
+        if (errEl) errEl.style.display = 'none';
+        // Show preview
+        const role = (school.keyType === 'teacher') ? 'Teacher' : 'Student';
+        const prev = document.getElementById('ob-key-preview');
+        if (prev) {
+          prev.style.display = 'block';
+          prev.innerHTML = `✓ Joined <strong>${_esc(school.name)}</strong> as <strong>${role}</strong>`;
+        }
+        _obData._schoolKey = rawKey;
+        _obData._schoolData = school;
+        _obData._schoolRole = role.toLowerCase();
+        if (btn) { btn.disabled = false; }
+      } catch(e) {
+        if (errEl) { errEl.textContent = 'Connection error. Try again.'; errEl.style.display = 'block'; }
+        if (btn) { btn.disabled = false; btn.textContent = "Let's go 🚀"; }
+        return;
+      }
+    }
+    // Save profile + optionally join school
     await _obSave();
     return;
   }
@@ -6185,13 +6330,40 @@ async function _obSave() {
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
   const fb  = window._fb;
   const uid = _currentUser?.uid;
+
+  let schoolCode = '';
+  let schoolName = '';
+  let schoolRole = '';
+
+  // Join school if key was provided
+  if (fb && uid && _obData._schoolKey && _obData._schoolData) {
+    try {
+      const code   = _obData._schoolKey;
+      const school = _obData._schoolData;
+      const role   = _obData._schoolRole || 'student';
+      schoolCode = code;
+      schoolName = school.name || '';
+      schoolRole = role;
+      await fb.setDoc(fb.doc(fb.db,'schools',code,'members',uid), {
+        uid, name: _obData.name || '', email: _currentUser.email || '',
+        photoURL: _currentUser.photoURL || '', role,
+        class: '', joinedAt: Date.now()
+      });
+      _userSchoolCode = code;
+      _userSchoolName = schoolName;
+      _userSchoolRole = role;
+      _crSchoolData   = school;
+    } catch(e) { console.warn('ob school join failed', e); }
+  }
+
   if (fb && uid) {
     const profileData = {
-      name:      _obData.name     || '',
-      interests: _obData.interest || [],
-      language:  'English',
-      email:     _currentUser.email || '',
-      photoURL:  _currentUser.photoURL || '',
+      name:       _obData.name     || '',
+      interests:  _obData.interest || [],
+      language:   'English',
+      email:      _currentUser.email || '',
+      photoURL:   _currentUser.photoURL || '',
+      schoolCode, schoolName, schoolRole,
       createdAt: Date.now(),
     };
     try {
@@ -6201,11 +6373,12 @@ async function _obSave() {
   }
   _userPreferredLang = 'English';
   _userProfile = {
-    name:      _obData.name     || '',
-    interests: _obData.interest || [],
-    language:  'English',
-    email:     _currentUser?.email || '',
-    photoURL:  _currentUser?.photoURL || '',
+    name:       _obData.name     || '',
+    interests:  _obData.interest || [],
+    language:   'English',
+    email:      _currentUser?.email || '',
+    photoURL:   _currentUser?.photoURL || '',
+    schoolCode, schoolName, schoolRole,
     createdAt: Date.now(),
   };
   _afterLogin(_currentUser, true);
@@ -6368,21 +6541,26 @@ function openSettings() {
   const panel = document.getElementById('settings-overlay');
   if (!panel) return;
 
-  // Populate from current state
+  // If not logged in yet, just open the panel with minimal state
   const name  = _userProfile?.name  || _currentUser?.displayName || '';
   const email = _userProfile?.email || _currentUser?.email || '';
   const lang  = _userProfile?.language || _userPreferredLang || 'English';
   const subs  = _userProfile?.subjects || [];
   const photo = _currentUser?.photoURL || '';
 
-  document.getElementById('settings-name-input').value = name;
-  document.getElementById('settings-user-name').textContent  = name || 'Student';
-  document.getElementById('settings-user-email').textContent = email;
+  const nameInput = document.getElementById('settings-name-input');
+  const userNameEl = document.getElementById('settings-user-name');
+  const userEmailEl = document.getElementById('settings-user-email');
+  if (nameInput) nameInput.value = name;
+  if (userNameEl) userNameEl.textContent = name || 'Student';
+  if (userEmailEl) userEmailEl.textContent = email;
 
   const img = document.getElementById('settings-avatar-img');
   const ph  = document.getElementById('settings-avatar-placeholder');
-  if (photo) { img.src = photo; img.style.display = ''; ph.style.display = 'none'; }
-  else { img.style.display = 'none'; ph.style.display = 'flex'; }
+  if (img && ph) {
+    if (photo) { img.src = photo; img.style.display = ''; ph.style.display = 'none'; }
+    else { img.style.display = 'none'; ph.style.display = 'flex'; }
+  }
 
   // Language
   const langSel = document.getElementById('settings-lang-select');
@@ -6400,21 +6578,24 @@ function openSettings() {
   });
 
   // School section — show correct state
-  const noSchool  = document.getElementById('settings-no-school');
-  const hasSchoolEl = document.getElementById('settings-has-school');
-  const errEl     = document.getElementById('settings-school-error');
+  const noSchool   = document.getElementById('settings-no-school');
+  const hasSchoolEl= document.getElementById('settings-has-school');
+  const errEl      = document.getElementById('settings-school-error');
   if (errEl) errEl.style.display = 'none';
 
   if (hasSchool()) {
-    if (noSchool)  noSchool.style.display  = 'none';
+    if (noSchool)    noSchool.style.display   = 'none';
     if (hasSchoolEl) {
       hasSchoolEl.style.display = 'flex';
-      document.getElementById('settings-school-name-label').textContent = _userSchoolName || 'Your School';
-      document.getElementById('settings-school-role-label').textContent = (_userSchoolRole || 'student') + ' · ' + (_userSchoolCode || '');
-      document.getElementById('settings-school-code-label').textContent = _userSchoolCode || '';
+      const snl = document.getElementById('settings-school-name-label');
+      const srl = document.getElementById('settings-school-role-label');
+      const scl = document.getElementById('settings-school-code-label');
+      if (snl) snl.textContent = _userSchoolName || 'Your School';
+      if (srl) srl.textContent = (_userSchoolRole || 'student') + ' · ' + (_userSchoolCode || '');
+      if (scl) scl.textContent = _userSchoolCode || '';
     }
   } else {
-    if (noSchool)  noSchool.style.display  = 'flex';
+    if (noSchool)    noSchool.style.display   = 'flex';
     if (hasSchoolEl) hasSchoolEl.style.display = 'none';
     const codeInput = document.getElementById('settings-school-code-input');
     if (codeInput) codeInput.value = '';
@@ -6589,11 +6770,82 @@ let _wizData = {
 const WIZARD_STEPS = 6; // 0=plan 1=identity 2=timetable 3=assign 4=preview 5=keys
 
 // ══════════════════════════════════════════════════════
+// UPGRADES PANEL
+// ══════════════════════════════════════════════════════
+function openUpgrades() {
+  const el = document.getElementById('upgrades-overlay');
+  if (!el) return;
+  // Reset input
+  const inp = document.getElementById('upg-key-input');
+  const err = document.getElementById('upg-join-error');
+  if (inp) inp.value = '';
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+  el.classList.add('open');
+  // Pulse the sidebar button
+  const btn = document.getElementById('cr-sidebar-btn');
+  if (btn) { btn.classList.add('pulse'); setTimeout(() => btn.classList.remove('pulse'), 600); }
+}
+
+function closeUpgrades() {
+  document.getElementById('upgrades-overlay')?.classList.remove('open');
+}
+
+async function upgJoinSchool() {
+  const inp = document.getElementById('upg-key-input');
+  const err = document.getElementById('upg-join-error');
+  const code = (inp?.value || '').trim().toUpperCase();
+  if (!code) { _upgErr('Enter your school key.'); return; }
+  if (!_currentUser) { _upgErr('Please sign in first.'); return; }
+  const fb = window._fb;
+  if (!fb) { _upgErr('Not connected. Refresh and try again.'); return; }
+
+  const btn = document.querySelector('.upg-join-btn');
+  if (btn) { btn.textContent = '…'; btn.disabled = true; }
+
+  try {
+    const snap = await fb.getDoc(fb.doc(fb.db, 'schools', code));
+    if (!snap.exists()) { _upgErr('❌ Invalid key. Check with your school.'); _upgBtnReset(btn); return; }
+    const school = snap.data();
+    if (school.active === false) { _upgErr('❌ This key has been deactivated.'); _upgBtnReset(btn); return; }
+
+    const role = (school.keyType === 'teacher') ? 'teacher' : 'student';
+    const uid = _currentUser.uid;
+    _userSchoolCode = code;
+    _userSchoolName = school.name || 'School';
+    _userSchoolRole = role;
+    _crSchoolData = school;
+
+    await fb.setDoc(fb.doc(fb.db,'schools',code,'members',uid), {
+      uid, name: _userProfile?.name || '', email: _currentUser.email || '',
+      photoURL: _currentUser.photoURL || '', role,
+      class: _userProfile?.class || '', joinedAt: Date.now()
+    });
+    _userProfile = { ...(_userProfile||{}), schoolCode: code, schoolName: school.name, schoolRole: role };
+    await fb.setDoc(fb.doc(fb.db,'users',uid,'profile','data'), _userProfile);
+
+    _crUpdateSidebarBtn();
+    closeUpgrades();
+    openClassroom();
+  } catch(e) {
+    _upgErr('Could not join. Check your connection.');
+    _upgBtnReset(btn);
+    console.error(e);
+  }
+}
+function _upgErr(msg) {
+  const err = document.getElementById('upg-join-error');
+  if (err) { err.textContent = msg; err.style.display = 'block'; }
+}
+function _upgBtnReset(btn) {
+  if (btn) { btn.textContent = 'Join →'; btn.disabled = false; }
+}
+
+// ══════════════════════════════════════════════════════
 // OPEN / CLOSE CLASSROOM
 // ══════════════════════════════════════════════════════
 function openClassroom() {
   if (!hasSchool()) {
-    openSettings();
+    openUpgrades();
     return;
   }
   document.getElementById('cr-overlay').classList.add('open');
@@ -8281,6 +8533,55 @@ authInit();
       <input type="text" id="live-text-input" placeholder="Ask about what you see… (e.g. which is cheesier?)" onkeydown="if(event.key==='Enter')liveAsk()">
     </div>
     <button class="live-ask-btn" onclick="liveAsk()" title="Ask AI about live view">🎯</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     UPGRADES / CLASSROOM GATE PANEL
+════════════════════════════════════════════════════════ -->
+<div class="upgrades-overlay" id="upgrades-overlay" onclick="if(event.target===this)closeUpgrades()">
+  <div class="upgrades-sheet" style="position:relative;">
+    <button class="upgrades-close" onclick="closeUpgrades()">✕</button>
+    <div class="upgrades-handle"></div>
+    <div class="upgrades-body">
+
+      <div class="upg-hero">
+        <div class="upg-hero-icon">🏫</div>
+        <div class="upg-hero-title">Sedy Classroom</div>
+        <div class="upg-hero-sub">A complete school experience — AI tutors, live chat, doubts, notes and more.</div>
+      </div>
+
+      <div class="upg-features-grid">
+        <div class="upg-feature"><div class="upg-feature-icon">✦</div><div class="upg-feature-name">Sedy Chat</div><div class="upg-feature-sub">Private AI tutor per student</div></div>
+        <div class="upg-feature"><div class="upg-feature-icon">💬</div><div class="upg-feature-name">Class Chat</div><div class="upg-feature-sub">WhatsApp-style group chat</div></div>
+        <div class="upg-feature"><div class="upg-feature-icon">❓</div><div class="upg-feature-name">Doubts</div><div class="upg-feature-sub">Instant AI + teacher reply</div></div>
+        <div class="upg-feature"><div class="upg-feature-icon">📄</div><div class="upg-feature-name">Notes</div><div class="upg-feature-sub">Upload, AI-summarise, Q&amp;A</div></div>
+        <div class="upg-feature"><div class="upg-feature-icon">📚</div><div class="upg-feature-name">Subjects</div><div class="upg-feature-sub">Google Classroom–style cards</div></div>
+        <div class="upg-feature"><div class="upg-feature-icon">📢</div><div class="upg-feature-name">Announcements</div><div class="upg-feature-sub">Broadcast to all classes</div></div>
+      </div>
+
+      <div class="upg-divider"></div>
+
+      <!-- Join with key -->
+      <div class="upg-action-card">
+        <div class="upg-action-title">Have a school key?</div>
+        <div class="upg-action-sub">Enter the key your school gave you to join instantly.</div>
+        <div class="upg-join-row">
+          <input class="upg-join-input" id="upg-key-input" type="text" placeholder="SEDY-S-XXXX" maxlength="20"
+            onkeydown="if(event.key==='Enter')upgJoinSchool()">
+          <button class="upg-join-btn" onclick="upgJoinSchool()">Join →</button>
+        </div>
+        <div class="upg-error" id="upg-join-error"></div>
+      </div>
+
+      <!-- Setup school (principal) -->
+      <div style="text-align:center;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;">— or —</div>
+      <button class="upg-btn-primary" onclick="closeUpgrades();openSchoolWizard();">
+        🏫 Set Up My School &nbsp;(I'm a Principal)
+      </button>
+      <button class="upg-btn-secondary" onclick="closeUpgrades()">Maybe later</button>
+
+    </div>
   </div>
 </div>
 

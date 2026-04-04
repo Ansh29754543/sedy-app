@@ -6779,6 +6779,24 @@ function openUpgrades() {
   const err = document.getElementById('upg-join-error');
   if (inp) inp.value = '';
   if (err) { err.style.display = 'none'; err.textContent = ''; }
+
+  // ── Principal-mode: hide "join with key", show setup CTA prominently ──
+  const isPrincipal = _userSchoolRole === 'principal';
+  const joinSection  = document.getElementById('upg-join-section');
+  const orDivider    = document.getElementById('upg-or-divider');
+  const setupBtn     = document.getElementById('upg-setup-school-btn');
+  const principalBanner = document.getElementById('upg-principal-banner');
+
+  if (joinSection)  joinSection.style.display  = isPrincipal ? 'none' : '';
+  if (orDivider)    orDivider.style.display     = isPrincipal ? 'none' : '';
+  if (principalBanner) principalBanner.style.display = isPrincipal ? 'block' : 'none';
+  if (setupBtn) {
+    setupBtn.textContent = isPrincipal
+      ? '🏫 Set Up My School'
+      : '🏫 Set Up My School \u00a0\u00a0(I\'m a Principal)';
+    setupBtn.style.opacity = '1';
+  }
+
   el.classList.add('open');
   const btn = document.getElementById('cr-sidebar-btn');
   if (btn) { btn.classList.add('pulse'); setTimeout(() => btn.classList.remove('pulse'), 600); }
@@ -6853,7 +6871,12 @@ function openClassroom() {
   // Always close upgrades panel first
   closeUpgrades();
   if (!hasSchool()) {
-    openUpgrades();
+    // Principals who haven't set up a school yet → go straight to setup wizard
+    if (_userSchoolRole === 'principal') {
+      setTimeout(() => openSchoolWizard(), 120);
+    } else {
+      openUpgrades();
+    }
     return;
   }
   document.getElementById('cr-overlay').classList.add('open');
@@ -7590,6 +7613,17 @@ async function _crShowPrincipalDashboard() {
   content.innerHTML = `
     <div style="flex:1;overflow-y:auto;">
       <div style="padding:16px;">
+
+        <!-- Principal upgrade / setup CTA -->
+        <div style="background:linear-gradient(135deg,rgba(255,181,71,.13),rgba(255,181,71,.04));border:1px solid rgba(255,181,71,.3);border-radius:16px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:28px;flex-shrink:0;">🏫</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--warning);margin-bottom:2px;">School Setup &amp; Upgrades</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.4;">Reconfigure your school, manage keys &amp; plan.</div>
+          </div>
+          <button onclick="openUpgrades()" style="flex-shrink:0;padding:8px 14px;background:rgba(255,181,71,.18);border:1px solid rgba(255,181,71,.4);border-radius:10px;color:var(--warning);font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap;">⚙️ Set Up</button>
+        </div>
+
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:20px;" id="cr-principal-stats"></div>
         <!-- Classes -->
         <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px;">Classes</div>
@@ -8590,8 +8624,15 @@ authInit();
 
       <div class="upg-divider"></div>
 
+      <!-- Principal banner (shown only when user is already flagged as principal) -->
+      <div id="upg-principal-banner" style="display:none;background:linear-gradient(135deg,rgba(255,181,71,.15),rgba(255,181,71,.05));border:1px solid rgba(255,181,71,.35);border-radius:16px;padding:16px 18px;text-align:center;">
+        <div style="font-size:24px;margin-bottom:6px;">🏫</div>
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--warning);margin-bottom:4px;">You're a Principal</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.5;">Use the button below to create and configure your school on Sedy Classroom.</div>
+      </div>
+
       <!-- Join with key -->
-      <div class="upg-action-card">
+      <div id="upg-join-section" class="upg-action-card">
         <div class="upg-action-title">Have a school key?</div>
         <div class="upg-action-sub">Enter the key your school gave you to join instantly.</div>
         <div class="upg-join-row">
@@ -8603,8 +8644,8 @@ authInit();
       </div>
 
       <!-- Setup school (principal) -->
-      <div style="text-align:center;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;">— or —</div>
-      <button class="upg-btn-primary" onclick="upgSetupSchool()">
+      <div id="upg-or-divider" style="text-align:center;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;">— or —</div>
+      <button id="upg-setup-school-btn" class="upg-btn-primary" onclick="upgSetupSchool()">
         🏫 Set Up My School &nbsp;<span style="opacity:.7;font-size:12px;">(I'm a Principal)</span>
       </button>
       <button class="upg-btn-secondary" onclick="closeUpgrades()">Maybe later</button>

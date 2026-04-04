@@ -1844,7 +1844,7 @@ body::after{
 /* ══════════════════════════════════════════════════════
    UPGRADES / CLASSROOM GATE PANEL
 ══════════════════════════════════════════════════════ */
-.upgrades-overlay{position:fixed;inset:0;z-index:8200;background:rgba(8,11,18,.88);backdrop-filter:blur(12px);display:none;align-items:flex-end;justify-content:center;padding:0;}
+.upgrades-overlay{position:fixed;inset:0;z-index:9000;background:rgba(8,11,18,.88);backdrop-filter:blur(12px);display:none;align-items:flex-end;justify-content:center;padding:0;}
 .upgrades-overlay.open{display:flex;}
 @keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 .upgrades-sheet{background:var(--bg2);border-radius:28px 28px 0 0;border:1px solid var(--border2);border-bottom:none;width:100%;max-width:480px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;animation:sheetUp .32s cubic-bezier(.34,1.2,.64,1);}
@@ -6775,19 +6775,24 @@ const WIZARD_STEPS = 6; // 0=plan 1=identity 2=timetable 3=assign 4=preview 5=ke
 function openUpgrades() {
   const el = document.getElementById('upgrades-overlay');
   if (!el) return;
-  // Reset input
   const inp = document.getElementById('upg-key-input');
   const err = document.getElementById('upg-join-error');
   if (inp) inp.value = '';
   if (err) { err.style.display = 'none'; err.textContent = ''; }
   el.classList.add('open');
-  // Pulse the sidebar button
   const btn = document.getElementById('cr-sidebar-btn');
   if (btn) { btn.classList.add('pulse'); setTimeout(() => btn.classList.remove('pulse'), 600); }
 }
 
 function closeUpgrades() {
   document.getElementById('upgrades-overlay')?.classList.remove('open');
+}
+
+// Called from the "Set Up My School" button in the upgrades panel
+function upgSetupSchool() {
+  closeUpgrades();
+  // Small delay so upgrades animates out before wizard opens
+  setTimeout(() => openSchoolWizard(), 120);
 }
 
 async function upgJoinSchool() {
@@ -6825,7 +6830,8 @@ async function upgJoinSchool() {
 
     _crUpdateSidebarBtn();
     closeUpgrades();
-    openClassroom();
+    // Small delay to let overlay close before classroom opens
+    setTimeout(() => openClassroom(), 150);
   } catch(e) {
     _upgErr('Could not join. Check your connection.');
     _upgBtnReset(btn);
@@ -6844,6 +6850,8 @@ function _upgBtnReset(btn) {
 // OPEN / CLOSE CLASSROOM
 // ══════════════════════════════════════════════════════
 function openClassroom() {
+  // Always close upgrades panel first
+  closeUpgrades();
   if (!hasSchool()) {
     openUpgrades();
     return;
@@ -7703,14 +7711,13 @@ async function crBroadcastAnnouncement() {
 // SCHOOL SETUP WIZARD (for principals)
 // ══════════════════════════════════════════════════════
 function openSchoolWizard() {
+  // Always close upgrades panel first
+  closeUpgrades();
   _wizStep = 0;
   _wizData = { plan: 250, customStudents: '', schoolName: '', logoBase64: '', timetableText: '', teachers: [], classes: [], classTeachers: {}, studentKey: '', teacherKey: '' };
-  document.getElementById('school-wizard-overlay').classList.add('open');
+  const overlay = document.getElementById('school-wizard-overlay');
+  if (overlay) overlay.classList.add('open');
   _wizRenderStep(0);
-}
-
-function closeSchoolWizard() {
-  document.getElementById('school-wizard-overlay').classList.remove('open');
 }
 
 function _wizGenKey(prefix) {
@@ -7826,7 +7833,7 @@ function _wizRenderStep(step) {
           <div class="key-label">Student Key</div>
           <div class="key-value" id="wiz-student-key">${_esc(_wizData.studentKey)}</div>
         </div>
-        <button class="key-copy-btn" onclick="navigator.clipboard.writeText(_wizData.studentKey);this.textContent='✓ Copied!'">Copy</button>
+        <button class="key-copy-btn" onclick="navigator.clipboard.writeText('${_esc(_wizData.studentKey)}');this.textContent='✓ Copied!'">Copy</button>
       </div>
       <div class="key-card">
         <div class="key-icon teacher">👨‍🏫</div>
@@ -7834,7 +7841,7 @@ function _wizRenderStep(step) {
           <div class="key-label">Teacher Key</div>
           <div class="key-value" id="wiz-teacher-key">${_esc(_wizData.teacherKey)}</div>
         </div>
-        <button class="key-copy-btn" onclick="navigator.clipboard.writeText(_wizData.teacherKey);this.textContent='✓ Copied!'">Copy</button>
+        <button class="key-copy-btn" onclick="navigator.clipboard.writeText('${_esc(_wizData.teacherKey)}');this.textContent='✓ Copied!'">Copy</button>
       </div>
       <div style="background:rgba(0,229,192,.06);border:1px solid rgba(0,229,192,.15);border-radius:12px;padding:12px 14px;font-size:11px;color:var(--accent3);font-family:'DM Mono',monospace;line-height:1.7;margin-top:8px;">
         ✦ All class groups are set up in Firestore<br>
@@ -7842,9 +7849,17 @@ function _wizRenderStep(step) {
         ✦ Share Teacher Key with teachers<br>
         ✦ Students/teachers enter the key on login
       </div>`;
-    // Disable next → show Close only
-    const next = document.getElementById('wizard-next-btn');
-    if (next) { next.textContent = 'Go to Dashboard'; next.onclick = () => { closeSchoolWizard(); openClassroom(); }; }
+    // Change footer button to "Go to Dashboard"
+    const nextBtn = document.getElementById('wizard-next-btn');
+    if (nextBtn) {
+      nextBtn.textContent = '🏫 Go to Dashboard';
+      nextBtn.onclick = function() {
+        closeSchoolWizard();
+        setTimeout(() => openClassroom(), 150);
+      };
+    }
+    const backBtn = document.getElementById('wizard-back-btn');
+    if (backBtn) backBtn.style.display = 'none';
   }
 }
 
@@ -7945,8 +7960,16 @@ function wizSetClassTeacher(cls, teacherName) {
   _wizData.classTeachers[cls] = teacherName;
 }
 
+function closeSchoolWizard() {
+  const overlay = document.getElementById('school-wizard-overlay');
+  if (overlay) overlay.classList.remove('open');
+  // Reset the next button onclick in case it was overridden in step 5
+  const nextBtn = document.getElementById('wizard-next-btn');
+  if (nextBtn) nextBtn.onclick = wizardNext;
+}
+
 async function wizardNext() {
-  if (_wizStep === 5) return; // handled by button override
+  if (_wizStep === 5) return; // handled by button override in step 5
 
   // Validation per step
   if (_wizStep === 0 && !_wizData.plan) { alert('Please select a plan.'); return; }
@@ -7957,9 +7980,20 @@ async function wizardNext() {
   }
   if (_wizStep === 2 && !_wizData.timetableText) { alert('Please upload your timetable.'); return; }
 
-  // Step 4: confirm → create school in Firestore
+  // Step 4: confirm → create school in Firestore THEN advance to step 5
   if (_wizStep === 4) {
-    await _wizCreateSchool();
+    const nextBtn = document.getElementById('wizard-next-btn');
+    if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = 'Creating…'; }
+    try {
+      await _wizCreateSchool();
+    } catch(e) {
+      if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Confirm & Create'; }
+      alert('Failed to create school. Please check your connection.');
+      return;
+    }
+    _wizStep = 5;
+    _wizRenderStep(5);
+    return;
   }
 
   _wizStep++;
@@ -7972,11 +8006,10 @@ function wizardBack() {
 
 async function _wizCreateSchool() {
   const fb = window._fb;
-  if (!fb || !_currentUser) return;
+  if (!fb || !_currentUser) throw new Error('Not authenticated');
 
   _wizData.studentKey = _wizGenKey('SEDY-S');
   _wizData.teacherKey = _wizGenKey('SEDY-T');
-  const code = 'SCH' + Date.now().toString(36).toUpperCase();
 
   // Build classes array with subjects
   const classesArr = _wizData.classes.map(cls => {
@@ -7988,7 +8021,7 @@ async function _wizCreateSchool() {
 
   const schoolDoc = {
     name: _wizData.schoolName,
-    logo: _wizData.logoBase64 ? _wizData.logoBase64.slice(0,2000) : '', // truncate for Firestore
+    logo: _wizData.logoBase64 ? _wizData.logoBase64.slice(0, 2000) : '',
     principalUid: _currentUser.uid,
     studentKey: _wizData.studentKey,
     teacherKey: _wizData.teacherKey,
@@ -8000,32 +8033,27 @@ async function _wizCreateSchool() {
     createdAt: Date.now()
   };
 
-  // Save school doc (use keys as doc IDs)
-  try {
-    await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey), {...schoolDoc, keyType:'student', schoolCode: _wizData.studentKey});
-    await fb.setDoc(fb.doc(fb.db,'schools',_wizData.teacherKey), {...schoolDoc, keyType:'teacher', schoolCode: _wizData.teacherKey});
+  // Save both keys as separate school docs (each key is a doc ID)
+  await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey), { ...schoolDoc, keyType:'student', schoolCode: _wizData.studentKey });
+  await fb.setDoc(fb.doc(fb.db,'schools',_wizData.teacherKey), { ...schoolDoc, keyType:'teacher', schoolCode: _wizData.teacherKey });
 
-    // Create classRooms sub-collection placeholders
-    for (const cls of classesArr) {
-      await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey,'classRooms',cls.id), { classId: cls.id, name: cls.name, createdAt: Date.now() });
-    }
-
-    // Join as principal
-    _userSchoolCode = _wizData.studentKey;
-    _userSchoolName = _wizData.schoolName;
-    _userSchoolRole = 'principal';
-    _crSchoolData = schoolDoc;
-
-    // Save to profile
-    _userProfile = { ...(_userProfile||{}), schoolCode: _wizData.studentKey, schoolName: _wizData.schoolName, schoolRole: 'principal' };
-    await fb.setDoc(fb.doc(fb.db,'users',_currentUser.uid,'profile','data'), _userProfile);
-
-    // Update sidebar
-    _crUpdateSidebarBtn();
-  } catch(e) {
-    console.error('Create school failed', e);
-    alert('Failed to create school. Check your connection.');
+  // Create classRooms sub-collections
+  for (const cls of classesArr) {
+    await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey,'classRooms',cls.id), { classId: cls.id, name: cls.name, createdAt: Date.now() });
   }
+
+  // Set global state BEFORE returning — this is what openClassroom() checks
+  _userSchoolCode = _wizData.studentKey;
+  _userSchoolName = _wizData.schoolName;
+  _userSchoolRole = 'principal';
+  _crSchoolData   = { ...schoolDoc, keyType:'student', schoolCode: _wizData.studentKey };
+
+  // Persist to profile
+  _userProfile = { ...(_userProfile||{}), schoolCode: _wizData.studentKey, schoolName: _wizData.schoolName, schoolRole: 'principal' };
+  await fb.setDoc(fb.doc(fb.db,'users',_currentUser.uid,'profile','data'), _userProfile);
+
+  // Update sidebar label
+  _crUpdateSidebarBtn();
 }
 
 // ── Update sidebar classroom button ──
@@ -8576,8 +8604,8 @@ authInit();
 
       <!-- Setup school (principal) -->
       <div style="text-align:center;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;">— or —</div>
-      <button class="upg-btn-primary" onclick="closeUpgrades();openSchoolWizard();">
-        🏫 Set Up My School &nbsp;(I'm a Principal)
+      <button class="upg-btn-primary" onclick="upgSetupSchool()">
+        🏫 Set Up My School &nbsp;<span style="opacity:.7;font-size:12px;">(I'm a Principal)</span>
       </button>
       <button class="upg-btn-secondary" onclick="closeUpgrades()">Maybe later</button>
 

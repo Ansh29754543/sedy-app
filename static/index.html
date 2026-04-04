@@ -22,7 +22,8 @@
   } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
   import {
     getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
-    collection, getDocs, writeBatch, serverTimestamp
+    collection, getDocs, writeBatch, serverTimestamp,
+    addDoc, query, orderBy, limit, onSnapshot
   } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
   const firebaseConfig = {
@@ -48,7 +49,8 @@
     createUserWithEmailAndPassword, signInWithEmailAndPassword,
     sendEmailVerification,
     doc, getDoc, setDoc, updateDoc, deleteDoc,
-    collection, getDocs, writeBatch, serverTimestamp
+    collection, getDocs, writeBatch, serverTimestamp,
+    addDoc, query, orderBy, limit, onSnapshot
   };
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -1666,6 +1668,198 @@ body::after{
 .ob-school-choice-btn:hover{border-color:rgba(79,142,255,.4);background:rgba(79,142,255,.08);color:#e8edf5;}
 .ob-school-choice-btn.selected{border-color:rgba(79,142,255,.7);background:rgba(79,142,255,.12);color:#e8edf5;}
 
+/* ══════════════════════════════════════════════════════
+   SCHOOL SETUP WIZARD
+══════════════════════════════════════════════════════ */
+.wizard-overlay{position:fixed;inset:0;z-index:9500;background:rgba(8,11,18,.92);backdrop-filter:blur(14px);display:none;align-items:center;justify-content:center;padding:20px;}
+.wizard-overlay.open{display:flex;}
+.wizard-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:28px;width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 32px 100px rgba(0,0,0,.7);overflow:hidden;animation:msgIn .28s cubic-bezier(.34,1.56,.64,1);}
+.wizard-header{padding:22px 26px 0;flex-shrink:0;}
+.wizard-progress{display:flex;gap:5px;margin-bottom:18px;}
+.wizard-dot{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.1);transition:all .3s;}
+.wizard-dot.active{background:linear-gradient(90deg,var(--accent2),var(--accent));}
+.wizard-dot.done{background:rgba(0,229,192,.5);}
+.wizard-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.wizard-sub{font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;margin-bottom:20px;line-height:1.5;}
+.wizard-body{flex:1;overflow-y:auto;padding:0 26px 20px;}
+.wizard-footer{padding:16px 26px 22px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;}
+.wizard-btn-primary{flex:2;padding:13px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:14px;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;}
+.wizard-btn-primary:hover{transform:scale(1.02);}
+.wizard-btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.wizard-btn-secondary{flex:1;padding:13px;background:none;border:1px solid var(--border2);border-radius:14px;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+/* Plan tiers */
+.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.plan-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;cursor:pointer;text-align:center;transition:all .2s;}
+.plan-card:hover,.plan-card.selected{border-color:var(--accent2);background:rgba(124,92,252,.08);}
+.plan-card.selected{border-color:var(--accent2);box-shadow:0 0 0 2px rgba(124,92,252,.3);}
+.plan-students{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);}
+.plan-label{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;letter-spacing:.5px;}
+.plan-price{font-size:11px;color:var(--accent3);font-family:'DM Mono',monospace;margin-top:5px;}
+.plan-custom-row{display:flex;gap:8px;align-items:center;}
+.plan-custom-input{flex:1;padding:10px 14px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+.plan-custom-input:focus{border-color:var(--accent2);}
+/* School identity */
+.wizard-input{width:100%;padding:11px 14px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;box-sizing:border-box;margin-bottom:10px;}
+.wizard-input:focus{border-color:var(--accent2);}
+.logo-upload-zone{border:2px dashed rgba(124,92,252,.3);border-radius:16px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(124,92,252,.04);}
+.logo-upload-zone:hover{border-color:rgba(124,92,252,.6);background:rgba(124,92,252,.08);}
+.logo-upload-zone.has-logo{border-style:solid;border-color:rgba(0,229,192,.4);background:rgba(0,229,192,.05);}
+.logo-preview{width:80px;height:80px;border-radius:16px;object-fit:contain;margin:0 auto 8px;display:block;}
+/* Timetable */
+.upload-drop-zone{border:2px dashed rgba(79,142,255,.3);border-radius:16px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(79,142,255,.04);}
+.upload-drop-zone:hover{border-color:rgba(79,142,255,.6);background:rgba(79,142,255,.08);}
+.upload-drop-zone.has-file{border-style:solid;border-color:rgba(0,229,192,.4);background:rgba(0,229,192,.05);}
+.teacher-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+.teacher-card-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.teacher-name{font-size:13px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;}
+.teacher-subjects{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+.subject-chip{padding:2px 8px;background:rgba(79,142,255,.12);border:1px solid rgba(79,142,255,.2);border-radius:10px;font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;}
+.class-chip{padding:2px 8px;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.2);border-radius:10px;font-size:10px;color:var(--accent2);font-family:'DM Mono',monospace;}
+/* Class teacher assignment */
+.assign-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;}
+.assign-class-name{font-size:13px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;}
+.assign-select{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:6px 10px;font-size:12px;color:var(--text);font-family:'DM Mono',monospace;outline:none;cursor:pointer;}
+/* Keys generated step */
+.key-card{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:14px;}
+.key-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.key-icon.student{background:rgba(0,229,192,.12);border:1px solid rgba(0,229,192,.25);}
+.key-icon.teacher{background:rgba(79,142,255,.12);border:1px solid rgba(79,142,255,.25);}
+.key-info{flex:1;min-width:0;}
+.key-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;}
+.key-value{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);letter-spacing:1px;}
+.key-copy-btn{padding:6px 14px;background:none;border:1px solid var(--border2);border-radius:10px;font-size:11px;color:var(--text2);cursor:pointer;font-family:'DM Mono',monospace;transition:all .18s;white-space:nowrap;}
+.key-copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ══════════════════════════════════════════════════════
+   CLASSROOM FULL OVERLAY
+══════════════════════════════════════════════════════ */
+.cr-overlay{position:fixed;inset:0;z-index:8000;background:var(--bg);display:none;flex-direction:column;}
+.cr-overlay.open{display:flex;}
+.cr-topbar{display:flex;align-items:center;gap:12px;padding:14px 18px;padding-top:calc(14px + var(--safe-t));background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.cr-back-btn-top{width:36px;height:36px;border-radius:10px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.cr-back-btn-top:hover{border-color:var(--accent);color:var(--accent);}
+.cr-topbar-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cr-school-badge{padding:4px 12px;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.25);border-radius:20px;font-size:11px;color:var(--accent2);font-family:'DM Mono',monospace;white-space:nowrap;}
+/* Class list view */
+.cr-class-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:20px;}
+.cr-class-item{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 16px;cursor:pointer;transition:all .2s;position:relative;}
+.cr-class-item:hover{border-color:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+.cr-class-emoji{font-size:32px;margin-bottom:8px;}
+.cr-class-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);}
+.cr-class-meta{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:3px;}
+.cr-class-unread{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;background:var(--danger);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:white;font-family:'Syne',sans-serif;}
+/* Classroom interior */
+.cr-room{flex:1;display:flex;overflow:hidden;}
+.cr-sidenav{width:52px;background:var(--bg3);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:2px;flex-shrink:0;}
+.cr-sidenav-btn{width:38px;height:38px;border-radius:10px;border:none;background:none;color:var(--text3);font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;position:relative;}
+.cr-sidenav-btn:hover{background:var(--card);color:var(--text);}
+.cr-sidenav-btn.active{background:rgba(124,92,252,.15);color:var(--accent2);}
+.cr-sidenav-btn[title]::after{content:attr(title);position:absolute;left:48px;top:50%;transform:translateY(-50%);background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text);white-space:nowrap;font-family:'DM Mono',monospace;pointer-events:none;opacity:0;transition:opacity .15s;z-index:100;}
+.cr-sidenav-btn:hover[title]::after{opacity:1;}
+.cr-content{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.cr-pane{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.cr-pane.active{display:flex;}
+
+/* Sedy Chat pane (private AI) */
+.cr-chat-messages{flex:1;overflow-y:auto;padding:16px;}
+.cr-chat-input-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.cr-chat-input{flex:1;padding:10px 14px;background:var(--card);border:1.5px solid var(--border2);border-radius:14px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;resize:none;max-height:100px;}
+.cr-chat-input:focus{border-color:var(--accent2);}
+.cr-send-btn{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;color:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.cr-send-btn:hover{transform:scale(1.08);}
+
+/* Class Chat / Sedy Room */
+.cr-room-msg{display:flex;gap:9px;margin-bottom:10px;}
+.cr-room-msg.me{flex-direction:row-reverse;}
+.cr-room-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden;}
+.cr-room-avatar img{width:100%;height:100%;object-fit:cover;}
+.cr-room-bubble-wrap{max-width:72%;}
+.cr-room-sender{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:2px;display:flex;align-items:center;gap:5px;}
+.cr-room-tag{padding:1px 6px;border-radius:8px;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.3px;}
+.cr-room-tag.principal{background:rgba(255,181,71,.15);color:var(--warning);}
+.cr-room-tag.teacher{background:rgba(79,142,255,.12);color:var(--accent);}
+.cr-room-tag.student{background:rgba(0,229,192,.1);color:var(--accent3);}
+.cr-room-tag.class-teacher{background:rgba(124,92,252,.15);color:var(--accent2);}
+.cr-room-bubble{background:var(--card);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;padding:9px 12px;font-size:13px;color:var(--text);line-height:1.5;font-family:'DM Sans',sans-serif;word-break:break-word;}
+.cr-room-msg.me .cr-room-bubble{background:rgba(124,92,252,.15);border-color:rgba(124,92,252,.3);border-bottom-right-radius:4px;border-bottom-left-radius:14px;}
+.cr-room-time{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:3px;}
+.cr-room-pinned{background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.2);border-radius:10px;padding:8px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text2);}
+
+/* Subject Cards */
+.cr-subjects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;padding:16px;}
+.cr-subject-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:all .2s;}
+.cr-subject-card:hover{border-color:var(--accent2);transform:translateY(-1px);}
+.cr-subject-icon{font-size:28px;margin-bottom:8px;}
+.cr-subject-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);}
+.cr-subject-teacher{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:3px;}
+.cr-subject-notes-count{font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;margin-top:4px;}
+/* Notes inside subject */
+.cr-note-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .18s;}
+.cr-note-item:hover{border-color:var(--accent);background:var(--card2);}
+.cr-note-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.cr-note-title{font-size:13px;font-weight:600;color:var(--text);}
+.cr-note-meta{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;}
+/* Teacher notes upload */
+.cr-upload-btn{padding:10px 18px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:12px;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;}
+
+/* Doubts */
+.cr-doubt-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+.cr-doubt-q{font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;margin-bottom:8px;}
+.cr-doubt-meta{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:8px;}
+.cr-doubt-ai-answer{background:rgba(0,229,192,.06);border:1px solid rgba(0,229,192,.15);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px;}
+.cr-doubt-teacher-reply{background:rgba(79,142,255,.07);border:1px solid rgba(79,142,255,.2);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text);line-height:1.6;font-family:'DM Sans',sans-serif;}
+.cr-doubt-reply-label{font-size:9px;color:var(--accent);font-family:'DM Mono',monospace;margin-bottom:4px;letter-spacing:.5px;text-transform:uppercase;}
+.cr-doubt-send-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+
+/* Announcements */
+.cr-announcement-item{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--accent2);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.cr-ann-from{font-size:11px;font-weight:700;color:var(--accent2);font-family:'Syne',sans-serif;}
+.cr-ann-time{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-left:auto;}
+.cr-ann-text{font-size:13px;color:var(--text);line-height:1.6;margin-top:6px;font-family:'DM Sans',sans-serif;}
+
+/* Principal dashboard */
+.cr-dash-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px;}
+.cr-stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;}
+.cr-stat-num{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--text);}
+.cr-stat-label{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:3px;letter-spacing:.5px;text-transform:uppercase;}
+.cr-teacher-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;}
+.cr-teacher-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.cr-teacher-name{font-size:13px;font-weight:600;color:var(--text);}
+.cr-teacher-status{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;}
+.cr-joined-badge{padding:2px 8px;border-radius:8px;font-size:9px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+.cr-joined-badge.yes{background:rgba(0,229,192,.12);color:var(--accent3);border:1px solid rgba(0,229,192,.25);}
+.cr-joined-badge.no{background:rgba(255,79,106,.1);color:var(--danger);border:1px solid rgba(255,79,106,.2);}
+.cr-invite-btn{padding:4px 10px;background:none;border:1px solid var(--border2);border-radius:8px;font-size:10px;color:var(--text2);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s;white-space:nowrap;}
+.cr-invite-btn:hover{border-color:var(--accent);color:var(--accent);}
+/* Announcements compose */
+.cr-compose-btn{padding:10px 18px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:12px;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;}
+.cr-compose-btn:hover{transform:scale(1.03);}
+.cr-compose-area{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:12px 14px;width:100%;box-sizing:border-box;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;resize:none;outline:none;min-height:80px;margin-bottom:8px;}
+
+/* Sidebar bottom classroom button */
+.cr-sidebar-btn{display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.25);border-radius:12px;color:var(--text2);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .22s;width:100%;}
+.cr-sidebar-btn:hover{border-color:rgba(124,92,252,.5);color:var(--accent2);background:rgba(124,92,252,.15);}
+.cr-sidebar-btn-icon{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+
+/* Sedy Notes detail view */
+.cr-note-detail{flex:1;overflow-y:auto;padding:16px;}
+.cr-note-detail-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.cr-note-detail-back{padding:6px 12px;border-radius:9px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;}
+.cr-note-summary{background:rgba(0,229,192,.06);border:1px solid rgba(0,229,192,.15);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.7;}
+.cr-note-ask-row{display:flex;gap:8px;margin-top:10px;}
+.cr-note-ask-input{flex:1;padding:9px 14px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;}
+.cr-note-ask-input:focus{border-color:var(--accent3);}
+
+/* Section header inside pane */
+.cr-pane-header{padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
+.cr-pane-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);}
+.cr-pane-sub{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;}
+.cr-pane-scroll{flex:1;overflow-y:auto;padding:14px 16px;}
+
+/* Teacher key verify step in login */
+.cr-key-verify{background:rgba(79,142,255,.06);border:1px solid rgba(79,142,255,.2);border-radius:14px;padding:16px;margin-top:12px;}
+.cr-key-verify-title{font-size:13px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;margin-bottom:8px;}
+
 /* Feature logos shown at top-left of generated content */
 .feature-logo-badge {
   display: inline-flex;
@@ -1973,7 +2167,14 @@ body::after{
         <button class="sb-btn" onclick="openSedyLens()">🔍 Lens</button>
         <button class="sb-btn" onclick="openWhiteboard()">🖊 Draw</button>
       </div>
-
+      <!-- Classroom button -->
+      <button class="cr-sidebar-btn" id="cr-sidebar-btn" onclick="openClassroom()" style="margin-top:6px;">
+        <div class="cr-sidebar-btn-icon">🏫</div>
+        <div style="flex:1;text-align:left;">
+          <div style="font-size:12px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;" id="cr-sidebar-label">Sedy Classroom</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:1px;" id="cr-sidebar-sub">Join with school key</div>
+        </div>
+      </button>
     </div>
   </div>
 
@@ -5892,6 +6093,7 @@ function _afterLogin(user, isNew) {
   // Don't override it here.
   init();
   // Update classroom sidebar label based on school membership
+  _crUpdateSidebarBtn();
 }
 
 function hideAuthScreen() {
@@ -6364,6 +6566,1278 @@ function requireSchool(action) {
   return true; // locked — caller should abort
 }
 
+// ══════════════════════════════════════════════════════
+// CLASSROOM STATE
+// ══════════════════════════════════════════════════════
+let _crCurrentClass  = null;   // { id, name, subjects, classTeacher }
+let _crCurrentTab    = 'chat'; // chat | subjects | room | doubts | notes | announce
+let _crCurrentSubject= null;   // { name, teacher }
+let _crCurrentNote   = null;   // note object for detail view
+let _crView          = 'list'; // 'list' | 'room' | 'principal'
+let _crRoomListeners = [];     // active Firestore listeners to unsubscribe
+let _crSchoolData    = null;   // full school doc data
+
+// School setup wizard state
+let _wizStep = 0;
+let _wizData = {
+  plan: null, customStudents: '',
+  schoolName: '', logoBase64: '',
+  timetableText: '', teachers: [], classes: [],
+  classTeachers: {},
+  studentKey: '', teacherKey: ''
+};
+const WIZARD_STEPS = 6; // 0=plan 1=identity 2=timetable 3=assign 4=preview 5=keys
+
+// ══════════════════════════════════════════════════════
+// OPEN / CLOSE CLASSROOM
+// ══════════════════════════════════════════════════════
+function openClassroom() {
+  if (!hasSchool()) {
+    openSettings();
+    return;
+  }
+  document.getElementById('cr-overlay').classList.add('open');
+  _crView = 'list';
+  _crLoadSchoolAndShow();
+}
+
+function closeClassroom() {
+  document.getElementById('cr-overlay').classList.remove('open');
+  _crDetachListeners();
+  _crCurrentClass = null;
+}
+
+function crGoBack() {
+  if (_crCurrentNote) {
+    _crCurrentNote = null;
+    _crRenderSubjectDetail(_crCurrentSubject);
+    return;
+  }
+  if (_crCurrentSubject) {
+    _crCurrentSubject = null;
+    _crSwitchTab(_crCurrentTab);
+    return;
+  }
+  if (_crCurrentClass) {
+    _crDetachListeners();
+    _crCurrentClass = null;
+    _crView = 'list';
+    _crShowClassList();
+    return;
+  }
+  closeClassroom();
+}
+
+// ══════════════════════════════════════════════════════
+// LOAD SCHOOL DATA & SHOW CLASS LIST
+// ══════════════════════════════════════════════════════
+async function _crLoadSchoolAndShow() {
+  const fb = window._fb;
+  if (!fb || !_userSchoolCode) return;
+
+  document.getElementById('cr-school-badge').textContent = _userSchoolName || _userSchoolCode;
+  document.getElementById('cr-topbar-title').textContent = 'Sedy Classroom';
+
+  try {
+    const snap = await fb.getDoc(fb.doc(fb.db, 'schools', _userSchoolCode));
+    if (snap.exists()) {
+      _crSchoolData = snap.data();
+    }
+  } catch(e) { console.warn('CR: load school failed', e); }
+
+  // Principal sees their own dashboard; others see class list
+  if (_userSchoolRole === 'principal') {
+    _crShowPrincipalDashboard();
+  } else {
+    _crShowClassList();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// CLASS LIST VIEW
+// ══════════════════════════════════════════════════════
+function _crShowClassList() {
+  _crView = 'list';
+  document.getElementById('cr-back-btn').textContent = '✕';
+  document.getElementById('cr-topbar-title').textContent = _userSchoolName || 'Classroom';
+
+  const fb = window._fb;
+  if (!fb) return;
+
+  const content = document.getElementById('cr-main-content');
+  content.innerHTML = `<div style="padding:16px 12px;overflow-y:auto;flex:1;">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;padding:0 4px;">Your Classes</div>
+    <div class="cr-class-grid" id="cr-class-grid"><div style="padding:20px;color:var(--text3);font-family:'DM Mono',monospace;font-size:12px;">Loading classes…</div></div>
+  </div>`;
+
+  // Load classes this user belongs to
+  _crLoadClasses();
+}
+
+async function _crLoadClasses() {
+  const fb = window._fb;
+  const grid = document.getElementById('cr-class-grid');
+  if (!grid || !fb) return;
+
+  try {
+    const schoolSnap = await fb.getDoc(fb.doc(fb.db, 'schools', _userSchoolCode));
+    if (!schoolSnap.exists()) { grid.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No classes found.</div>'; return; }
+    const school = schoolSnap.data();
+    const allClasses = school.classes || [];
+
+    // Filter: students see only their class, teachers see their classes, principal sees all
+    let myClasses = allClasses;
+    if (_userSchoolRole === 'student') {
+      const myClass = _userProfile?.class || '';
+      myClasses = allClasses.filter(c => c.id === myClass || c.name === myClass);
+      if (!myClasses.length && myClass) myClasses = [{ id: myClass, name: myClass, subjects: [] }];
+    } else if (_userSchoolRole === 'teacher') {
+      myClasses = allClasses.filter(c => {
+        const subs = c.subjects || [];
+        return subs.some(s => s.teacher === (_userProfile?.name || ''));
+      });
+    }
+
+    if (!myClasses.length) {
+      grid.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No classes found for your account.<br><br>Contact your teacher to be added.</div>';
+      return;
+    }
+
+    const classColors = ['#4f8eff','#7c5cfc','#00e5c0','#ffb547','#ff4f6a','#a78bfa'];
+    grid.innerHTML = myClasses.map((cls, i) => {
+      const color = classColors[i % classColors.length];
+      return `<div class="cr-class-item" onclick="crOpenClass(${JSON.stringify(cls).replace(/"/g,'&quot;')})">
+        <div class="cr-class-emoji" style="width:48px;height:48px;background:${color}22;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:8px;">🏫</div>
+        <div class="cr-class-name">${_esc(cls.name)}</div>
+        <div class="cr-class-meta">${(cls.subjects||[]).length} subjects</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    grid.innerHTML = '<div style="padding:20px;color:var(--danger);font-size:12px;font-family:\'DM Mono\',monospace;">Could not load classes.</div>';
+  }
+}
+
+function crOpenClass(cls) {
+  _crCurrentClass = cls;
+  _crView = 'room';
+  document.getElementById('cr-back-btn').textContent = '‹';
+  document.getElementById('cr-topbar-title').textContent = cls.name;
+  _crRenderRoom();
+}
+
+// ══════════════════════════════════════════════════════
+// CLASSROOM ROOM (tabs: Sedy Chat / Subjects / Room Chat / Doubts / Notes / Announce)
+// ══════════════════════════════════════════════════════
+function _crRenderRoom() {
+  _crCurrentTab = 'chat';
+  const content = document.getElementById('cr-main-content');
+  content.innerHTML = `
+    <div class="cr-room">
+      <div class="cr-sidenav">
+        <button class="cr-sidenav-btn active" id="cr-tab-chat" onclick="crSwitchTab('chat')" title="Sedy Chat">✦</button>
+        <button class="cr-sidenav-btn" id="cr-tab-subjects" onclick="crSwitchTab('subjects')" title="Subjects">📚</button>
+        <button class="cr-sidenav-btn" id="cr-tab-room" onclick="crSwitchTab('room')" title="Class Chat">💬</button>
+        <button class="cr-sidenav-btn" id="cr-tab-doubts" onclick="crSwitchTab('doubts')" title="Doubts">❓</button>
+        <button class="cr-sidenav-btn" id="cr-tab-notes" onclick="crSwitchTab('notes')" title="Notes">📄</button>
+        <button class="cr-sidenav-btn" id="cr-tab-announce" onclick="crSwitchTab('announce')" title="Announcements">📢</button>
+      </div>
+      <div class="cr-content" id="cr-room-content"></div>
+    </div>`;
+  _crSwitchTab('chat');
+}
+
+function crSwitchTab(tab) {
+  _crCurrentTab = tab;
+  _crCurrentSubject = null;
+  _crCurrentNote = null;
+  // Update nav
+  ['chat','subjects','room','doubts','notes','announce'].forEach(t => {
+    document.getElementById('cr-tab-'+t)?.classList.toggle('active', t === tab);
+  });
+  _crRenderTab(tab);
+}
+
+function _crSwitchTab(tab) { crSwitchTab(tab); }
+
+function _crRenderTab(tab) {
+  const content = document.getElementById('cr-room-content');
+  if (!content) return;
+
+  if (tab === 'chat') _crRenderSedyChat(content);
+  else if (tab === 'subjects') _crRenderSubjects(content);
+  else if (tab === 'room') _crRenderClassRoom(content);
+  else if (tab === 'doubts') _crRenderDoubts(content);
+  else if (tab === 'notes') _crRenderNotes(content);
+  else if (tab === 'announce') _crRenderAnnouncements(content);
+}
+
+// ── Sedy Chat (private AI per student) ──
+function _crRenderSedyChat(container) {
+  const cls = _crCurrentClass;
+  const subjContext = (cls.subjects || []).map(s => s.name || s).join(', ');
+  container.innerHTML = `
+    <div class="cr-pane active" id="cr-sedy-chat-pane">
+      <div class="cr-pane-header">
+        <div>
+          <div class="cr-pane-title">✦ Sedy Chat</div>
+          <div class="cr-pane-sub">Your private AI tutor for ${_esc(cls.name)}</div>
+        </div>
+      </div>
+      <div class="cr-chat-messages" id="cr-sedy-messages">
+        <div class="msg ai" style="margin-bottom:12px;">
+          <div class="msg-avatar">✦</div>
+          <div class="msg-content">
+            <div class="msg-bubble">Hi! I'm your private Sedy AI for <strong>${_esc(cls.name)}</strong>. I know your subjects: <strong>${_esc(subjContext || 'all topics')}</strong>. Ask me anything — only you can see this chat! 🔒</div>
+          </div>
+        </div>
+      </div>
+      <div class="cr-chat-input-row">
+        <textarea class="cr-chat-input" id="cr-sedy-input" placeholder="Ask your private tutor…" rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();crSedySend();}"></textarea>
+        <button class="cr-send-btn" onclick="crSedySend()">➤</button>
+      </div>
+    </div>`;
+}
+
+async function crSedySend() {
+  const input = document.getElementById('cr-sedy-input');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  const msgs = document.getElementById('cr-sedy-messages');
+  // User message
+  const userDiv = document.createElement('div');
+  userDiv.className = 'msg user';
+  userDiv.innerHTML = `<div class="msg-avatar">👤</div><div class="msg-content"><div class="msg-bubble">${_esc(text)}</div></div>`;
+  msgs.appendChild(userDiv);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Typing indicator
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'msg ai';
+  typingDiv.id = 'cr-typing';
+  typingDiv.innerHTML = `<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>`;
+  msgs.appendChild(typingDiv);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const cls = _crCurrentClass;
+    const subjContext = (cls.subjects || []).map(s => s.name || s).join(', ');
+    const sysPrompt = `You are Sedy, a private AI tutor for a student in class ${cls.name}. Their subjects are: ${subjContext}. Be helpful, friendly, and educational. Keep responses concise and clear.`;
+    const res = await fetch(API_URL + '/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        history: [],
+        systemPrompt: sysPrompt,
+        model: 'auto'
+      })
+    });
+    const data = await res.json();
+    typingDiv.remove();
+    const aiDiv = document.createElement('div');
+    aiDiv.className = 'msg ai';
+    aiDiv.innerHTML = `<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble">${parseMarkdown(data.reply || 'I could not respond right now.')}</div></div>`;
+    msgs.appendChild(aiDiv);
+    renderMath(aiDiv.querySelector('.msg-bubble'));
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch(e) {
+    typingDiv.remove();
+    const errDiv = document.createElement('div');
+    errDiv.className = 'msg ai';
+    errDiv.innerHTML = `<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble">Sorry, couldn't connect. Try again.</div></div>`;
+    msgs.appendChild(errDiv);
+  }
+}
+
+// ── Subject Cards ──
+function _crRenderSubjects(container) {
+  const cls = _crCurrentClass;
+  const subs = cls.subjects || [];
+  const subjectIcons = { maths:'🔢', math:'🔢', science:'🔬', physics:'⚛️', chemistry:'🧪', biology:'🌿', english:'📖', history:'🏛️', geography:'🌍', hindi:'🇮🇳', cs:'💻', computer:'💻', economics:'🧮', arts:'🎨', pe:'⚽', default:'📚' };
+  function getIcon(name) {
+    const k = (name||'').toLowerCase();
+    for (const [key, val] of Object.entries(subjectIcons)) if (k.includes(key)) return val;
+    return subjectIcons.default;
+  }
+
+  container.innerHTML = `
+    <div class="cr-pane active">
+      <div class="cr-pane-header">
+        <div><div class="cr-pane-title">📚 Subjects</div><div class="cr-pane-sub">Tap a subject to see notes</div></div>
+      </div>
+      <div class="cr-subjects-grid" id="cr-subjects-grid">
+        ${subs.length ? subs.map(s => {
+          const name = s.name || s;
+          const teacher = s.teacher || '';
+          return `<div class="cr-subject-card" onclick="crOpenSubject(${JSON.stringify({name,teacher}).replace(/"/g,'&quot;')})">
+            <div class="cr-subject-icon">${getIcon(name)}</div>
+            <div class="cr-subject-name">${_esc(name)}</div>
+            ${teacher ? `<div class="cr-subject-teacher">👤 ${_esc(teacher)}</div>` : ''}
+            <div class="cr-subject-notes-count" id="sub-notes-${btoa(name).replace(/=/g,'')}">📎 Loading…</div>
+          </div>`;
+        }).join('') : '<div style="padding:30px;text-align:center;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No subjects found for this class.</div>'}
+      </div>
+    </div>`;
+
+  // Load notes count per subject
+  subs.forEach(async s => {
+    const name = s.name || s;
+    const key = btoa(name).replace(/=/g,'');
+    try {
+      const fb = window._fb;
+      const notesSnap = await fb.getDocs(fb.collection(fb.db, 'schools', _userSchoolCode, 'classRooms', _crCurrentClass.id, 'notes'));
+      const count = notesSnap.docs.filter(d => d.data().subject === name).length;
+      const el = document.getElementById('sub-notes-'+key);
+      if (el) el.textContent = count ? `📎 ${count} note${count>1?'s':''}` : '📎 No notes yet';
+    } catch(e) {}
+  });
+}
+
+function crOpenSubject(sub) {
+  _crCurrentSubject = sub;
+  _crRenderSubjectDetail(sub);
+}
+
+async function _crRenderSubjectDetail(sub) {
+  const content = document.getElementById('cr-room-content');
+  const isTeacher = _userSchoolRole === 'teacher' && sub.teacher === (_userProfile?.name || '');
+  const isPrincipal = _userSchoolRole === 'principal';
+
+  content.innerHTML = `
+    <div class="cr-pane active">
+      <div class="cr-pane-header" style="flex-direction:column;align-items:flex-start;gap:6px;">
+        <button class="cr-note-detail-back" onclick="_crCurrentSubject=null;crSwitchTab('subjects')">← Subjects</button>
+        <div class="cr-pane-title">📚 ${_esc(sub.name)}</div>
+      </div>
+      ${isTeacher || isPrincipal ? `<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--bg2);">
+        <label class="cr-upload-btn" for="cr-note-upload" style="cursor:pointer;">📎 Upload Note</label>
+        <input type="file" id="cr-note-upload" accept=".pdf,image/*,.docx,.txt" style="display:none" onchange="crUploadNote(this,'${_esc(sub.name)}')">
+        <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">PDF, image, doc</span>
+      </div>` : ''}
+      <div class="cr-pane-scroll" id="cr-notes-list">
+        <div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;">Loading notes…</div>
+      </div>
+    </div>`;
+  _crLoadNotesList(sub.name);
+}
+
+async function _crLoadNotesList(subjectName) {
+  const fb = window._fb;
+  const list = document.getElementById('cr-notes-list');
+  if (!list || !fb) return;
+  try {
+    const snap = await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'notes'));
+    const notes = snap.docs.map(d=>({id:d.id,...d.data()})).filter(n=>n.subject===subjectName).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    if (!notes.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No notes uploaded yet.</div>'; return; }
+    list.innerHTML = notes.map(n => `
+      <div class="cr-note-item" style="display:flex;align-items:center;gap:12px;" onclick="crOpenNote(${JSON.stringify(n).replace(/"/g,'&quot;')})">
+        <div class="cr-note-icon">📄</div>
+        <div style="flex:1;min-width:0;">
+          <div class="cr-note-title">${_esc(n.title||'Untitled Note')}</div>
+          <div class="cr-note-meta">${_esc(n.uploadedBy||'')} · ${n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ''}</div>
+          ${n.summary ? `<div style="font-size:10px;color:var(--text3);font-family:'DM Sans',sans-serif;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${_esc(n.summary.slice(0,80))}</div>` : ''}
+        </div>
+      </div>`).join('');
+  } catch(e) { list.innerHTML = '<div style="color:var(--danger);font-size:12px;padding:10px;">Could not load notes.</div>'; }
+}
+
+function crOpenNote(note) {
+  _crCurrentNote = note;
+  const content = document.getElementById('cr-room-content');
+  content.innerHTML = `
+    <div class="cr-pane active">
+      <div class="cr-pane-header">
+        <button class="cr-note-detail-back" onclick="_crCurrentNote=null;_crRenderSubjectDetail(_crCurrentSubject)">← Back</button>
+      </div>
+      <div class="cr-note-detail">
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:6px;">${_esc(note.title||'Untitled')}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:14px;">${_esc(note.uploadedBy||'')} · ${note.createdAt?new Date(note.createdAt).toLocaleDateString():''}</div>
+        ${note.fileUrl ? `<a href="${_esc(note.fileUrl)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-size:12px;font-family:'DM Mono',monospace;text-decoration:none;margin-bottom:14px;">📎 View File</a>` : ''}
+        ${note.summary ? `<div class="cr-note-summary"><div style="font-size:9px;color:var(--accent3);font-family:'DM Mono',monospace;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">✦ AI Summary</div>${_esc(note.summary)}</div>` : ''}
+        <div id="cr-note-qa" style="margin-top:10px;"></div>
+        <div class="cr-note-ask-row">
+          <input class="cr-note-ask-input" id="cr-note-question" placeholder="Ask AI about this note…" onkeydown="if(event.key==='Enter')crAskNote()">
+          <button class="cr-send-btn" onclick="crAskNote()">➤</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function crAskNote() {
+  const input = document.getElementById('cr-note-question');
+  if (!input) return;
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  const qa = document.getElementById('cr-note-qa');
+  const userDiv = document.createElement('div');
+  userDiv.className = 'msg user';
+  userDiv.style.marginBottom = '8px';
+  userDiv.innerHTML = `<div class="msg-avatar">👤</div><div class="msg-content"><div class="msg-bubble">${_esc(q)}</div></div>`;
+  qa.appendChild(userDiv);
+  const loadDiv = document.createElement('div');
+  loadDiv.className = 'msg ai';
+  loadDiv.innerHTML = `<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>`;
+  qa.appendChild(loadDiv);
+  try {
+    const note = _crCurrentNote;
+    const res = await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,history:[],systemPrompt:`You are answering questions about a study note titled "${note.title}". Summary: ${note.summary||'(none)'}. Be helpful and educational.`,model:'auto'})});
+    const data = await res.json();
+    loadDiv.remove();
+    const aiDiv = document.createElement('div');
+    aiDiv.className = 'msg ai';
+    aiDiv.style.marginBottom = '8px';
+    aiDiv.innerHTML = `<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble">${parseMarkdown(data.reply||'')}</div></div>`;
+    qa.appendChild(aiDiv);
+    renderMath(aiDiv.querySelector('.msg-bubble'));
+    qa.scrollTop = qa.scrollHeight;
+  } catch(e) { loadDiv.remove(); }
+}
+
+async function crUploadNote(input, subjectName) {
+  const file = input.files[0];
+  if (!file) return;
+  const fb = window._fb;
+  if (!fb) return;
+
+  const title = file.name.replace(/\.[^/.]+$/, '');
+  let fileUrl = '';
+  let base64ForAI = null;
+
+  // Read file for AI summary
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const ab = e.target.result;
+    base64ForAI = btoa(new Uint8Array(ab).reduce((d,b)=>d+String.fromCharCode(b),''));
+
+    // Get AI summary
+    let summary = '';
+    try {
+      const res = await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'Summarise this document in 2-3 sentences for students.',history:[],systemPrompt:'You are summarising a study note. Be concise.',model:'auto'})});
+      const data = await res.json();
+      summary = data.reply || '';
+    } catch(e) {}
+
+    // Save note to Firestore
+    const noteId = 'note_'+Date.now();
+    const noteData = {
+      id: noteId, title, subjectName,
+      subject: subjectName,
+      uploadedBy: _userProfile?.name || '',
+      summary,
+      fileUrl,
+      createdAt: Date.now()
+    };
+    try {
+      await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'notes',noteId), noteData);
+      _crLoadNotesList(subjectName);
+    } catch(err) { console.error('Upload note failed', err); }
+  };
+  reader.readAsArrayBuffer(file);
+  input.value = '';
+}
+
+// ── Class Chat (Sedy Room) ──
+let _crRoomUnsubscribe = null;
+function _crRenderClassRoom(container) {
+  container.innerHTML = `
+    <div class="cr-pane active">
+      <div class="cr-pane-header">
+        <div><div class="cr-pane-title">💬 Class Chat</div><div class="cr-pane-sub">${_esc(_crCurrentClass.name)} · Everyone</div></div>
+      </div>
+      <div id="cr-room-messages" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:0;"></div>
+      <div class="cr-chat-input-row">
+        <textarea class="cr-chat-input" id="cr-room-input" placeholder="Message the class…" rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();crRoomSend();}"></textarea>
+        <button class="cr-send-btn" onclick="crRoomSend()">➤</button>
+      </div>
+    </div>`;
+  _crListenRoomChat();
+}
+
+function _crListenRoomChat() {
+  const fb = window._fb;
+  if (!fb || !_crCurrentClass) return;
+  if (_crRoomUnsubscribe) { _crRoomUnsubscribe(); _crRoomUnsubscribe = null; }
+
+  const chatRef = fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'chat');
+  const q = fb.query(chatRef, fb.orderBy('createdAt','asc'), fb.limit(100));
+  _crRoomUnsubscribe = fb.onSnapshot(q, snap => {
+    const msgs = document.getElementById('cr-room-messages');
+    if (!msgs) { _crRoomUnsubscribe && _crRoomUnsubscribe(); return; }
+    msgs.innerHTML = '';
+    snap.forEach(d => _crAppendRoomMsg(msgs, {id:d.id,...d.data()}));
+    msgs.scrollTop = msgs.scrollHeight;
+  }, err => console.warn('CR chat listen error', err));
+  _crRoomListeners.push(_crRoomUnsubscribe);
+}
+
+function _crAppendRoomMsg(container, msg) {
+  const isMe = msg.senderUid === _currentUser?.uid;
+  const tag = msg.role === 'principal' ? 'principal' : msg.role === 'teacher' ? (msg.isClassTeacher ? 'class-teacher' : 'teacher') : 'student';
+  const tagLabel = msg.role === 'principal' ? 'Principal' : msg.isClassTeacher ? 'Class Teacher' : msg.teacherSubject ? msg.teacherSubject+' Teacher' : '';
+  const time = msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
+
+  const div = document.createElement('div');
+  div.className = 'cr-room-msg' + (isMe ? ' me' : '');
+  div.innerHTML = `
+    ${!isMe ? `<div class="cr-room-avatar">${(msg.senderName||'?')[0].toUpperCase()}</div>` : ''}
+    <div class="cr-room-bubble-wrap">
+      ${!isMe ? `<div class="cr-room-sender">${_esc(msg.senderName||'Unknown')}${tagLabel?`<span class="cr-room-tag ${tag}">${_esc(tagLabel)}</span>`:''}</div>` : ''}
+      <div class="cr-room-bubble">${_esc(msg.text||'')}</div>
+      <div class="cr-room-time">${time}</div>
+    </div>`;
+  container.appendChild(div);
+}
+
+async function crRoomSend() {
+  const input = document.getElementById('cr-room-input');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text || !_currentUser) return;
+  input.value = '';
+  const fb = window._fb;
+  if (!fb) return;
+
+  const isClassTeacher = _crSchoolData?.classTeachers?.[_crCurrentClass.id] === (_userProfile?.name||'');
+  const teacherSubject = (() => {
+    if (_userSchoolRole !== 'teacher') return '';
+    const cls = (_crSchoolData?.classes||[]).find(c=>c.id===_crCurrentClass.id||c.name===_crCurrentClass.name);
+    const sub = (cls?.subjects||[]).find(s=>s.teacher===(_userProfile?.name||''));
+    return sub?.name || '';
+  })();
+
+  try {
+    await fb.addDoc(fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'chat'), {
+      text, senderUid: _currentUser.uid,
+      senderName: _userProfile?.name || _currentUser.displayName || 'Student',
+      role: _userSchoolRole || 'student',
+      isClassTeacher, teacherSubject,
+      createdAt: Date.now()
+    });
+  } catch(e) { console.error('Room send failed', e); }
+}
+
+// ── Doubts ──
+function _crRenderDoubts(container) {
+  const isTeacher = _userSchoolRole === 'teacher';
+  container.innerHTML = `
+    <div class="cr-pane active">
+      <div class="cr-pane-header">
+        <div><div class="cr-pane-title">❓ Sedy Doubts</div><div class="cr-pane-sub">${isTeacher ? 'All doubts from students' : 'Your doubts'}</div></div>
+      </div>
+      <div class="cr-pane-scroll" id="cr-doubts-list"><div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;">Loading…</div></div>
+      ${!isTeacher ? `<div class="cr-doubt-send-row">
+        <select id="cr-doubt-subject" style="background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--text);font-family:'DM Mono',monospace;outline:none;flex-shrink:0;">
+          ${(_crCurrentClass.subjects||[]).map(s=>`<option>${_esc(s.name||s)}</option>`).join('')}
+        </select>
+        <input id="cr-doubt-input" class="cr-chat-input" style="height:38px;resize:none;" placeholder="Ask a doubt…" onkeydown="if(event.key==='Enter')crSendDoubt()">
+        <button class="cr-send-btn" onclick="crSendDoubt()">➤</button>
+      </div>` : ''}
+    </div>`;
+  _crLoadDoubts();
+}
+
+async function _crLoadDoubts() {
+  const fb = window._fb;
+  const list = document.getElementById('cr-doubts-list');
+  if (!list || !fb) return;
+  try {
+    const snap = await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'doubts'));
+    let doubts = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+
+    // Students only see their own doubts
+    if (_userSchoolRole === 'student') {
+      doubts = doubts.filter(d => d.studentUid === _currentUser?.uid);
+    }
+
+    if (!doubts.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No doubts yet.<br>Ask one below!</div>'; return; }
+
+    list.innerHTML = doubts.map(d => `
+      <div class="cr-doubt-item">
+        <div class="cr-doubt-meta">
+          <span class="cr-room-tag teacher" style="margin-right:4px;">${_esc(d.subject||'General')}</span>
+          ${d.studentName?`<span>${_esc(d.studentName)}</span>`:''}
+          <span style="margin-left:auto;">${d.createdAt?new Date(d.createdAt).toLocaleDateString():''}</span>
+        </div>
+        <div class="cr-doubt-q"><strong>Q:</strong> ${_esc(d.question||'')}</div>
+        ${d.aiAnswer?`<div class="cr-doubt-ai-answer"><div class="cr-doubt-reply-label">✦ Instant AI Answer</div>${parseMarkdown(d.aiAnswer)}</div>`:''}
+        ${d.teacherReply?`<div class="cr-doubt-teacher-reply"><div class="cr-doubt-reply-label">👤 Teacher Reply</div>${_esc(d.teacherReply)}</div>`:''}
+        ${(_userSchoolRole==='teacher'&&!d.teacherReply)?`<div style="display:flex;gap:6px;margin-top:8px;">
+          <input id="reply-${d.id}" class="cr-chat-input" style="height:34px;resize:none;" placeholder="Reply to this doubt…" onkeydown="if(event.key==='Enter')crReplyDoubt('${d.id}',this.value)">
+          <button class="cr-send-btn" onclick="crReplyDoubt('${d.id}',document.getElementById('reply-${d.id}').value)" style="flex-shrink:0;">➤</button>
+        </div>`:''}
+      </div>`).join('');
+    list.querySelectorAll('.cr-doubt-ai-answer').forEach(el => renderMath(el));
+  } catch(e) { list.innerHTML = '<div style="color:var(--danger);font-size:12px;padding:10px;">Could not load doubts.</div>'; }
+}
+
+async function crSendDoubt() {
+  const input = document.getElementById('cr-doubt-input');
+  const subjectEl = document.getElementById('cr-doubt-subject');
+  if (!input) return;
+  const question = input.value.trim();
+  if (!question) return;
+  const subject = subjectEl?.value || 'General';
+  input.value = '';
+  const fb = window._fb;
+  if (!fb || !_currentUser) return;
+
+  // Get instant AI answer
+  let aiAnswer = '';
+  try {
+    const res = await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:question,history:[],systemPrompt:`You are helping a student in class ${_crCurrentClass.name} with subject ${subject}. Give a clear, educational answer.`,model:'auto'})});
+    const data = await res.json();
+    aiAnswer = data.reply || '';
+  } catch(e) {}
+
+  const doubtId = 'doubt_'+Date.now();
+  await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'doubts',doubtId),{
+    id: doubtId, question, subject, aiAnswer,
+    studentUid: _currentUser.uid,
+    studentName: _userProfile?.name || '',
+    teacherReply: '',
+    createdAt: Date.now()
+  }).catch(e=>console.error('Doubt save failed',e));
+
+  _crLoadDoubts();
+}
+
+async function crReplyDoubt(doubtId, reply) {
+  if (!reply?.trim()) return;
+  const fb = window._fb;
+  if (!fb) return;
+  await fb.updateDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'doubts',doubtId),{teacherReply:reply.trim()}).catch(()=>{});
+  _crLoadDoubts();
+}
+
+// ── Sedy Notes (teacher uploads, students view) ──
+function _crRenderNotes(container) {
+  const isTeacher = _userSchoolRole === 'teacher';
+  const isPrincipal = _userSchoolRole === 'principal';
+  container.innerHTML = `
+    <div class="cr-pane active">
+      <div class="cr-pane-header" style="justify-content:space-between;">
+        <div><div class="cr-pane-title">📄 Sedy Notes</div><div class="cr-pane-sub">Study materials for ${_esc(_crCurrentClass.name)}</div></div>
+        ${isTeacher||isPrincipal?`<label class="cr-upload-btn" for="cr-notes-upload" style="cursor:pointer;font-size:12px;padding:8px 14px;">📎 Upload</label>
+        <input type="file" id="cr-notes-upload" accept=".pdf,image/*,.docx,.txt" style="display:none" onchange="crUploadNote(this,'General')">`:``}
+      </div>
+      <div class="cr-pane-scroll" id="cr-all-notes-list"><div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;">Loading…</div></div>
+    </div>`;
+  _crLoadAllNotes();
+}
+
+async function _crLoadAllNotes() {
+  const fb = window._fb;
+  const list = document.getElementById('cr-all-notes-list');
+  if (!list || !fb) return;
+  try {
+    const snap = await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'notes'));
+    const notes = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    if (!notes.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No notes uploaded yet.</div>'; return; }
+    list.innerHTML = notes.map(n => `
+      <div class="cr-note-item" style="display:flex;align-items:center;gap:12px;" onclick="crOpenNoteFromNotes(${JSON.stringify(n).replace(/"/g,'&quot;')})">
+        <div class="cr-note-icon">📄</div>
+        <div style="flex:1;min-width:0;">
+          <div class="cr-note-title">${_esc(n.title||'Untitled')}</div>
+          <div class="cr-note-meta">${_esc(n.subject||'')} · ${_esc(n.uploadedBy||'')} · ${n.createdAt?new Date(n.createdAt).toLocaleDateString():''}</div>
+          ${n.summary?`<div style="font-size:10px;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${_esc(n.summary.slice(0,80))}</div>`:''}
+        </div>
+      </div>`).join('');
+  } catch(e) { list.innerHTML = '<div style="color:var(--danger);font-size:12px;">Could not load notes.</div>'; }
+}
+
+function crOpenNoteFromNotes(note) {
+  _crCurrentSubject = { name: note.subject||'General', teacher: note.uploadedBy||'' };
+  crOpenNote(note);
+}
+
+// ── Announcements ──
+function _crRenderAnnouncements(container) {
+  const canPost = _userSchoolRole === 'teacher' || _userSchoolRole === 'principal';
+  container.innerHTML = `
+    <div class="cr-pane active">
+      <div class="cr-pane-header">
+        <div><div class="cr-pane-title">📢 Announcements</div><div class="cr-pane-sub">${_esc(_crCurrentClass.name)}</div></div>
+      </div>
+      ${canPost?`<div style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;">
+        <textarea class="cr-compose-area" id="cr-ann-text" placeholder="Write an announcement…" rows="2"></textarea>
+        <div style="display:flex;justify-content:flex-end;">
+          <button class="cr-compose-btn" onclick="crPostAnnouncement()" style="font-size:12px;padding:8px 16px;">📢 Post</button>
+        </div>
+      </div>`:''}
+      <div class="cr-pane-scroll" id="cr-ann-list"><div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;">Loading…</div></div>
+    </div>`;
+  _crLoadAnnouncements();
+}
+
+async function _crLoadAnnouncements() {
+  const fb = window._fb;
+  const list = document.getElementById('cr-ann-list');
+  if (!list || !fb) return;
+  try {
+    const snap = await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'announcements'));
+    const anns = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    if (!anns.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No announcements yet.</div>'; return; }
+    list.innerHTML = anns.map(a => `
+      <div class="cr-announcement-item">
+        <div style="display:flex;align-items:center;margin-bottom:4px;">
+          <div class="cr-ann-from">${_esc(a.from||'')}</div>
+          <div class="cr-ann-time">${a.createdAt?new Date(a.createdAt).toLocaleString([],{dateStyle:'short',timeStyle:'short'}):''}</div>
+        </div>
+        <div class="cr-ann-text">${_esc(a.text||'')}</div>
+      </div>`).join('');
+  } catch(e) { list.innerHTML = '<div style="color:var(--danger);font-size:12px;">Could not load announcements.</div>'; }
+}
+
+async function crPostAnnouncement() {
+  const ta = document.getElementById('cr-ann-text');
+  const text = ta?.value.trim();
+  if (!text) return;
+  const fb = window._fb;
+  if (!fb) return;
+  ta.value = '';
+  const annId = 'ann_'+Date.now();
+  await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'announcements',annId),{
+    id:annId, text,
+    from: _userProfile?.name || '',
+    role: _userSchoolRole,
+    classId: _crCurrentClass.id,
+    createdAt: Date.now()
+  }).catch(()=>{});
+  _crLoadAnnouncements();
+}
+
+// ── Detach real-time listeners ──
+function _crDetachListeners() {
+  if (_crRoomUnsubscribe) { _crRoomUnsubscribe(); _crRoomUnsubscribe = null; }
+  _crRoomListeners.forEach(fn => { try { fn(); } catch(e) {} });
+  _crRoomListeners = [];
+}
+
+// ══════════════════════════════════════════════════════
+// PRINCIPAL DASHBOARD
+// ══════════════════════════════════════════════════════
+async function _crShowPrincipalDashboard() {
+  document.getElementById('cr-back-btn').textContent = '✕';
+  document.getElementById('cr-topbar-title').textContent = 'Principal Dashboard';
+
+  const content = document.getElementById('cr-main-content');
+  content.innerHTML = `
+    <div style="flex:1;overflow-y:auto;">
+      <div style="padding:16px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:20px;" id="cr-principal-stats"></div>
+        <!-- Classes -->
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px;">Classes</div>
+        <div id="cr-principal-classes" style="margin-bottom:20px;"></div>
+        <!-- Teachers -->
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px;">Teachers</div>
+        <div id="cr-principal-teachers" style="margin-bottom:20px;"></div>
+        <!-- Broadcast announcement -->
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px;">📢 Broadcast Announcement</div>
+        <textarea class="cr-compose-area" id="cr-broadcast-text" placeholder="Send to all classes…" rows="2"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
+          <button class="cr-compose-btn" onclick="crBroadcastAnnouncement()" style="font-size:12px;padding:8px 16px;">📢 Broadcast All</button>
+        </div>
+        <!-- School keys -->
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px;">School Keys</div>
+        <div id="cr-principal-keys"></div>
+      </div>
+    </div>`;
+
+  const fb = window._fb;
+  if (!fb || !_crSchoolData) return;
+  const school = _crSchoolData;
+
+  // Stats
+  const statsEl = document.getElementById('cr-principal-stats');
+  const members = school.members || {};
+  const teacherCount = (school.teachers || []).length;
+  const studentCap = school.plan?.maxStudents || 0;
+  const joined = school.plan?.joined || 0;
+  if (statsEl) statsEl.innerHTML = `
+    <div class="cr-stat-card"><div class="cr-stat-num">${(school.classes||[]).length}</div><div class="cr-stat-label">Classes</div></div>
+    <div class="cr-stat-card"><div class="cr-stat-num">${teacherCount}</div><div class="cr-stat-label">Teachers</div></div>
+    <div class="cr-stat-card"><div class="cr-stat-num">${joined}</div><div class="cr-stat-label">Students Joined</div></div>
+    <div class="cr-stat-card"><div class="cr-stat-num">${studentCap||'∞'}</div><div class="cr-stat-label">Student Cap</div></div>`;
+
+  // Classes
+  const clsEl = document.getElementById('cr-principal-classes');
+  if (clsEl) clsEl.innerHTML = (school.classes||[]).map(c => `
+    <div class="cr-teacher-row" style="cursor:pointer;" onclick="crOpenClass(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+      <div class="cr-teacher-avatar">🏫</div>
+      <div style="flex:1;min-width:0;">
+        <div class="cr-teacher-name">${_esc(c.name)}</div>
+        <div class="cr-teacher-status">${(c.subjects||[]).length} subjects · CT: ${_esc(school.classTeachers?.[c.id]||'—')}</div>
+      </div>
+      <div style="font-size:11px;color:var(--accent);font-family:'DM Mono',monospace;">→</div>
+    </div>`).join('') || '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No classes set up yet.</div>';
+
+  // Teachers
+  const tchEl = document.getElementById('cr-principal-teachers');
+  const joinedTeacherNames = [];
+  try {
+    const memSnap = await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'members'));
+    memSnap.forEach(d => { if(d.data().role==='teacher') joinedTeacherNames.push(d.data().name); });
+  } catch(e) {}
+  if (tchEl) tchEl.innerHTML = (school.teachers||[]).map(t => {
+    const name = t.name || t;
+    const hasJoined = joinedTeacherNames.includes(name);
+    return `<div class="cr-teacher-row">
+      <div class="cr-teacher-avatar">${name[0]?.toUpperCase()||'T'}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="cr-teacher-name">${_esc(name)}</div>
+        <div class="cr-teacher-status">${(t.subjects||[]).join(', ')||'—'}</div>
+      </div>
+      <div class="cr-joined-badge ${hasJoined?'yes':'no'}">${hasJoined?'Joined':'Not joined'}</div>
+      ${!hasJoined?`<button class="cr-invite-btn" onclick="crCopyTeacherKey()">Invite</button>`:''}
+    </div>`;
+  }).join('') || '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No teachers set up yet.</div>';
+
+  // Keys
+  const keysEl = document.getElementById('cr-principal-keys');
+  if (keysEl) keysEl.innerHTML = `
+    <div class="key-card">
+      <div class="key-icon student">👩‍🎓</div>
+      <div class="key-info">
+        <div class="key-label">Student Key</div>
+        <div class="key-value">${_esc(school.studentKey||'—')}</div>
+      </div>
+      <button class="key-copy-btn" onclick="navigator.clipboard.writeText('${_esc(school.studentKey||'')}');this.textContent='✓ Copied!'">Copy</button>
+    </div>
+    <div class="key-card">
+      <div class="key-icon teacher">👨‍🏫</div>
+      <div class="key-info">
+        <div class="key-label">Teacher Key</div>
+        <div class="key-value">${_esc(school.teacherKey||'—')}</div>
+      </div>
+      <button class="key-copy-btn" onclick="navigator.clipboard.writeText('${_esc(school.teacherKey||'')}');this.textContent='✓ Copied!'">Copy</button>
+    </div>`;
+}
+
+function crCopyTeacherKey() {
+  const key = _crSchoolData?.teacherKey || '';
+  navigator.clipboard.writeText(key).catch(()=>{});
+  addMsg('ai', `📋 **Teacher Key copied!** Share this with teachers:\n\n\`${key}\``);
+  closeClassroom();
+}
+
+async function crBroadcastAnnouncement() {
+  const ta = document.getElementById('cr-broadcast-text');
+  const text = ta?.value.trim();
+  if (!text) return;
+  const fb = window._fb;
+  if (!fb || !_crSchoolData) return;
+  ta.value = '';
+
+  const classes = _crSchoolData.classes || [];
+  const promises = classes.map(cls => {
+    const annId = 'ann_'+Date.now()+'_'+cls.id;
+    return fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',cls.id,'announcements',annId),{
+      id:annId, text,
+      from: _userProfile?.name || 'Principal',
+      role: 'principal', classId: cls.id, createdAt: Date.now()
+    });
+  });
+  await Promise.all(promises).catch(()=>{});
+  alert('✅ Announcement sent to all classes!');
+}
+
+// ══════════════════════════════════════════════════════
+// SCHOOL SETUP WIZARD (for principals)
+// ══════════════════════════════════════════════════════
+function openSchoolWizard() {
+  _wizStep = 0;
+  _wizData = { plan: 250, customStudents: '', schoolName: '', logoBase64: '', timetableText: '', teachers: [], classes: [], classTeachers: {}, studentKey: '', teacherKey: '' };
+  document.getElementById('school-wizard-overlay').classList.add('open');
+  _wizRenderStep(0);
+}
+
+function closeSchoolWizard() {
+  document.getElementById('school-wizard-overlay').classList.remove('open');
+}
+
+function _wizGenKey(prefix) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let k = prefix + '-';
+  for (let i = 0; i < 4; i++) k += chars[Math.floor(Math.random() * chars.length)];
+  return k;
+}
+
+function _wizRenderProgress() {
+  const prog = document.getElementById('wizard-progress');
+  if (!prog) return;
+  prog.innerHTML = Array.from({length:WIZARD_STEPS},(_,i) =>
+    `<div class="wizard-dot ${i<_wizStep?'done':i===_wizStep?'active':''}"></div>`).join('');
+}
+
+function _wizRenderStep(step) {
+  _wizRenderProgress();
+  const back = document.getElementById('wizard-back-btn');
+  const next = document.getElementById('wizard-next-btn');
+  if (back) back.style.display = step > 0 ? 'block' : 'none';
+  if (next) next.textContent = step === WIZARD_STEPS-1 ? 'Finish ✓' : 'Next →';
+
+  const titles = ['Choose Plan','School Identity','Upload Timetable','Assign Class Teachers','Preview & Confirm','Keys Generated 🎉'];
+  const subs = ['All plans are free during beta.','Your school\'s name and logo.','Upload your timetable — AI will parse teachers, subjects and classes.','Assign one class teacher per class.','Review everything before creating your school.','Share these keys with your teachers and students.'];
+  document.getElementById('wizard-title').textContent = titles[step]||'';
+  document.getElementById('wizard-sub').textContent = subs[step]||'';
+
+  const body = document.getElementById('wizard-body');
+
+  if (step === 0) {
+    // Plan selection
+    const plans = [100,250,500,1000,5000];
+    body.innerHTML = `
+      <div class="plan-grid">
+        ${plans.map(p=>`<div class="plan-card ${_wizData.plan===p?'selected':''}" onclick="wizSelectPlan(${p},this)">
+          <div class="plan-students">${p}</div>
+          <div class="plan-label">Students</div>
+          <div class="plan-price">Free ✓</div>
+        </div>`).join('')}
+      </div>
+      <div class="plan-custom-row">
+        <input class="plan-custom-input" id="wiz-custom-students" type="number" min="1" placeholder="Custom number…" value="${_wizData.customStudents||''}">
+        <button style="padding:10px 14px;background:var(--card);border:1px solid var(--border2);border-radius:12px;color:var(--text2);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace;" onclick="wizSelectPlan(parseInt(document.getElementById('wiz-custom-students').value)||0)">Use Custom</button>
+      </div>`;
+  } else if (step === 1) {
+    // School identity
+    body.innerHTML = `
+      <div>
+        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">School Name *</div>
+        <input class="wizard-input" id="wiz-school-name" type="text" placeholder="e.g. DPS Rohini" value="${_esc(_wizData.schoolName||'')}">
+        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:8px;margin-top:8px;text-transform:uppercase;letter-spacing:.8px;">School Logo</div>
+        <label class="logo-upload-zone ${_wizData.logoBase64?'has-logo':''}" for="wiz-logo-input">
+          ${_wizData.logoBase64?`<img src="${_wizData.logoBase64}" class="logo-preview" alt="Logo">`:''}
+          <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;">${_wizData.logoBase64?'✓ Logo uploaded':'📷 Click to upload logo'}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;">PNG, JPG · Optional</div>
+          <input type="file" id="wiz-logo-input" accept="image/*" style="display:none" onchange="wizUploadLogo(this)">
+        </label>
+      </div>`;
+  } else if (step === 2) {
+    // Timetable upload
+    body.innerHTML = `
+      <label class="upload-drop-zone ${_wizData.timetableText?'has-file':''}" for="wiz-tt-input">
+        <div style="font-size:32px;margin-bottom:10px;">${_wizData.timetableText?'✅':'📊'}</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;">${_wizData.timetableText?'Timetable uploaded!':'Upload Timetable'}</div>
+        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:6px;">Excel or PDF</div>
+        <input type="file" id="wiz-tt-input" accept=".xlsx,.xls,.csv,.pdf" style="display:none" onchange="wizUploadTimetable(this)">
+      </label>
+      <div style="margin-top:14px;" id="wiz-teachers-list"></div>`;
+    if (_wizData.teachers.length) _wizRenderTeacherCards();
+  } else if (step === 3) {
+    // Assign class teachers
+    body.innerHTML = `<div id="wiz-assign-list">
+      ${_wizData.classes.map(cls=>`
+        <div class="assign-row">
+          <div class="assign-class-name">Class ${_esc(cls)}</div>
+          <select class="assign-select" id="wiz-ct-${btoa(cls).replace(/=/g,'')}" onchange="wizSetClassTeacher('${_esc(cls)}',this.value)">
+            <option value="">— Not assigned —</option>
+            ${_wizData.teachers.map(t=>`<option value="${_esc(t.name)}" ${_wizData.classTeachers[cls]===t.name?'selected':''}>${_esc(t.name)}</option>`).join('')}
+          </select>
+        </div>`).join('')}
+      ${!_wizData.classes.length?'<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;text-align:center;padding:20px;">No classes found. Go back and upload a timetable.</div>':''}
+    </div>`;
+  } else if (step === 4) {
+    // Preview
+    body.innerHTML = `
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;">
+        ${_wizData.logoBase64?`<img src="${_wizData.logoBase64}" style="width:48px;height:48px;border-radius:12px;object-fit:contain;margin-bottom:10px;display:block;">`:''}
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);">${_esc(_wizData.schoolName)}</div>
+        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;">${_wizData.plan} students max · ${_wizData.classes.length} classes · ${_wizData.teachers.length} teachers</div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px;">Classes & Subjects</div>
+      <div style="max-height:200px;overflow-y:auto;">
+        ${_wizData.classes.map(cls=>{
+          const tch = _wizData.teachers.filter(t=>t.classes&&t.classes.includes(cls));
+          return `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px;">
+            <div style="font-size:12px;font-weight:700;color:var(--text);">Class ${_esc(cls)} ${_wizData.classTeachers[cls]?`· CT: ${_esc(_wizData.classTeachers[cls])}`:''}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;">${tch.map(t=>`<span class="class-chip">${_esc(t.subject||'')} — ${_esc(t.name)}</span>`).join('')}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  } else if (step === 5) {
+    // Keys generated
+    body.innerHTML = `
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:48px;margin-bottom:8px;">🎉</div>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);">School created successfully!</div>
+        <div style="font-size:12px;color:var(--text3);font-family:'DM Sans',sans-serif;margin-top:4px;">Share these keys with your school</div>
+      </div>
+      <div class="key-card">
+        <div class="key-icon student">👩‍🎓</div>
+        <div class="key-info">
+          <div class="key-label">Student Key</div>
+          <div class="key-value" id="wiz-student-key">${_esc(_wizData.studentKey)}</div>
+        </div>
+        <button class="key-copy-btn" onclick="navigator.clipboard.writeText(_wizData.studentKey);this.textContent='✓ Copied!'">Copy</button>
+      </div>
+      <div class="key-card">
+        <div class="key-icon teacher">👨‍🏫</div>
+        <div class="key-info">
+          <div class="key-label">Teacher Key</div>
+          <div class="key-value" id="wiz-teacher-key">${_esc(_wizData.teacherKey)}</div>
+        </div>
+        <button class="key-copy-btn" onclick="navigator.clipboard.writeText(_wizData.teacherKey);this.textContent='✓ Copied!'">Copy</button>
+      </div>
+      <div style="background:rgba(0,229,192,.06);border:1px solid rgba(0,229,192,.15);border-radius:12px;padding:12px 14px;font-size:11px;color:var(--accent3);font-family:'DM Mono',monospace;line-height:1.7;margin-top:8px;">
+        ✦ All class groups are set up in Firestore<br>
+        ✦ Share Student Key with students<br>
+        ✦ Share Teacher Key with teachers<br>
+        ✦ Students/teachers enter the key on login
+      </div>`;
+    // Disable next → show Close only
+    const next = document.getElementById('wizard-next-btn');
+    if (next) { next.textContent = 'Go to Dashboard'; next.onclick = () => { closeSchoolWizard(); openClassroom(); }; }
+  }
+}
+
+function wizSelectPlan(p, el) {
+  _wizData.plan = p;
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+  if (el) el.classList.add('selected');
+}
+
+function wizUploadLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { _wizData.logoBase64 = e.target.result; _wizRenderStep(1); };
+  reader.readAsDataURL(file);
+}
+
+async function wizUploadTimetable(input) {
+  const file = input.files[0];
+  if (!file) return;
+  // For MVP: read as text/csv or show filename, then ask AI to parse
+  const zone = input.closest('.upload-drop-zone');
+  if (zone) zone.classList.add('has-file');
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    let rawText = '';
+    try { rawText = e.target.result; } catch(err) {}
+
+    // Show loading
+    const list = document.getElementById('wiz-teachers-list');
+    if (list) list.innerHTML = '<div style="font-size:12px;color:var(--text3);font-family:\'DM Mono\',monospace;padding:10px 0;">⏳ AI parsing timetable…</div>';
+
+    // Ask AI to parse
+    let parsed = { teachers: [], classes: [] };
+    try {
+      const res = await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        message: `Parse this school timetable and return ONLY valid JSON in this format (no markdown, no explanation):
+{"teachers":[{"name":"Teacher Name","subjects":["Maths","Science"],"classes":["7A","6B"]}],"classes":["7A","7B","6A","6B"]}
+
+Timetable data:
+${rawText.slice(0,3000)}`,
+        history:[],model:'auto'
+      })});
+      const data = await res.json();
+      let reply = (data.reply||'').replace(/```json|```/g,'').trim();
+      // Extract JSON
+      const jsonMatch = reply.match(/\{[\s\S]*\}/);
+      if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
+    } catch(e) {
+      // Fallback: demo data
+      parsed = {
+        teachers: [
+          { name:'Mr. Sharma', subjects:['Maths'], classes:['7A','7B'] },
+          { name:'Ms. Priya', subjects:['Science'], classes:['7A','7B'] },
+          { name:'Mr. Ali', subjects:['English'], classes:['6A','6B'] }
+        ],
+        classes: ['7A','7B','6A','6B']
+      };
+    }
+
+    _wizData.teachers = parsed.teachers || [];
+    _wizData.classes  = parsed.classes  || [];
+    _wizData.timetableText = rawText || file.name;
+    _wizRenderTeacherCards();
+  };
+
+  if (file.name.endsWith('.pdf')) {
+    _wizData.timetableText = file.name;
+    // For PDF, just use filename as placeholder and set demo data
+    _wizData.teachers = [];
+    _wizData.classes  = [];
+    reader.readAsText(file);
+  } else {
+    reader.readAsText(file);
+  }
+  input.value = '';
+}
+
+function _wizRenderTeacherCards() {
+  const list = document.getElementById('wiz-teachers-list');
+  if (!list || !_wizData.teachers.length) return;
+  list.innerHTML = `<div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px;">Parsed Teachers (${_wizData.teachers.length})</div>` +
+    _wizData.teachers.map((t,i) => `
+    <div class="teacher-card">
+      <div class="teacher-card-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div class="teacher-name">👤 ${_esc(t.name)}</div>
+        <span style="font-size:11px;color:var(--text3);">▼</span>
+      </div>
+      <div style="display:none;margin-top:8px;">
+        <div class="teacher-subjects">${(t.subjects||[]).map(s=>`<span class="subject-chip">${_esc(s)}</span>`).join('')}</div>
+        <div class="teacher-subjects" style="margin-top:5px;">${(t.classes||[]).map(c=>`<span class="class-chip">Class ${_esc(c)}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+
+function wizSetClassTeacher(cls, teacherName) {
+  _wizData.classTeachers[cls] = teacherName;
+}
+
+async function wizardNext() {
+  if (_wizStep === 5) return; // handled by button override
+
+  // Validation per step
+  if (_wizStep === 0 && !_wizData.plan) { alert('Please select a plan.'); return; }
+  if (_wizStep === 1) {
+    const nameInput = document.getElementById('wiz-school-name');
+    if (nameInput) _wizData.schoolName = nameInput.value.trim();
+    if (!_wizData.schoolName) { alert('Please enter a school name.'); return; }
+  }
+  if (_wizStep === 2 && !_wizData.timetableText) { alert('Please upload your timetable.'); return; }
+
+  // Step 4: confirm → create school in Firestore
+  if (_wizStep === 4) {
+    await _wizCreateSchool();
+  }
+
+  _wizStep++;
+  _wizRenderStep(_wizStep);
+}
+
+function wizardBack() {
+  if (_wizStep > 0) { _wizStep--; _wizRenderStep(_wizStep); }
+}
+
+async function _wizCreateSchool() {
+  const fb = window._fb;
+  if (!fb || !_currentUser) return;
+
+  _wizData.studentKey = _wizGenKey('SEDY-S');
+  _wizData.teacherKey = _wizGenKey('SEDY-T');
+  const code = 'SCH' + Date.now().toString(36).toUpperCase();
+
+  // Build classes array with subjects
+  const classesArr = _wizData.classes.map(cls => {
+    const subjects = _wizData.teachers
+      .filter(t => (t.classes||[]).includes(cls))
+      .map(t => ({ name: t.subjects?.[0] || '', teacher: t.name }));
+    return { id: cls, name: cls, subjects };
+  });
+
+  const schoolDoc = {
+    name: _wizData.schoolName,
+    logo: _wizData.logoBase64 ? _wizData.logoBase64.slice(0,2000) : '', // truncate for Firestore
+    principalUid: _currentUser.uid,
+    studentKey: _wizData.studentKey,
+    teacherKey: _wizData.teacherKey,
+    plan: { maxStudents: _wizData.plan, joined: 0 },
+    teachers: _wizData.teachers.map(t => ({ name: t.name, subjects: t.subjects||[], classes: t.classes||[] })),
+    classes: classesArr,
+    classTeachers: _wizData.classTeachers,
+    active: true,
+    createdAt: Date.now()
+  };
+
+  // Save school doc (use keys as doc IDs)
+  try {
+    await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey), {...schoolDoc, keyType:'student', schoolCode: _wizData.studentKey});
+    await fb.setDoc(fb.doc(fb.db,'schools',_wizData.teacherKey), {...schoolDoc, keyType:'teacher', schoolCode: _wizData.teacherKey});
+
+    // Create classRooms sub-collection placeholders
+    for (const cls of classesArr) {
+      await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey,'classRooms',cls.id), { classId: cls.id, name: cls.name, createdAt: Date.now() });
+    }
+
+    // Join as principal
+    _userSchoolCode = _wizData.studentKey;
+    _userSchoolName = _wizData.schoolName;
+    _userSchoolRole = 'principal';
+    _crSchoolData = schoolDoc;
+
+    // Save to profile
+    _userProfile = { ...(_userProfile||{}), schoolCode: _wizData.studentKey, schoolName: _wizData.schoolName, schoolRole: 'principal' };
+    await fb.setDoc(fb.doc(fb.db,'users',_currentUser.uid,'profile','data'), _userProfile);
+
+    // Update sidebar
+    _crUpdateSidebarBtn();
+  } catch(e) {
+    console.error('Create school failed', e);
+    alert('Failed to create school. Check your connection.');
+  }
+}
+
+// ── Update sidebar classroom button ──
+function _crUpdateSidebarBtn() {
+  const label = document.getElementById('cr-sidebar-label');
+  const sub   = document.getElementById('cr-sidebar-sub');
+  if (!label || !sub) return;
+  if (hasSchool()) {
+    label.textContent = _userSchoolName || 'Classroom';
+    sub.textContent = (_userSchoolRole||'student') + ' · ' + (_userSchoolCode||'');
+  } else {
+    label.textContent = 'Sedy Classroom';
+    sub.textContent = 'Join with school key';
+  }
+}
+
+// ── Teacher/Student login with school key ──
+// (Handled via Settings panel join flow — settingsJoinSchool handles role detection)
+// Override settingsJoinSchool to support teacher role detection
+const _origSettingsJoinSchool = settingsJoinSchool;
+async function settingsJoinSchool() {
+  const code = (document.getElementById('settings-school-code-input')?.value || '').trim().toUpperCase();
+  const errEl = document.getElementById('settings-school-error');
+  if (!code) { if (errEl) { errEl.textContent = 'Enter a school code.'; errEl.style.display = 'block'; } return; }
+  if (errEl) errEl.style.display = 'none';
+  const fb = window._fb;
+  if (!fb || !_currentUser) { if (errEl) { errEl.textContent = 'Not signed in.'; errEl.style.display = 'block'; } return; }
+  try {
+    const snap = await fb.getDoc(fb.doc(fb.db, 'schools', code));
+    if (!snap.exists()) { if (errEl) { errEl.textContent = '❌ Invalid code. Check with your teacher.'; errEl.style.display = 'block'; } return; }
+    const school = snap.data();
+    if (school.active === false) { if (errEl) { errEl.textContent = '❌ This code has been deactivated.'; errEl.style.display = 'block'; } return; }
+
+    // Determine role from key type
+    let role = 'student';
+    if (code === school.teacherKey || school.keyType === 'teacher') role = 'teacher';
+    if (school.keyType === 'student') role = 'student';
+
+    const uid = _currentUser.uid;
+    _userSchoolCode = code;
+    _userSchoolName = school.name || 'School';
+    _userSchoolRole = role;
+    _crSchoolData = school;
+
+    // Register as member
+    await fb.setDoc(fb.doc(fb.db, 'schools', code, 'members', uid), {
+      uid, name: _userProfile?.name || '', email: _currentUser.email || '',
+      photoURL: _currentUser.photoURL || '', role,
+      class: _userProfile?.class || '', joinedAt: Date.now(),
+    });
+
+    // Update profile
+    _userProfile = { ...(_userProfile || {}), schoolCode: code, schoolName: school.name, schoolRole: role };
+    await fb.setDoc(fb.doc(fb.db, 'users', uid, 'profile', 'data'), _userProfile);
+
+    _crUpdateSidebarBtn();
+    closeSettings();
+    openClassroom();
+  } catch(e) {
+    if (errEl) { errEl.textContent = 'Could not join school. Check your connection.'; errEl.style.display = 'block'; }
+    console.error('settingsJoinSchool error:', e);
+  }
+}
+
 
 // ══════════════════════════════════════════════════════
 // TAKE PICTURE — opens device camera via file input
@@ -6731,6 +8205,32 @@ authInit();
       </div>
     </div>
 
+    <!-- School -->
+    <div>
+      <div class="settings-section-title">School</div>
+      <!-- Not joined -->
+      <div id="settings-no-school" style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:12px;color:var(--text3);font-family:'DM Sans',sans-serif;margin-bottom:4px;">Enter your school key to join Sedy Classroom.</div>
+        <input id="settings-school-code-input" type="text" class="auth-input" placeholder="e.g. SEDY-S-1234" style="margin-bottom:0;text-transform:uppercase;letter-spacing:1px;" maxlength="20">
+        <div id="settings-school-error" style="display:none;font-size:11px;color:var(--danger);font-family:'DM Mono',monospace;"></div>
+        <button onclick="settingsJoinSchool()" style="padding:10px 18px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:12px;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">Join School →</button>
+        <div style="text-align:center;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">— or —</div>
+        <button onclick="closeSettings();openSchoolWizard();" style="padding:10px 18px;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.25);border-radius:12px;color:var(--accent2);font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">🏫 Set Up My School (Principal)</button>
+      </div>
+      <!-- Already joined -->
+      <div id="settings-has-school" style="display:none;flex-direction:column;gap:8px;">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+          <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏫</div>
+          <div style="flex:1;min-width:0;">
+            <div id="settings-school-name-label" style="font-size:14px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;">Your School</div>
+            <div id="settings-school-role-label" style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;">student</div>
+          </div>
+          <div id="settings-school-code-label" style="font-size:10px;color:var(--accent2);font-family:'DM Mono',monospace;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.2);border-radius:8px;padding:3px 8px;white-space:nowrap;"></div>
+        </div>
+        <button onclick="openClassroom();closeSettings();" style="padding:10px 18px;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.25);border-radius:12px;color:var(--accent2);font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">🏫 Open Classroom →</button>
+      </div>
+    </div>
+
     <!-- Save button -->
     <button class="settings-save-btn" onclick="settingsSave()">Save Changes</button>
 
@@ -6784,6 +8284,40 @@ authInit();
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════
+     SCHOOL SETUP WIZARD (for principals)
+════════════════════════════════════════════════════════ -->
+<div class="wizard-overlay" id="school-wizard-overlay">
+  <div class="wizard-panel">
+    <div class="wizard-header">
+      <div class="wizard-progress" id="wizard-progress"></div>
+      <div class="wizard-title" id="wizard-title">Set Up Your School</div>
+      <div class="wizard-sub" id="wizard-sub"></div>
+    </div>
+    <div class="wizard-body" id="wizard-body"></div>
+    <div class="wizard-footer">
+      <button class="wizard-btn-secondary" id="wizard-back-btn" onclick="wizardBack()" style="display:none;">← Back</button>
+      <button class="wizard-btn-primary" id="wizard-next-btn" onclick="wizardNext()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SEDY CLASSROOM OVERLAY
+════════════════════════════════════════════════════════ -->
+<div class="cr-overlay" id="cr-overlay">
+  <!-- Topbar -->
+  <div class="cr-topbar" id="cr-topbar">
+    <button class="cr-back-btn-top" id="cr-back-btn" onclick="crGoBack()">‹</button>
+    <div style="flex:1;min-width:0;">
+      <div class="cr-topbar-title" id="cr-topbar-title">Sedy Classroom</div>
+    </div>
+    <div class="cr-school-badge" id="cr-school-badge"></div>
+  </div>
+
+  <!-- Content area (changes between: class list, room, principal dashboard) -->
+  <div id="cr-main-content" style="flex:1;overflow:hidden;display:flex;flex-direction:column;"></div>
+</div>
 
 
 </body>

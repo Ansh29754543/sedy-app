@@ -2234,13 +2234,19 @@ body::after{
         <button class="sb-btn" onclick="openWhiteboard()">🖊 Draw</button>
       </div>
       <!-- Classroom button -->
-      <button class="cr-sidebar-btn" id="cr-sidebar-btn" onclick="openClassroom()" style="margin-top:6px;">
-        <div class="cr-sidebar-btn-icon">🏫</div>
-        <div style="flex:1;text-align:left;">
-          <div style="font-size:12px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;" id="cr-sidebar-label">Sedy Classroom</div>
-          <div style="font-size:9px;color:var(--text3);margin-top:1px;" id="cr-sidebar-sub">Join with school key</div>
-        </div>
-      </button>
+      <div style="display:flex;gap:6px;margin-top:6px;align-items:stretch;">
+        <button class="cr-sidebar-btn" id="cr-sidebar-btn" onclick="openClassroom()" style="flex:1;margin-top:0;">
+          <div class="cr-sidebar-btn-icon">🏫</div>
+          <div style="flex:1;text-align:left;">
+            <div style="font-size:12px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;" id="cr-sidebar-label">Sedy Classroom</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:1px;" id="cr-sidebar-sub">Join with school key</div>
+          </div>
+        </button>
+        <button id="cr-upgrade-btn" onclick="openUpgrades()" title="Set Up / Upgrade School"
+          style="display:none;flex-shrink:0;width:38px;border-radius:14px;background:linear-gradient(135deg,rgba(255,181,71,.2),rgba(255,181,71,.08));border:1.5px solid rgba(255,181,71,.5);color:var(--warning);font-size:16px;cursor:pointer;transition:all .2s;">
+          ⚙️
+        </button>
+      </div>
     </div>
   </div>
 
@@ -6775,27 +6781,19 @@ const WIZARD_STEPS = 6; // 0=plan 1=identity 2=timetable 3=assign 4=preview 5=ke
 function openUpgrades() {
   const el = document.getElementById('upgrades-overlay');
   if (!el) return;
+
+  // Reset join input/error
   const inp = document.getElementById('upg-key-input');
   const err = document.getElementById('upg-join-error');
   if (inp) inp.value = '';
   if (err) { err.style.display = 'none'; err.textContent = ''; }
 
-  // ── Principal-mode: hide "join with key", show setup CTA prominently ──
+  // Switch between principal view and student/teacher view
   const isPrincipal = _userSchoolRole === 'principal';
-  const joinSection  = document.getElementById('upg-join-section');
-  const orDivider    = document.getElementById('upg-or-divider');
-  const setupBtn     = document.getElementById('upg-setup-school-btn');
-  const principalBanner = document.getElementById('upg-principal-banner');
-
-  if (joinSection)  joinSection.style.display  = isPrincipal ? 'none' : '';
-  if (orDivider)    orDivider.style.display     = isPrincipal ? 'none' : '';
-  if (principalBanner) principalBanner.style.display = isPrincipal ? 'block' : 'none';
-  if (setupBtn) {
-    setupBtn.textContent = isPrincipal
-      ? '🏫 Set Up My School'
-      : '🏫 Set Up My School \u00a0\u00a0(I\'m a Principal)';
-    setupBtn.style.opacity = '1';
-  }
+  const principalView = document.getElementById('upg-principal-view');
+  const studentView   = document.getElementById('upg-student-view');
+  if (principalView) principalView.style.display = isPrincipal ? 'flex' : 'none';
+  if (studentView)   studentView.style.display   = isPrincipal ? 'none' : 'flex';
 
   el.classList.add('open');
   const btn = document.getElementById('cr-sidebar-btn');
@@ -8092,16 +8090,22 @@ async function _wizCreateSchool() {
 
 // ── Update sidebar classroom button ──
 function _crUpdateSidebarBtn() {
-  const label = document.getElementById('cr-sidebar-label');
-  const sub   = document.getElementById('cr-sidebar-sub');
+  const label      = document.getElementById('cr-sidebar-label');
+  const sub        = document.getElementById('cr-sidebar-sub');
+  const upgradeBtn = document.getElementById('cr-upgrade-btn');
   if (!label || !sub) return;
+  const isPrincipal = _userSchoolRole === 'principal';
   if (hasSchool()) {
     label.textContent = _userSchoolName || 'Classroom';
     sub.textContent = (_userSchoolRole||'student') + ' · ' + (_userSchoolCode||'');
   } else {
     label.textContent = 'Sedy Classroom';
-    sub.textContent = 'Join with school key';
+    sub.textContent = isPrincipal ? 'Tap ⚙️ to set up your school' : 'Join with school key';
   }
+  // Show upgrade/setup gear button only for principals
+  if (upgradeBtn) upgradeBtn.style.display = isPrincipal ? 'flex' : 'none';
+  if (upgradeBtn) upgradeBtn.style.alignItems = 'center';
+  if (upgradeBtn) upgradeBtn.style.justifyContent = 'center';
 }
 
 // ── Teacher/Student login with school key ──
@@ -8605,8 +8609,48 @@ authInit();
   <div class="upgrades-sheet" style="position:relative;">
     <button class="upgrades-close" onclick="closeUpgrades()">✕</button>
     <div class="upgrades-handle"></div>
-    <div class="upgrades-body">
 
+    <!-- ══ PRINCIPAL VIEW ══ -->
+    <div class="upgrades-body" id="upg-principal-view" style="display:none;">
+      <div style="text-align:center;padding:8px 0 4px;">
+        <div style="font-size:42px;margin-bottom:8px;">🏫</div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--warning);">Principal Panel</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5;">Set up or reconfigure your school on Sedy Classroom</div>
+      </div>
+
+      <div style="background:linear-gradient(135deg,rgba(255,181,71,.13),rgba(255,181,71,.04));border:1px solid rgba(255,181,71,.3);border-radius:18px;padding:18px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:20px;">📋</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;margin-top:4px;">Classes</div>
+            <div style="font-size:10px;color:var(--text3);">Create &amp; manage</div>
+          </div>
+          <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:20px;">🔑</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;margin-top:4px;">School Keys</div>
+            <div style="font-size:10px;color:var(--text3);">Student &amp; teacher</div>
+          </div>
+          <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:20px;">👨‍🏫</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;margin-top:4px;">Teachers</div>
+            <div style="font-size:10px;color:var(--text3);">Assign subjects</div>
+          </div>
+          <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:20px;">📢</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;margin-top:4px;">Announcements</div>
+            <div style="font-size:10px;color:var(--text3);">Broadcast all</div>
+          </div>
+        </div>
+        <button class="upg-btn-primary" onclick="upgSetupSchool()" style="background:linear-gradient(135deg,#ffb547,#ff8c00);box-shadow:0 4px 20px rgba(255,181,71,.4);">
+          🏫 Set Up My School
+        </button>
+      </div>
+
+      <button class="upg-btn-secondary" onclick="closeUpgrades()">Maybe later</button>
+    </div>
+
+    <!-- ══ STUDENT / TEACHER VIEW ══ -->
+    <div class="upgrades-body" id="upg-student-view">
       <div class="upg-hero">
         <div class="upg-hero-icon">🏫</div>
         <div class="upg-hero-title">Sedy Classroom</div>
@@ -8624,15 +8668,8 @@ authInit();
 
       <div class="upg-divider"></div>
 
-      <!-- Principal banner (shown only when user is already flagged as principal) -->
-      <div id="upg-principal-banner" style="display:none;background:linear-gradient(135deg,rgba(255,181,71,.15),rgba(255,181,71,.05));border:1px solid rgba(255,181,71,.35);border-radius:16px;padding:16px 18px;text-align:center;">
-        <div style="font-size:24px;margin-bottom:6px;">🏫</div>
-        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--warning);margin-bottom:4px;">You're a Principal</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.5;">Use the button below to create and configure your school on Sedy Classroom.</div>
-      </div>
-
       <!-- Join with key -->
-      <div id="upg-join-section" class="upg-action-card">
+      <div class="upg-action-card">
         <div class="upg-action-title">Have a school key?</div>
         <div class="upg-action-sub">Enter the key your school gave you to join instantly.</div>
         <div class="upg-join-row">
@@ -8643,14 +8680,13 @@ authInit();
         <div class="upg-error" id="upg-join-error"></div>
       </div>
 
-      <!-- Setup school (principal) -->
-      <div id="upg-or-divider" style="text-align:center;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;">— or —</div>
-      <button id="upg-setup-school-btn" class="upg-btn-primary" onclick="upgSetupSchool()">
+      <div style="text-align:center;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;">— or —</div>
+      <button class="upg-btn-primary" onclick="upgSetupSchool()">
         🏫 Set Up My School &nbsp;<span style="opacity:.7;font-size:12px;">(I'm a Principal)</span>
       </button>
       <button class="upg-btn-secondary" onclick="closeUpgrades()">Maybe later</button>
-
     </div>
+
   </div>
 </div>
 

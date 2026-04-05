@@ -6253,10 +6253,16 @@ function _obRenderStep() {
         </button>
       </div>
       <div id="ob-key-input-wrap" style="display:none;width:100%;margin-top:14px;">
-        <input id="ob-school-key" type="text" class="auth-input"
-          placeholder="SEDY-S-XXXX  or  SEDY-T-XXXX"
-          style="text-transform:uppercase;letter-spacing:1.5px;font-family:'DM Mono',monospace;font-size:15px;"
-          maxlength="20" oninput="obKeyInput(this)" onkeydown="if(event.key==='Enter')obNext()">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="ob-school-key" type="text" class="auth-input"
+            placeholder="SEDY-S-XXXX  or  SEDY-T-XXXX"
+            style="text-transform:uppercase;letter-spacing:1.5px;font-family:'DM Mono',monospace;font-size:15px;margin-bottom:0;flex:1;"
+            maxlength="20" oninput="obKeyInput(this)" onkeydown="if(event.key==='Enter')obVerifyKey()">
+          <button id="ob-verify-btn" onclick="obVerifyKey()"
+            style="padding:0 18px;height:44px;border-radius:12px;border:none;cursor:pointer;font-weight:700;font-size:13px;white-space:nowrap;background:linear-gradient(135deg,#7c5cfc,#4f8eff);color:#fff;font-family:'Syne',sans-serif;flex-shrink:0;">
+            Verify →
+          </button>
+        </div>
         <div id="ob-key-error" style="display:none;font-size:11px;color:#ff4f6a;font-family:'DM Mono',monospace;margin-top:4px;"></div>
         <div id="ob-key-preview" style="display:none;margin-top:12px;"></div>
       </div>`;
@@ -6464,6 +6470,85 @@ function _obTeacherSubjects(school, name) {
 }
 
 // ── UI helpers ───────────────────────────────────────
+async function obVerifyKey() {
+  const rawKey = (document.getElementById('ob-school-key')?.value || '').trim().toUpperCase();
+  const errEl  = document.getElementById('ob-key-error');
+  const verBtn = document.getElementById('ob-verify-btn');
+  const nextBtn = document.getElementById('ob-next-btn');
+  if (errEl) errEl.style.display = 'none';
+  if (!rawKey) {
+    if (errEl) { errEl.textContent = 'Please enter your school key.'; errEl.style.display='block'; }
+    return;
+  }
+  if (!/^SEDY-[ST]-[A-Z0-9]{4}$/.test(rawKey)) {
+    if (errEl) { errEl.textContent = 'Key should look like SEDY-S-XXXX or SEDY-T-XXXX.'; errEl.style.display='block'; }
+    return;
+  }
+  const fb = window._fb;
+  if (!fb) { if (errEl) { errEl.textContent = 'Firebase not ready. Refresh the page.'; errEl.style.display='block'; } return; }
+  if (verBtn) { verBtn.disabled=true; verBtn.textContent='Checking…'; }
+  try {
+    const snap = await fb.getDoc(fb.doc(fb.db,'schools',rawKey));
+    if (!snap.exists()) {
+      if (errEl) { errEl.textContent='❌ Key not found. Double-check with your school.'; errEl.style.display='block'; }
+      if (verBtn) { verBtn.disabled=false; verBtn.textContent='Verify →'; }
+      return;
+    }
+    const school = snap.data();
+    if (school.active===false) {
+      if (errEl) { errEl.textContent='❌ This key has been deactivated. Contact your principal.'; errEl.style.display='block'; }
+      if (verBtn) { verBtn.disabled=false; verBtn.textContent='Verify →'; }
+      return;
+    }
+    _obSchool = school;
+    _obData._schoolKey  = rawKey;
+    _obData._schoolData = school;
+    _obRole = (school.keyType === 'teacher') ? 'teacher' : 'student';
+
+    // Show school card preview
+    const prev = document.getElementById('ob-key-preview');
+    if (prev) {
+      prev.style.display = 'block';
+      prev.innerHTML = `
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;">
+          ${school.logo?`<img src="${_esc(school.logo)}" style="width:44px;height:44px;border-radius:10px;object-fit:contain;flex-shrink:0;">`
+            :`<div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,rgba(124,92,252,.3),rgba(79,142,255,.2));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏫</div>`}
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:15px;font-weight:800;color:var(--text);font-family:'Syne',sans-serif;">${_esc(school.name||'')}</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;margin-top:3px;">
+              <span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;
+                ${_obRole==='teacher'
+                  ?'background:rgba(124,92,252,.18);color:#b39dff;border:1px solid rgba(124,92,252,.35);'
+                  :'background:rgba(79,142,255,.18);color:#82c8ff;border:1px solid rgba(79,142,255,.35);'}">
+                ${_obRole==='teacher'?'👨‍🏫 Teacher Key':'👩‍🎓 Student Key'}
+              </span>
+            </div>
+          </div>
+          <div style="font-size:22px;">✅</div>
+        </div>`;
+    }
+
+    // Fetch already-joined teacher names
+    _obJoinedNames = [];
+    if (_obRole === 'teacher') {
+      try {
+        const memSnap = await fb.getDocs(fb.collection(fb.db,'schools',rawKey,'members'));
+        memSnap.forEach(d => { if(d.data().role==='teacher') _obJoinedNames.push(d.data().name); });
+      } catch(e) {}
+    }
+
+    _obData._keyVerified = true;
+    if (verBtn) { verBtn.disabled=false; verBtn.textContent='✓ Verified'; verBtn.style.background='linear-gradient(135deg,#2ecc71,#27ae60)'; }
+    if (nextBtn) { nextBtn.textContent='Continue →'; }
+  } catch(e) {
+    console.error('Key verify error:', e);
+    const msg = e.code==='permission-denied' ? 'Permission denied — check Firebase rules.'
+              : 'Connection error. Check your internet.';
+    if (errEl) { errEl.textContent=msg; errEl.style.display='block'; }
+    if (verBtn) { verBtn.disabled=false; verBtn.textContent='Verify →'; }
+  }
+}
+
 function obShowKeyInput() {
   document.getElementById('ob-key-yes')?.classList.add('selected');
   document.getElementById('ob-key-no')?.classList.remove('selected');
@@ -6471,15 +6556,14 @@ function obShowKeyInput() {
   if (wrap) wrap.style.display = 'block';
   document.getElementById('ob-school-key')?.focus();
   _obData._wantsKey = true;
-  const next = document.getElementById('ob-next-btn');
-  if (next) next.textContent = 'Verify Key →';
+  // Next button stays as "Skip & Continue →" — verification is via inline Verify button
 }
 function obKeySkip() {
   document.getElementById('ob-key-no')?.classList.add('selected');
   document.getElementById('ob-key-yes')?.classList.remove('selected');
   const wrap = document.getElementById('ob-key-input-wrap');
   if (wrap) wrap.style.display = 'none';
-  _obData._wantsKey = false; _obData._schoolKey = '';
+  _obData._wantsKey = false; _obData._schoolKey = ''; _obData._keyVerified = false; _obSchool = null; _obRole = '';
   const next = document.getElementById('ob-next-btn');
   if (next) next.textContent = 'Skip & Continue →';
 }
@@ -6553,94 +6637,12 @@ async function obNext() {
 
   // ── INIT: verify key or skip ──────────────────────────────────────────────
   if (_obFlow === 'init') {
-    if (_obData._wantsKey) {
-      // Validate the key
-      const rawKey = (document.getElementById('ob-school-key')?.value || '').trim().toUpperCase();
-      const errEl  = document.getElementById('ob-key-error');
-      if (!rawKey) {
-        if (errEl) { errEl.textContent = 'Please enter your school key.'; errEl.style.display='block'; }
-        return;
-      }
-      // Check key format
-      if (!/^SEDY-[ST]-[A-Z0-9]{4}$/.test(rawKey)) {
-        if (errEl) { errEl.textContent = 'Key should look like SEDY-S-XXXX or SEDY-T-XXXX.'; errEl.style.display='block'; }
-        return;
-      }
-      const fb = window._fb;
-      if (!fb) { if (errEl) { errEl.textContent = 'Firebase not ready. Refresh the page.'; errEl.style.display='block'; } return; }
-      if (nextBtn) { nextBtn.disabled=true; nextBtn.textContent='Verifying…'; }
-      try {
-        const snap = await fb.getDoc(fb.doc(fb.db,'schools',rawKey));
-        if (!snap.exists()) {
-          if (errEl) { errEl.textContent='❌ Key not found. Double-check with your school.'; errEl.style.display='block'; }
-          if (nextBtn) { nextBtn.disabled=false; nextBtn.textContent='Verify Key →'; }
-          return;
-        }
-        const school = snap.data();
-        if (school.active===false) {
-          if (errEl) { errEl.textContent='❌ This key has been deactivated. Contact your principal.'; errEl.style.display='block'; }
-          if (nextBtn) { nextBtn.disabled=false; nextBtn.textContent='Verify Key →'; }
-          return;
-        }
-        if (errEl) errEl.style.display='none';
-        _obSchool = school;
-        _obData._schoolKey  = rawKey;
-        _obData._schoolData = school;
-        _obRole = (school.keyType === 'teacher') ? 'teacher' : 'student';
-
-        // Show school card preview inside the key wrap
-        const prev = document.getElementById('ob-key-preview');
-        if (prev) {
-          prev.style.display = 'block';
-          prev.innerHTML = `
-            <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;">
-              ${school.logo?`<img src="${_esc(school.logo)}" style="width:44px;height:44px;border-radius:10px;object-fit:contain;flex-shrink:0;">`
-                :`<div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,rgba(124,92,252,.3),rgba(79,142,255,.2));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏫</div>`}
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:15px;font-weight:800;color:var(--text);font-family:'Syne',sans-serif;">${_esc(school.name||'')}</div>
-                <div style="font-size:11px;font-family:'DM Mono',monospace;margin-top:3px;">
-                  <span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;
-                    ${_obRole==='teacher'
-                      ?'background:rgba(124,92,252,.18);color:#b39dff;border:1px solid rgba(124,92,252,.35);'
-                      :'background:rgba(79,142,255,.18);color:#82c8ff;border:1px solid rgba(79,142,255,.35);'}">
-                    ${_obRole==='teacher'?'👨‍🏫 Teacher Key':'👩‍🎓 Student Key'}
-                  </span>
-                </div>
-              </div>
-              <div style="font-size:22px;">✅</div>
-            </div>`;
-        }
-
-        // Fetch already-joined teacher names (to exclude from picker)
-        _obJoinedNames = [];
-        if (_obRole === 'teacher') {
-          try {
-            const memSnap = await fb.getDocs(fb.collection(fb.db,'schools',rawKey,'members'));
-            memSnap.forEach(d => { if(d.data().role==='teacher') _obJoinedNames.push(d.data().name); });
-          } catch(e) {}
-        }
-
-        if (nextBtn) { nextBtn.disabled=false; nextBtn.textContent='Continue →'; }
-        // Re-enable next for one more tap to proceed
-        _obData._keyVerified = true;
-        return; // show preview, wait for second tap
-      } catch(e) {
-        console.error('Key verify error:', e);
-        const msg = e.code==='permission-denied' ? 'Permission denied — check Firebase rules.'
-                  : 'Connection error. Check your internet.';
-        if (errEl) { errEl.textContent=msg; errEl.style.display='block'; }
-        if (nextBtn) { nextBtn.disabled=false; nextBtn.textContent='Verify Key →'; }
-        return;
-      }
-    }
-
     // Key was already verified — advance to school flow
     if (_obData._keyVerified && _obSchool) {
       _obFlow = 'school'; _obStep = 1;
       _obRenderStep();
       return;
     }
-
     // No key — go to normal flow
     _obFlow = 'normal'; _obStep = 1;
     _obRenderStep();

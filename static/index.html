@@ -1671,24 +1671,24 @@ body::after{
 /* ══════════════════════════════════════════════════════
    SCHOOL SETUP WIZARD
 ══════════════════════════════════════════════════════ */
-.wizard-overlay{position:fixed;inset:0;z-index:9500;background:rgba(8,11,18,.92);backdrop-filter:blur(14px);display:none;align-items:center;justify-content:center;padding:20px;}
+.wizard-overlay{position:fixed;inset:0;z-index:9500;background:var(--bg);display:none;flex-direction:column;}
 .wizard-overlay.open{display:flex;}
-.wizard-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:28px;width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 32px 100px rgba(0,0,0,.7);overflow:hidden;animation:msgIn .28s cubic-bezier(.34,1.56,.64,1);}
-.wizard-header{padding:22px 26px 0;flex-shrink:0;}
+.wizard-panel{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;}
+.wizard-header{padding:28px 28px 0;max-width:600px;width:100%;margin:0 auto;flex-shrink:0;}
 .wizard-progress{display:flex;gap:5px;margin-bottom:18px;}
 .wizard-dot{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.1);transition:all .3s;}
 .wizard-dot.active{background:linear-gradient(90deg,var(--accent2),var(--accent));}
 .wizard-dot.done{background:rgba(0,229,192,.5);}
 .wizard-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);margin-bottom:4px;}
 .wizard-sub{font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;margin-bottom:20px;line-height:1.5;}
-.wizard-body{flex:1;overflow-y:auto;padding:0 26px 20px;}
-.wizard-footer{padding:16px 26px 22px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;}
+.wizard-body{flex:1;overflow-y:auto;padding:0 28px 20px;max-width:600px;width:100%;margin:0 auto;}
+.wizard-footer{padding:16px 28px 28px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;max-width:600px;width:100%;margin:0 auto;}
 .wizard-btn-primary{flex:2;padding:13px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:14px;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;}
 .wizard-btn-primary:hover{transform:scale(1.02);}
 .wizard-btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;}
 .wizard-btn-secondary{flex:1;padding:13px;background:none;border:1px solid var(--border2);border-radius:14px;color:var(--text2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
 /* Plan tiers */
-.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.plan-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;}
 .plan-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;cursor:pointer;text-align:center;transition:all .2s;}
 .plan-card:hover,.plan-card.selected{border-color:var(--accent2);background:rgba(124,92,252,.08);}
 .plan-card.selected{border-color:var(--accent2);box-shadow:0 0 0 2px rgba(124,92,252,.3);}
@@ -1701,12 +1701,12 @@ body::after{
 /* School identity */
 .wizard-input{width:100%;padding:11px 14px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;box-sizing:border-box;margin-bottom:10px;}
 .wizard-input:focus{border-color:var(--accent2);}
-.logo-upload-zone{border:2px dashed rgba(124,92,252,.3);border-radius:16px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(124,92,252,.04);}
+.logo-upload-zone{border:2px dashed rgba(124,92,252,.3);border-radius:16px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(124,92,252,.04);display:flex;align-items:center;gap:12px;}
 .logo-upload-zone:hover{border-color:rgba(124,92,252,.6);background:rgba(124,92,252,.08);}
 .logo-upload-zone.has-logo{border-style:solid;border-color:rgba(0,229,192,.4);background:rgba(0,229,192,.05);}
 .logo-preview{width:80px;height:80px;border-radius:16px;object-fit:contain;margin:0 auto 8px;display:block;}
 /* Timetable */
-.upload-drop-zone{border:2px dashed rgba(79,142,255,.3);border-radius:16px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(79,142,255,.04);}
+.upload-drop-zone{border:2px dashed rgba(79,142,255,.3);border-radius:16px;padding:16px 20px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(79,142,255,.04);display:flex;align-items:center;gap:14px;}
 .upload-drop-zone:hover{border-color:rgba(79,142,255,.6);background:rgba(79,142,255,.08);}
 .upload-drop-zone.has-file{border-style:solid;border-color:rgba(0,229,192,.4);background:rgba(0,229,192,.05);}
 .teacher-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
@@ -1851,7 +1851,7 @@ body::after{
 .upgrades-handle{width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:4px;margin:12px auto 0;flex-shrink:0;}
 .upgrades-header{padding:20px 24px 0;flex-shrink:0;}
 .upgrades-close{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.upgrades-body{overflow-y:auto;padding:16px 24px 32px;display:flex;flex-direction:column;gap:14px;}
+.upgrades-body{overflow-y:auto;padding:16px 24px 32px;display:none;flex-direction:column;gap:14px;}
 .upg-hero{text-align:center;padding:16px 0 8px;}
 .upg-hero-icon{font-size:56px;margin-bottom:8px;}
 .upg-hero-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin-bottom:6px;}
@@ -6760,6 +6760,9 @@ let _crCurrentClass  = null;   // { id, name, subjects, classTeacher }
 let _crCurrentTab    = 'chat'; // chat | subjects | room | doubts | notes | announce
 let _crCurrentSubject= null;   // { name, teacher }
 let _crCurrentNote   = null;   // note object for detail view
+let _userSchoolCode  = '';
+let _userSchoolName  = '';
+let _userSchoolRole  = '';
 let _crView          = 'list'; // 'list' | 'room' | 'principal'
 let _crRoomListeners = [];     // active Firestore listeners to unsubscribe
 let _crSchoolData    = null;   // full school doc data
@@ -6866,18 +6869,14 @@ function _upgBtnReset(btn) {
 // OPEN / CLOSE CLASSROOM
 // ══════════════════════════════════════════════════════
 function openClassroom() {
-  // Always close upgrades panel first
   closeUpgrades();
-  if (!hasSchool()) {
-    // Principals who haven't set up a school yet → go straight to setup wizard
-    if (_userSchoolRole === 'principal') {
-      setTimeout(() => openSchoolWizard(), 120);
-    } else {
-      openUpgrades();
-    }
+  // If no school linked yet, show the join/setup panel directly
+  if (!_userSchoolCode) {
+    openUpgrades();
     return;
   }
-  document.getElementById('cr-overlay').classList.add('open');
+  const overlay = document.getElementById('cr-overlay');
+  if (overlay) overlay.classList.add('open');
   _crView = 'list';
   _crLoadSchoolAndShow();
 }
@@ -6913,8 +6912,19 @@ function crGoBack() {
 // LOAD SCHOOL DATA & SHOW CLASS LIST
 // ══════════════════════════════════════════════════════
 async function _crLoadSchoolAndShow() {
-  const fb = window._fb;
-  if (!fb || !_userSchoolCode) return;
+  // Show a loading state immediately so the panel doesn't look broken
+  const content = document.getElementById('cr-main-content');
+  if (content) content.innerHTML = `<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text3);font-family:'DM Mono',monospace;font-size:13px;">Loading…</div>`;
+
+  // Wait up to 6 s for Firebase to be ready
+  const fb = await _waitFb();
+  if (!fb) {
+    if (content) content.innerHTML = `<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text3);font-family:'DM Mono',monospace;font-size:13px;padding:24px;text-align:center;">⚠️ Could not connect. Check your internet and try again.</div>`;
+    return;
+  }
+
+  // Sanity check — should never reach here without a school code
+  if (!_userSchoolCode) { closeClassroom(); openUpgrades(); return; }
 
   document.getElementById('cr-school-badge').textContent = _userSchoolName || _userSchoolCode;
   document.getElementById('cr-topbar-title').textContent = 'Sedy Classroom';
@@ -7788,12 +7798,96 @@ function _wizRenderStep(step) {
         ${plans.map(p=>`<div class="plan-card ${_wizData.plan===p?'selected':''}" onclick="wizSelectPlan(${p},this)">
           <div class="plan-students">${p}</div>
           <div class="plan-label">Students</div>
-          <div class="plan-price">Free ✓</div>
+          <div class="plan-price">₹${(p*50).toLocaleString('en-IN')}/mo</div>
         </div>`).join('')}
       </div>
       <div class="plan-custom-row">
         <input class="plan-custom-input" id="wiz-custom-students" type="number" min="1" placeholder="Custom number…" value="${_wizData.customStudents||''}">
         <button style="padding:10px 14px;background:var(--card);border:1px solid var(--border2);border-radius:12px;color:var(--text2);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace;" onclick="wizSelectPlan(parseInt(document.getElementById('wiz-custom-students').value)||0)">Use Custom</button>
+      </div>
+      <div id="wiz-price-summary" style="background:linear-gradient(135deg,rgba(124,92,252,.12),rgba(79,142,255,.08));border:1px solid rgba(124,92,252,.25);border-radius:16px;padding:16px 18px;margin-top:4px;">
+
+        <!-- Header row: total = ₹50/student/month (₹25 base + ₹25 features) -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div>
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.6px;text-transform:uppercase;">Selected Plan</div>
+            <div id="wiz-price-students" style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);margin-top:2px;">${_wizData.plan} Students</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.6px;text-transform:uppercase;">Total / month</div>
+            <div id="wiz-price-total" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent2);margin-top:2px;">₹${(_wizData.plan*50).toLocaleString('en-IN')}<span style="font-size:11px;font-weight:500;opacity:.7;">/mo</span></div>
+          </div>
+        </div>
+
+        <!-- Base plan row -->
+        <div style="border-top:1px solid rgba(124,92,252,.2);padding-top:12px;display:flex;flex-direction:column;gap:0;">
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;">Base Plan</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:10px;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:15px;">🏫</span>
+              <div>
+                <div style="font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-weight:600;">Platform Access</div>
+                <div id="wiz-breakdown-students" style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">${_wizData.plan} students × ₹25/mo</div>
+              </div>
+            </div>
+            <div id="wiz-breakdown-base-total" style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text);">₹${(_wizData.plan*25).toLocaleString('en-IN')}</div>
+          </div>
+
+          <!-- Add-on features row -->
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;">Add-on Features <span style="color:var(--accent2);">+₹25/student</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:10px;background:rgba(255,255,255,.03);border-radius:10px;margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:7px;"><span style="font-size:13px;">✦</span><div style="font-size:11px;color:var(--text);font-family:'DM Sans',sans-serif;">AI Tutor</div></div>
+              <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);">₹10/student</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:7px;"><span style="font-size:13px;">📝</span><div style="font-size:11px;color:var(--text);font-family:'DM Sans',sans-serif;">Notes & AI Summary</div></div>
+              <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);">₹6/student</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:7px;"><span style="font-size:13px;">❓</span><div style="font-size:11px;color:var(--text);font-family:'DM Sans',sans-serif;">Doubts System</div></div>
+              <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);">₹5/student</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:7px;"><span style="font-size:13px;">📢</span><div style="font-size:11px;color:var(--text);font-family:'DM Sans',sans-serif;">Announcements</div></div>
+              <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);">₹4/student</div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.07);padding-top:6px;display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">Features subtotal</div>
+              <div id="wiz-breakdown-features-total" style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--accent2);">₹${(_wizData.plan*25).toLocaleString('en-IN')}</div>
+            </div>
+          </div>
+
+          <!-- Teacher access -->
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:10px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:15px;">👨‍🏫</span>
+              <div>
+                <div style="font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-weight:600;">Teacher Access</div>
+                <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">Unlimited teachers included</div>
+              </div>
+            </div>
+            <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--accent3);">Free</div>
+          </div>
+        </div>
+
+        <!-- Total footer -->
+        <div style="border-top:1px solid rgba(124,92,252,.2);margin-top:12px;padding-top:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--text);">Monthly Total</div>
+              <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;">₹25 base + ₹25 features × students</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="display:flex;align-items:baseline;gap:3px;">
+                <div id="wiz-price-total-footer" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--accent2);">₹${(_wizData.plan*50).toLocaleString('en-IN')}</div>
+                <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">/mo</div>
+              </div>
+              <div id="wiz-price-annual" style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;">₹${(_wizData.plan*50*12).toLocaleString('en-IN')}/yr</div>
+            </div>
+          </div>
+        </div>
+
       </div>`;
   } else if (step === 1) {
     // School identity
@@ -7803,9 +7897,11 @@ function _wizRenderStep(step) {
         <input class="wizard-input" id="wiz-school-name" type="text" placeholder="e.g. DPS Rohini" value="${_esc(_wizData.schoolName||'')}">
         <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:8px;margin-top:8px;text-transform:uppercase;letter-spacing:.8px;">School Logo</div>
         <label class="logo-upload-zone ${_wizData.logoBase64?'has-logo':''}" for="wiz-logo-input">
-          ${_wizData.logoBase64?`<img src="${_wizData.logoBase64}" class="logo-preview" alt="Logo">`:''}
-          <div style="font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;">${_wizData.logoBase64?'✓ Logo uploaded':'📷 Click to upload logo'}</div>
-          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;">PNG, JPG · Optional</div>
+          <div style="font-size:28px;flex-shrink:0;line-height:1;">${_wizData.logoBase64?'<img src="'+_wizData.logoBase64+'" style="width:40px;height:40px;border-radius:10px;object-fit:contain;display:block;">'  : '📷'}</div>
+          <div style="text-align:left;flex:1;">
+            <div style="font-size:13px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;">${_wizData.logoBase64 ? 'Logo uploaded ✓' : 'Upload School Logo'}</div>
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;">PNG, JPG &middot; Optional</div>
+          </div>
           <input type="file" id="wiz-logo-input" accept="image/*" style="display:none" onchange="wizUploadLogo(this)">
         </label>
       </div>`;
@@ -7813,9 +7909,11 @@ function _wizRenderStep(step) {
     // Timetable upload
     body.innerHTML = `
       <label class="upload-drop-zone ${_wizData.timetableText?'has-file':''}" for="wiz-tt-input">
-        <div style="font-size:32px;margin-bottom:10px;">${_wizData.timetableText?'✅':'📊'}</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;">${_wizData.timetableText?'Timetable uploaded!':'Upload Timetable'}</div>
-        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:6px;">Excel or PDF</div>
+        <div style="font-size:28px;flex-shrink:0;line-height:1;">${_wizData.timetableText ? '✅' : '📊'}</div>
+        <div style="text-align:left;flex:1;">
+          <div style="font-size:14px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;">${_wizData.timetableText ? 'Timetable uploaded!' : 'Upload Timetable'}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:3px;">Excel, CSV or PDF</div>
+        </div>
         <input type="file" id="wiz-tt-input" accept=".xlsx,.xls,.csv,.pdf" style="display:none" onchange="wizUploadTimetable(this)">
       </label>
       <div style="margin-top:14px;" id="wiz-teachers-list"></div>`;
@@ -7896,9 +7994,22 @@ function _wizRenderStep(step) {
 }
 
 function wizSelectPlan(p, el) {
+  if (!p || p < 1) return;
   _wizData.plan = p;
   document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
   if (el) el.classList.add('selected');
+  const base     = (p * 25).toLocaleString('en-IN');
+  const features = (p * 25).toLocaleString('en-IN');
+  const monthly  = (p * 50).toLocaleString('en-IN');
+  const annual   = (p * 50 * 12).toLocaleString('en-IN');
+  const set = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+  set('wiz-price-students',           p + ' Students');
+  set('wiz-price-total',              '₹' + monthly);
+  set('wiz-breakdown-students',       p + ' students × ₹25/mo');
+  set('wiz-breakdown-base-total',     '₹' + base);
+  set('wiz-breakdown-features-total', '₹' + features);
+  set('wiz-price-total-footer',       '₹' + monthly);
+  set('wiz-price-annual',             '₹' + annual + '/yr');
 }
 
 function wizUploadLogo(input) {

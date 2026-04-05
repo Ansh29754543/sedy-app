@@ -7158,9 +7158,9 @@ function classroomLocked() {
 }
 
 // Called from anywhere in the app to check if classroom is available.
-// Returns true and shows a toast if locked, false if accessible.
+// Returns false if accessible (caller may proceed), true if locked (caller should abort).
 function requireSchool(action) {
-  if (hasSchool()) return false; // not locked
+  if (hasSchool()) return false; // not locked — caller may proceed
   addMsg('ai', `🔒 **Sedy Classroom is locked.**\n\nYou need a school code to access classroom features. You can add one anytime from **Settings → Join a School**.`);
   return true; // locked — caller should abort
 }
@@ -7295,7 +7295,7 @@ function openClassroom() {
 }
 
 function closeClassroom() {
-  document.getElementById('cr-overlay').classList.remove('open');
+  document.getElementById('cr-overlay')?.classList.remove('open');
   _crDetachListeners();
   _crCurrentClass = null;
 }
@@ -7303,7 +7303,13 @@ function closeClassroom() {
 function crGoBack() {
   if (_crCurrentNote) {
     _crCurrentNote = null;
-    _crRenderSubjectDetail(_crCurrentSubject);
+    // If note was opened from the Notes tab, go back to Notes tab
+    if (_crCurrentSubject?._fromNotesTab) {
+      _crCurrentSubject = null;
+      _crSwitchTab('notes');
+    } else {
+      _crRenderSubjectDetail(_crCurrentSubject);
+    }
     return;
   }
   if (_crCurrentSubject) {
@@ -7395,6 +7401,7 @@ async function _crLoadClasses() {
       const myClass = _userProfile?.class || '';
       myClasses = allClasses.filter(c => c.id === myClass || c.name === myClass);
       if (!myClasses.length && myClass) myClasses = [{ id: myClass, name: myClass, subjects: [] }];
+      if (!myClasses.length) { grid.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No class assigned to your account.<br><br>Contact your teacher to be added.</div>'; return; }
     } else if (_userSchoolRole === 'teacher') {
       myClasses = allClasses.filter(c => {
         const subs = c.subjects || [];
@@ -7476,6 +7483,7 @@ function _crRenderTab(tab) {
 }
 
 // ── Sedy Chat (private AI per student) ──
+let _crSedyChatHistory = [];   // tracks conversation turns for Sedy classroom chat
 function _crRenderSedyChat(container) {
   _crSedyChatHistory = [];   // reset history for new session
   const cls = _crCurrentClass;
@@ -7503,8 +7511,6 @@ function _crRenderSedyChat(container) {
       </div>
     </div>`;
 }
-
-let _crSedyChatHistory = [];   // tracks conversation turns for Sedy classroom chat
 
 async function crSedySend() {
   const input = document.getElementById('cr-sedy-input');
@@ -7823,8 +7829,8 @@ async function crReplySubjectDoubt(doubtId, reply) {
   if (!fb) return;
   await fb.updateDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'doubts',doubtId),
     {teacherReply: reply.trim()}).catch(()=>{});
-  // Refresh
-  if (_crCurrentSubject) _crLoadSubjectDoubts(_crCurrentSubject.name, true);
+  // Refresh with correct role flag
+  if (_crCurrentSubject) _crLoadSubjectDoubts(_crCurrentSubject.name, _userSchoolRole === 'teacher');
 }
 
 async function crUploadNote(input, subjectName) {
@@ -7870,7 +7876,7 @@ async function crUploadNote(input, subjectName) {
 
   // 3. Save note metadata to Firestore
   const noteData = {
-    id: noteId, title, subjectName,
+    id: noteId, title,
     subject: subjectName,
     uploadedBy: _userProfile?.name || '',
     summary, fileUrl,
@@ -7965,7 +7971,9 @@ async function crRoomSend() {
   const isClassTeacher = _crSchoolData?.classTeachers?.[_crCurrentClass.id] === (_userProfile?.name||'');
   const teacherSubject = (() => {
     if (_userSchoolRole !== 'teacher') return '';
-    const cls = (_crSchoolData?.classes||[]).find(c=>c.id===_crCurrentClass.id||c.name===_crCurrentClass.name);
+    const cls = (_crSchoolData?.classes||[]).find(c =>
+      (_crCurrentClass.id && c.id === _crCurrentClass.id) || c.name === _crCurrentClass.name
+    );
     const sub = (cls?.subjects||[]).find(s=>s.teacher===(_userProfile?.name||''));
     return sub?.name || '';
   })();
@@ -8111,7 +8119,7 @@ async function _crLoadAllNotes() {
 }
 
 function crOpenNoteFromNotes(note) {
-  _crCurrentSubject = { name: note.subject||'General', teacher: note.uploadedBy||'' };
+  _crCurrentSubject = { name: note.subject||'General', teacher: note.uploadedBy||'', _fromNotesTab: true };
   crOpenNote(note);
 }
 
@@ -8362,8 +8370,9 @@ async function crBroadcastAnnouncement() {
   ta.value = '';
 
   const classes = _crSchoolData.classes || [];
-  const promises = classes.map(cls => {
-    const annId = 'ann_'+Date.now()+'_'+cls.id;
+  const baseTime = Date.now();
+  const promises = classes.map((cls, i) => {
+    const annId = 'ann_'+baseTime+'_'+i+'_'+cls.id;
     return fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',cls.id,'announcements',annId),{
       id:annId, text,
       from: _userProfile?.name || 'Principal',
@@ -8627,7 +8636,9 @@ function wizSelectPlan(p, el) {
   const annual   = (p * 50 * 12).toLocaleString('en-IN');
   const set = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
   set('wiz-price-students',           p + ' Students');
-  set('wiz-price-total',              '₹' + monthly);
+  // #wiz-price-total contains a child <span> so use innerHTML
+  const totalEl = document.getElementById('wiz-price-total');
+  if (totalEl) totalEl.innerHTML = '₹' + monthly + '<span style="font-size:11px;font-weight:500;opacity:.7;">/mo</span>';
   set('wiz-breakdown-students',       p + ' students × ₹25/mo');
   set('wiz-breakdown-base-total',     '₹' + base);
   set('wiz-breakdown-features-total', '₹' + features);
@@ -8873,7 +8884,7 @@ async function _wizCreateSchool() {
   const classesArr = _wizData.classes.map(cls => {
     const subjects = _wizData.teachers
       .filter(t => (t.classes||[]).includes(cls))
-      .map(t => ({ name: t.subjects?.[0] || '', teacher: t.name }));
+      .flatMap(t => (t.subjects||[]).map(subj => ({ name: subj, teacher: t.name })));
     return { id: cls, name: cls, subjects };
   });
 

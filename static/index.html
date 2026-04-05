@@ -7800,6 +7800,24 @@ async function _crLoadNotesList(subjectName) {
 function crOpenNote(note) {
   _crCurrentNote = note;
   const content = document.getElementById('cr-room-content');
+
+  // Build file action button based on where the file is stored
+  let fileBtn = '';
+  if (note.fileUrl) {
+    if (note.fileUrl.startsWith('idb://')) {
+      const noteId = note.fileUrl.replace('idb://', '');
+      fileBtn = `<button onclick="crOpenLocalNoteFile('${noteId}','${_esc(note.fileName||note.title)}','${_esc(note.fileType||'')}')"
+        style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;margin-bottom:14px;">
+        📎 Open File ${note.fileSize ? '('+note.fileSize+')' : ''}
+      </button>`;
+    } else {
+      fileBtn = `<a href="${_esc(note.fileUrl)}" target="_blank"
+        style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-size:12px;font-family:'DM Mono',monospace;text-decoration:none;margin-bottom:14px;">
+        📎 View File ${note.fileSize ? '('+note.fileSize+')' : ''}
+      </a>`;
+    }
+  }
+
   content.innerHTML = `
     <div class="cr-pane active">
       <div class="cr-pane-header">
@@ -7808,7 +7826,7 @@ function crOpenNote(note) {
       <div class="cr-note-detail">
         <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:6px;">${_esc(note.title||'Untitled')}</div>
         <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:14px;">${_esc(note.uploadedBy||'')} · ${note.createdAt?new Date(note.createdAt).toLocaleDateString():''}</div>
-        ${note.fileUrl ? `<a href="${_esc(note.fileUrl)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-size:12px;font-family:'DM Mono',monospace;text-decoration:none;margin-bottom:14px;">📎 View File</a>` : ''}
+        ${fileBtn}
         ${note.summary ? `<div class="cr-note-summary"><div style="font-size:9px;color:var(--accent3);font-family:'DM Mono',monospace;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">✦ AI Summary</div>${_esc(note.summary)}</div>` : ''}
         <div id="cr-note-qa" style="margin-top:10px;"></div>
         <div class="cr-note-ask-row">
@@ -7817,6 +7835,26 @@ function crOpenNote(note) {
         </div>
       </div>
     </div>`;
+}
+
+async function crOpenLocalNoteFile(noteId, fileName, fileType) {
+  const blob = await _crGetNoteFile(noteId);
+  if (!blob) {
+    alert('File not found on this device. Notes are stored locally — if you switched devices or cleared browser data, the file is not available.');
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName || 'note';
+  a.target = '_blank';
+  // For PDFs and images, open in new tab; for others download
+  if (fileType && (fileType.startsWith('image/') || fileType === 'application/pdf')) {
+    window.open(url, '_blank');
+  } else {
+    a.click();
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
 async function crAskNote() {
@@ -7920,18 +7958,67 @@ async function crReplySubjectDoubt(doubtId, reply) {
   if (_crCurrentSubject) _crLoadSubjectDoubts(_crCurrentSubject.name, _userSchoolRole === 'teacher');
 }
 
+// ── IndexedDB helpers for note file storage ──
+function _crOpenNoteDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open('SedyNotes', 1);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('files')) {
+        db.createObjectStore('files'); // key = noteId
+      }
+    };
+    req.onsuccess = e => res(e.target.result);
+    req.onerror  = () => rej(new Error('IndexedDB open failed'));
+  });
+}
+
+async function _crSaveNoteFile(noteId, blob) {
+  const db = await _crOpenNoteDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction('files', 'readwrite');
+    tx.objectStore('files').put(blob, noteId);
+    tx.oncomplete = () => res(true);
+    tx.onerror    = () => rej(new Error('IDB write failed'));
+  });
+}
+
+async function _crGetNoteFile(noteId) {
+  try {
+    const db = await _crOpenNoteDB();
+    return new Promise((res) => {
+      const tx = db.transaction('files', 'readonly');
+      const req = tx.objectStore('files').get(noteId);
+      req.onsuccess = () => res(req.result || null);
+      req.onerror   = () => res(null);
+    });
+  } catch(e) { return null; }
+}
+
+async function _crDeleteNoteFile(noteId) {
+  try {
+    const db = await _crOpenNoteDB();
+    return new Promise((res) => {
+      const tx = db.transaction('files', 'readwrite');
+      tx.objectStore('files').delete(noteId);
+      tx.oncomplete = () => res();
+      tx.onerror    = () => res();
+    });
+  } catch(e) {}
+}
+
 async function crUploadNote(input, subjectName) {
   const file = input.files[0];
   if (!file) return;
   input.value = '';
 
-  // Show uploading status inline — find the best status element
+  // Show uploading status inline
   const statusId = 'cr-upload-status-' + Date.now();
   const uploadBtn = document.querySelector('.cr-upload-btn') || document.querySelector('label[for="cr-note-upload"]') || document.querySelector('label[for="cr-notes-upload"]');
   const statusEl = document.createElement('div');
   statusEl.id = statusId;
   statusEl.style.cssText = 'font-size:11px;color:var(--accent2);font-family:\'DM Mono\',monospace;padding:4px 0;';
-  statusEl.textContent = '⏳ Uploading…';
+  statusEl.textContent = '⏳ Reading file…';
   if (uploadBtn?.parentNode) uploadBtn.parentNode.appendChild(statusEl);
 
   function setStatus(msg, isErr) {
@@ -7939,21 +8026,22 @@ async function crUploadNote(input, subjectName) {
     if (!el) return;
     el.textContent = msg;
     el.style.color = isErr ? 'var(--danger)' : 'var(--accent3)';
-    if (!isErr) setTimeout(() => el.remove(), 3000);
+    if (!isErr) setTimeout(() => el.remove(), 4000);
   }
 
   const fb = window._fb;
   if (!fb) { setStatus('❌ Not connected.', true); return; }
 
-  const title = file.name.replace(/\.[^/.]+$/, '');
-  const noteId = 'note_' + Date.now();
+  const title   = file.name.replace(/\.[^/.]+$/, '');
+  const noteId  = 'note_' + Date.now();
+  const fileSize = (file.size / 1024).toFixed(1) + ' KB';
 
   // Read file as ArrayBuffer
   let ab;
   try {
     ab = await new Promise((res, rej) => {
       const r = new FileReader();
-      r.onload = e => res(e.target.result);
+      r.onload  = e => res(e.target.result);
       r.onerror = () => rej(new Error('Could not read file'));
       r.readAsArrayBuffer(file);
     });
@@ -7962,22 +8050,31 @@ async function crUploadNote(input, subjectName) {
     return;
   }
 
-  // 1. Upload to Firebase Storage
-  setStatus('⏳ Uploading file…');
+  // 1. Save file blob to IndexedDB (local, instant, no rules)
+  setStatus('⏳ Saving file locally…');
+  let fileStoredLocally = false;
   let fileUrl = '';
   try {
-    const path = `schools/${_userSchoolCode}/notes/${noteId}_${file.name}`;
-    const ref = fb.storageRef(fb.storage, path);
-    await fb.uploadBytes(ref, ab, { contentType: file.type });
-    fileUrl = await fb.getDownloadURL(ref);
-    setStatus('✅ File uploaded. Getting AI summary…');
-  } catch(err) {
-    console.warn('Storage upload failed:', err);
-    // Don't abort — save note without file URL so at least metadata is stored
-    setStatus('⚠️ File storage failed, saving note info only…');
+    await _crSaveNoteFile(noteId, new Blob([ab], { type: file.type }));
+    fileStoredLocally = true;
+    fileUrl = 'idb://' + noteId; // marker so we know it's in IndexedDB
+    setStatus('✅ File saved. Getting AI summary…');
+  } catch(idbErr) {
+    console.warn('IndexedDB save failed, trying Firebase Storage:', idbErr);
+    // Fallback: try Firebase Storage
+    try {
+      const path = `schools/${_userSchoolCode}/notes/${noteId}_${file.name}`;
+      const ref  = fb.storageRef(fb.storage, path);
+      await fb.uploadBytes(ref, ab, { contentType: file.type });
+      fileUrl = await fb.getDownloadURL(ref);
+      setStatus('✅ File uploaded to cloud. Getting AI summary…');
+    } catch(storageErr) {
+      console.warn('Storage also failed:', storageErr);
+      setStatus('⚠️ File could not be stored, saving note info only…');
+    }
   }
 
-  // 2. AI summary — safe base64 using chunked approach to avoid stack overflow on large files
+  // 2. AI summary — chunked base64 to avoid stack overflow
   let summary = '';
   try {
     const bytes = new Uint8Array(ab);
@@ -7989,13 +8086,12 @@ async function crUploadNote(input, subjectName) {
     const base64ForAI = btoa(binary);
 
     const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-    const isTxt = file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt');
+    const isTxt = file.type === 'text/plain'      || file.name.toLowerCase().endsWith('.txt');
 
     let body;
     if (isPdf) {
       body = JSON.stringify({ message: 'Summarise this document in 2-3 sentences for students.', pdf_base64: base64ForAI, pdf_name: file.name, history: [], model: 'auto' });
     } else if (isTxt) {
-      // For text files, decode and send as message content
       const textContent = new TextDecoder().decode(ab).slice(0, 4000);
       body = JSON.stringify({ message: `Summarise this study note titled "${title}" in 2-3 sentences:\n\n${textContent}`, history: [], systemPrompt: 'You are summarising a study note. Be concise.', model: 'auto' });
     } else {
@@ -8010,24 +8106,26 @@ async function crUploadNote(input, subjectName) {
     }
   } catch(e) {
     console.warn('AI summary failed:', e);
-    // No summary is fine — note still saves
   }
 
-  // 3. Save to Firestore
+  // 3. Save metadata to Firestore (no file blob — just info + idb key)
   const noteData = {
     id: noteId,
     title,
     subject: subjectName,
     uploadedBy: _userProfile?.name || '',
+    fileType: file.type,
+    fileName: file.name,
+    fileSize,
+    fileStoredLocally,
     summary,
-    fileUrl,
+    fileUrl,       // 'idb://noteId' if local, real URL if cloud, '' if neither
     createdAt: Date.now()
   };
 
   try {
     await fb.setDoc(fb.doc(fb.db, 'schools', _userSchoolCode, 'classRooms', _crCurrentClass.id, 'notes', noteId), noteData);
-    setStatus('✅ Note saved!');
-    // Reload the right list depending on which tab/view we're in
+    setStatus('✅ Note saved! (' + fileSize + ')');
     if (document.getElementById('cr-notes-list')) {
       _crLoadNotesList(subjectName);
     } else if (document.getElementById('cr-all-notes-list')) {

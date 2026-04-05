@@ -7595,19 +7595,24 @@ function crOpenSubject(sub) {
 
 async function _crRenderSubjectDetail(sub) {
   const content = document.getElementById('cr-room-content');
-  const isTeacher = _userSchoolRole === 'teacher' && sub.teacher === (_userProfile?.name || '');
+  // Only the subject's own teacher can upload/edit notes
+  const isOwnTeacher = _userSchoolRole === 'teacher' && sub.teacher === (_userProfile?.name || '');
   const isPrincipal = _userSchoolRole === 'principal';
+  const isTeacher = isOwnTeacher; // keep for downstream compat
 
   content.innerHTML = `
     <div class="cr-pane active">
       <div class="cr-pane-header" style="flex-direction:column;align-items:flex-start;gap:6px;">
         <button class="cr-note-detail-back" onclick="_crCurrentSubject=null;crSwitchTab('subjects')">← Subjects</button>
         <div class="cr-pane-title">📚 ${_esc(sub.name)}</div>
+        ${sub.teacher ? `<div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">👨‍🏫 ${_esc(sub.teacher)}</div>` : ''}
       </div>
-      ${isTeacher || isPrincipal ? `<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--bg2);">
+      ${isOwnTeacher ? `<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--bg2);">
         <label class="cr-upload-btn" for="cr-note-upload" style="cursor:pointer;">📎 Upload Note</label>
         <input type="file" id="cr-note-upload" accept=".pdf,image/*,.docx,.txt" style="display:none" onchange="crUploadNote(this,'${_esc(sub.name)}')">
         <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">PDF, image, doc</span>
+      </div>` : !isPrincipal && _userSchoolRole === 'teacher' ? `<div style="padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2);">
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">🔒 Only ${_esc(sub.teacher||'the assigned teacher')} can upload notes here.</div>
       </div>` : ''}
       <div class="cr-pane-scroll" id="cr-notes-list">
         <div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;">Loading notes…</div>
@@ -8055,18 +8060,6 @@ async function _crShowPrincipalDashboard() {
   if (!fb || !_crSchoolData) return;
   const school = _crSchoolData;
 
-  // Stats
-  const statsEl = document.getElementById('cr-principal-stats');
-  const members = school.members || {};
-  const teacherCount = (school.teachers || []).length;
-  const studentCap = school.plan?.maxStudents || 0;
-  const joined = school.plan?.joined || 0;
-  if (statsEl) statsEl.innerHTML = `
-    <div class="cr-stat-card"><div class="cr-stat-num">${(school.classes||[]).length}</div><div class="cr-stat-label">Classes</div></div>
-    <div class="cr-stat-card"><div class="cr-stat-num">${teacherCount}</div><div class="cr-stat-label">Teachers</div></div>
-    <div class="cr-stat-card"><div class="cr-stat-num">${joined}</div><div class="cr-stat-label">Students Joined</div></div>
-    <div class="cr-stat-card"><div class="cr-stat-num">${studentCap||'∞'}</div><div class="cr-stat-label">Student Cap</div></div>`;
-
   // Classes
   const clsEl = document.getElementById('cr-principal-classes');
   if (clsEl) clsEl.innerHTML = (school.classes||[]).map(c => `
@@ -8079,26 +8072,95 @@ async function _crShowPrincipalDashboard() {
       <div style="font-size:11px;color:var(--accent);font-family:'DM Mono',monospace;">→</div>
     </div>`).join('') || '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No classes set up yet.</div>';
 
-  // Teachers
-  const tchEl = document.getElementById('cr-principal-teachers');
-  const joinedTeacherNames = [];
-  try {
-    const memSnap = await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'members'));
-    memSnap.forEach(d => { if(d.data().role==='teacher') joinedTeacherNames.push(d.data().name); });
-  } catch(e) {}
-  if (tchEl) tchEl.innerHTML = (school.teachers||[]).map(t => {
-    const name = t.name || t;
-    const hasJoined = joinedTeacherNames.includes(name);
-    return `<div class="cr-teacher-row">
-      <div class="cr-teacher-avatar">${name[0]?.toUpperCase()||'T'}</div>
-      <div style="flex:1;min-width:0;">
-        <div class="cr-teacher-name">${_esc(name)}</div>
-        <div class="cr-teacher-status">${(t.subjects||[]).join(', ')||'—'}</div>
-      </div>
-      <div class="cr-joined-badge ${hasJoined?'yes':'no'}">${hasJoined?'Joined':'Not joined'}</div>
-      ${!hasJoined?`<button class="cr-invite-btn" onclick="crCopyTeacherKey()">Invite</button>`:''}
-    </div>`;
-  }).join('') || '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No teachers set up yet.</div>';
+  // ── Real-time members listener ─────────────────────────────────────────────
+  const tchEl  = document.getElementById('cr-principal-teachers');
+  const memRef = fb.collection(fb.db, 'schools', _userSchoolCode, 'members');
+
+  const _principalMembersUnsub = fb.onSnapshot(memRef, snap => {
+    const members = {};
+    snap.forEach(d => { members[d.id] = d.data(); });
+
+    const joinedTeachers = Object.values(members).filter(m => m.role === 'teacher');
+    const joinedStudents = Object.values(members).filter(m => m.role === 'student');
+
+    // Update stats live
+    const statsEl = document.getElementById('cr-principal-stats');
+    if (statsEl) statsEl.innerHTML = `
+      <div class="cr-stat-card"><div class="cr-stat-num">${(school.classes||[]).length}</div><div class="cr-stat-label">Classes</div></div>
+      <div class="cr-stat-card"><div class="cr-stat-num">${joinedTeachers.length}</div><div class="cr-stat-label">Teachers</div></div>
+      <div class="cr-stat-card"><div class="cr-stat-num">${joinedStudents.length}</div><div class="cr-stat-label">Students</div></div>
+      <div class="cr-stat-card"><div class="cr-stat-num">${school.plan?.maxStudents||'∞'}</div><div class="cr-stat-label">Student Cap</div></div>`;
+
+    // Update teachers section
+    const joinedTeacherNames = joinedTeachers.map(t => t.name);
+    if (tchEl) {
+      const allTeachers = school.teachers || [];
+      if (!allTeachers.length) {
+        tchEl.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No teachers set up yet.</div>';
+      } else {
+        tchEl.innerHTML = allTeachers.map(t => {
+          const name = t.name || t;
+          const hasJoined = joinedTeacherNames.includes(name);
+          const joinedObj = joinedTeachers.find(j => j.name === name);
+          const lastSeen = joinedObj?.lastSeen ? new Date(joinedObj.lastSeen).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : null;
+          return `<div class="cr-teacher-row">
+            <div class="cr-teacher-avatar" style="position:relative;">
+              ${name[0]?.toUpperCase()||'T'}
+              <span style="position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;border:2px solid var(--card);background:${hasJoined?'#00e5c0':'#ff4f6a'};"></span>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div class="cr-teacher-name">${_esc(name)}</div>
+              <div class="cr-teacher-status">${(t.subjects||[]).join(', ')||'—'}</div>
+              ${lastSeen ? `<div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;">Last seen: ${lastSeen}</div>` : ''}
+            </div>
+            <div class="cr-joined-badge ${hasJoined?'yes':'no'}">${hasJoined?'Joined':'Pending'}</div>
+            ${!hasJoined?`<button class="cr-invite-btn" onclick="crCopyTeacherKey()">Invite</button>`:''}
+          </div>`;
+        }).join('');
+      }
+    }
+
+    // Students section — render below teachers
+    let studentsEl = document.getElementById('cr-principal-students');
+    if (!studentsEl) {
+      // Insert students section after teachers
+      const tchSection = document.getElementById('cr-principal-teachers');
+      if (tchSection) {
+        const wrap = document.createElement('div');
+        wrap.innerHTML = `
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px;margin-top:4px;">Students Joined</div>
+          <div id="cr-principal-students" style="margin-bottom:20px;"></div>`;
+        tchSection.parentNode.insertBefore(wrap, tchSection.nextSibling);
+        studentsEl = document.getElementById('cr-principal-students');
+      }
+    }
+    if (studentsEl) {
+      if (!joinedStudents.length) {
+        studentsEl.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No students have joined yet.</div>';
+      } else {
+        // Group by class
+        const byClass = {};
+        joinedStudents.forEach(s => {
+          const cls = s.class || s.classId || 'Unassigned';
+          if (!byClass[cls]) byClass[cls] = [];
+          byClass[cls].push(s);
+        });
+        studentsEl.innerHTML = Object.entries(byClass).map(([cls, students]) => `
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">Class ${_esc(cls)} — ${students.length} student${students.length!==1?'s':''}</div>
+            ${students.map(s => `
+              <div class="cr-teacher-row" style="margin-bottom:4px;">
+                <div class="cr-teacher-avatar" style="font-size:12px;width:30px;height:30px;">${(s.name||'?')[0].toUpperCase()}</div>
+                <div style="flex:1;min-width:0;">
+                  <div class="cr-teacher-name" style="font-size:13px;">${_esc(s.name||'Unknown')}</div>
+                </div>
+                <div class="cr-joined-badge yes">Joined</div>
+              </div>`).join('')}
+          </div>`).join('');
+      }
+    }
+  }, err => console.warn('Members listen error', err));
+  _crRoomListeners.push(_principalMembersUnsub);
 
   // Keys
   const keysEl = document.getElementById('cr-principal-keys');

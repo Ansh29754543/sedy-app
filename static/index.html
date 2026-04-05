@@ -1694,6 +1694,18 @@ body::after{
 }
 .ob-school-choice-btn:hover{border-color:rgba(79,142,255,.4);background:rgba(79,142,255,.08);color:#e8edf5;}
 .ob-school-choice-btn.selected{border-color:rgba(79,142,255,.7);background:rgba(79,142,255,.12);color:#e8edf5;}
+/* ── Onboarding teacher/class row ── */
+.ob-teacher-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  cursor: pointer; transition: all .18s;
+}
+.ob-teacher-row:hover { border-color: rgba(79,142,255,.45); background: rgba(79,142,255,.06); }
+.ob-teacher-row.selected { border-color: var(--accent2); background: rgba(124,92,252,.1); }
+.ob-row-check { flex-shrink:0; }
+
 
 /* ══════════════════════════════════════════════════════
    SCHOOL SETUP WIZARD
@@ -2106,73 +2118,16 @@ body::after{
   <!-- ── STEP 2: Onboarding (shown after first login) ── -->
   <div id="auth-step-onboard" class="auth-card" style="display:none;">
 
-    <!-- Progress dots: 3 steps -->
-    <div style="display:flex;gap:6px;margin-bottom:28px;">
-      <div class="onboard-step-dot active" id="ob-dot-0"></div>
-      <div class="onboard-step-dot" id="ob-dot-1"></div>
-      <div class="onboard-step-dot" id="ob-dot-2"></div>
+    <!-- Progress dots: dynamic — JS sets count via ob-dots-wrap -->
+    <div style="display:flex;gap:6px;margin-bottom:24px;" id="ob-dots-wrap">
+      <!-- populated by _obRenderStep -->
     </div>
 
-    <!-- Step 0: Name -->
-    <div id="ob-page-0" class="ob-page">
-      <div class="ob-emoji">👋</div>
-      <div class="ob-title">What's your name?</div>
-      <div class="ob-sub">How should Sedy greet you?</div>
-      <input id="ob-name" type="text" class="auth-input" placeholder="Your name or nickname"
-        maxlength="30" onkeydown="if(event.key==='Enter')obNext()">
-    </div>
-
-    <!-- Step 1: Interests (pick 3-4 topics) -->
-    <div id="ob-page-1" class="ob-page" style="display:none;">
-      <div class="ob-emoji">🎯</div>
-      <div class="ob-title">What are your interests?</div>
-      <div class="ob-sub">Pick 3–4 topics — Sedy will focus on these</div>
-      <div class="ob-options-grid" id="ob-interests-grid" style="margin-top:8px;">
-        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🔢 Mathematics</div>
-        <div class="ob-opt multi" onclick="obToggle(this,'interest')">⚛️ Physics</div>
-        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🧪 Chemistry</div>
-        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🌿 Biology</div>
-        <div class="ob-opt multi" onclick="obToggle(this,'interest')">💻 Coding</div>
-        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🏛️ History</div>
-        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🌍 Geography</div>
-        <div class="ob-opt multi" onclick="obToggle(this,'interest')">📖 English</div>
-        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🧮 Economics</div>
-        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🎨 Arts</div>
-        <div class="ob-opt multi" onclick="obToggle(this,'interest')">🎵 Music</div>
-        <div class="ob-opt multi" onclick="obToggle(this,'interest')">⚽ Sports</div>
-      </div>
-    </div>
-
-    <!-- Step 2: School key -->
-    <div id="ob-page-2" class="ob-page" style="display:none;">
-      <div class="ob-emoji">🏫</div>
-      <div class="ob-title">Do you have a school key?</div>
-      <div class="ob-sub">Your school gave you a code like <strong style="color:#4f8eff;">SEDY-S-XXXX</strong> or <strong style="color:#7c5cfc;">SEDY-T-XXXX</strong>. Enter it below — or skip to continue as a normal user.</div>
-      <!-- Yes/No choice -->
-      <div style="display:flex;gap:10px;width:100%;margin-top:12px;" id="ob-key-choice">
-        <button class="ob-school-choice-btn" id="ob-key-yes" onclick="obShowKeyInput()">
-          <span style="font-size:28px;">🔑</span>
-          <span style="font-weight:700;color:#e8edf5;">Yes, I have a key</span>
-        </button>
-        <button class="ob-school-choice-btn" id="ob-key-no" onclick="obKeySkip()">
-          <span style="font-size:28px;">➡️</span>
-          <span style="font-weight:700;color:#e8edf5;">No, skip</span>
-        </button>
-      </div>
-      <!-- Key input (hidden until Yes clicked) -->
-      <div id="ob-key-input-wrap" style="display:none;width:100%;margin-top:14px;">
-        <input id="ob-school-key" type="text" class="auth-input"
-          placeholder="SEDY-S-XXXX or SEDY-T-XXXX"
-          style="text-transform:uppercase;letter-spacing:1.5px;font-family:'DM Mono',monospace;"
-          maxlength="20" onkeydown="if(event.key==='Enter')obNext()">
-        <div id="ob-key-error" style="display:none;font-size:11px;color:#ff4f6a;font-family:'DM Mono',monospace;margin-top:4px;"></div>
-        <!-- Role preview — shown after key validated -->
-        <div id="ob-key-preview" style="display:none;background:rgba(0,229,192,.07);border:1px solid rgba(0,229,192,.2);border-radius:12px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--accent3,#00e5c0);font-family:'DM Mono',monospace;line-height:1.6;"></div>
-      </div>
-    </div>
+    <!-- Dynamic page container — all steps rendered here by JS -->
+    <div id="ob-page-dynamic" style="width:100%;"></div>
 
     <!-- Nav buttons -->
-    <div style="display:flex;gap:10px;margin-top:24px;">
+    <div style="display:flex;gap:10px;margin-top:20px;">
       <button id="ob-back-btn" onclick="obBack()" style="
         flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);
         background:none;color:rgba(136,153,187,.6);font-size:13px;cursor:pointer;
@@ -5739,11 +5694,9 @@ function init() {
 // ══════════════════════════════════════════════════════
 
 let _currentUser  = null;
-let _obStep    = 0;
-let _obData    = {};
 let _isNewUser = false;
 
-const OB_STEPS = 3;  // Name + Interests + School Key
+const OB_STEPS = 5;  // max steps across all flows — dynamic rendering used
 
 // ── Wait for Firebase module ──────────────────────────────────────────────────
 function _waitFb() {
@@ -6235,59 +6188,282 @@ function hideAuthScreen() {
 }
 
 // ══════════════════════════════════════════════════════
-// ONBOARDING FLOW
+// ONBOARDING FLOW  (fully rewritten)
+// ══════════════════════════════════════════════════════
+//
+// FLOW A — School key entered (SEDY-S-xxxx OR SEDY-T-xxxx)
+//   Step 0 : School key entry + verify  →  school card preview
+//   Step 1a: TEACHER  → pick your name from unjoined teachers list → preview
+//   Step 1b: STUDENT  → enter name → pick class → pick fav subjects
+//   Step 2 : Done / continue
+//
+// FLOW B — No key (normal user)
+//   Step 0 : "No key" chosen
+//   Step 1 : Enter name
+//   Step 2 : Pick interests
+//   Step 3 : Continue
 // ══════════════════════════════════════════════════════
 
+// ── State ────────────────────────────────────────────
+let _obStep    = 0;
+let _obData    = {};       // accumulated answers
+let _obFlow    = 'init';   // 'init' | 'school' | 'normal'
+let _obSchool  = null;     // school doc from Firestore once key verified
+let _obRole    = '';       // 'teacher' | 'student'
+let _obJoinedNames = [];   // teacher names already in members
+
+// ── Entry point ──────────────────────────────────────
 function _showOnboarding() {
   document.getElementById('auth-step-login').style.display   = 'none';
   document.getElementById('auth-step-onboard').style.display = 'block';
-  _obStep = 0; _obData = {};
-  _obRenderStep(0);
+  _obStep = 0; _obData = {}; _obFlow = 'init'; _obSchool = null; _obRole = '';
+  _obRenderStep();
 }
 
-function _obRenderStep(step) {
-  // Show/hide pages — pages 0, 1, 2
-  for (let i = 0; i < OB_STEPS; i++) {
-    const page = document.getElementById('ob-page-'+i);
-    if (page) page.style.display = i === step ? 'flex' : 'none';
-  }
-  // Dots
-  for (let i = 0; i < OB_STEPS; i++) {
-    const dot = document.getElementById('ob-dot-'+i);
-    if (!dot) continue;
-    dot.className = 'onboard-step-dot' + (i < step ? ' done' : i === step ? ' active' : '');
-  }
-  // Back button
+// ── Render current step ──────────────────────────────
+function _obRenderStep() {
+  const page    = document.getElementById('ob-page-dynamic');
   const backBtn = document.getElementById('ob-back-btn');
-  if (backBtn) backBtn.style.display = step > 0 ? 'block' : 'none';
-  // Next button label
   const nextBtn = document.getElementById('ob-next-btn');
-  if (nextBtn) {
-    nextBtn.disabled = false;
-    if (step === 0) nextBtn.textContent = 'Next →';
-    else if (step === 1) nextBtn.textContent = 'Next →';
-    else nextBtn.textContent = 'Skip & Continue →'; // step 2 default; changes to "Let's go" when key selected
+  const errBox  = document.getElementById('auth-error-ob');
+  if (!page) return;
+  if (errBox) errBox.style.display = 'none';
+  if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next →'; }
+
+  // ── INIT: ask school key or skip ─────────────────────────────────────────
+  if (_obFlow === 'init') {
+    _obSetDots(1, 0);
+    if (backBtn) backBtn.style.display = 'none';
+    page.innerHTML = `
+      <div class="ob-emoji">🏫</div>
+      <div class="ob-title">Do you have a school key?</div>
+      <div class="ob-sub">Your school gave you a code like
+        <strong style="color:#4f8eff;">SEDY-S-XXXX</strong> or
+        <strong style="color:#7c5cfc;">SEDY-T-XXXX</strong>.
+        Enter it below — or skip to continue as a normal user.
+      </div>
+      <div style="display:flex;gap:10px;width:100%;margin-top:14px;">
+        <button class="ob-school-choice-btn" id="ob-key-yes" onclick="obShowKeyInput()">
+          <span style="font-size:26px;">🔑</span>
+          <span style="font-weight:700;color:#e8edf5;">I have a key</span>
+        </button>
+        <button class="ob-school-choice-btn selected" id="ob-key-no" onclick="obKeySkip()">
+          <span style="font-size:26px;">➡️</span>
+          <span style="font-weight:700;color:#e8edf5;">No key — skip</span>
+        </button>
+      </div>
+      <div id="ob-key-input-wrap" style="display:none;width:100%;margin-top:14px;">
+        <input id="ob-school-key" type="text" class="auth-input"
+          placeholder="SEDY-S-XXXX  or  SEDY-T-XXXX"
+          style="text-transform:uppercase;letter-spacing:1.5px;font-family:'DM Mono',monospace;font-size:15px;"
+          maxlength="20" oninput="obKeyInput(this)" onkeydown="if(event.key==='Enter')obNext()">
+        <div id="ob-key-error" style="display:none;font-size:11px;color:#ff4f6a;font-family:'DM Mono',monospace;margin-top:4px;"></div>
+        <div id="ob-key-preview" style="display:none;margin-top:12px;"></div>
+      </div>`;
+    if (nextBtn) nextBtn.textContent = 'Skip & Continue →';
+    _obData._wantsKey = false;
+    return;
+  }
+
+  // ── SCHOOL FLOW ───────────────────────────────────────────────────────────
+  if (_obFlow === 'school') {
+
+    // Step 1 — TEACHER: pick name from unjoined list
+    if (_obRole === 'teacher' && _obStep === 1) {
+      _obSetDots(3, 0);
+      if (backBtn) backBtn.style.display = 'block';
+      const school = _obSchool;
+      const allTeachers = (school.teachers || []).map(t => typeof t === 'string' ? t : (t.name || ''));
+      const unjoined = allTeachers.filter(n => !_obJoinedNames.includes(n));
+      page.innerHTML = `
+        <div class="ob-emoji">👨‍🏫</div>
+        <div class="ob-title">Who are you?</div>
+        <div class="ob-sub">Select your name from the teacher list below.</div>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;" id="ob-teacher-list">
+          ${unjoined.length ? unjoined.map(name => `
+            <div class="ob-teacher-row ${_obData._teacherName===name?'selected':''}"
+              onclick="obSelectTeacher(this,'${_esc(name)}')">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(124,92,252,.3),rgba(79,142,255,.2));
+                display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+                ${name[0]?.toUpperCase()||'T'}
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;">${_esc(name)}</div>
+                <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;">
+                  ${_obTeacherSubjects(school, name)}
+                </div>
+              </div>
+              <div class="ob-row-check" style="font-size:18px;color:var(--accent2);display:${_obData._teacherName===name?'block':'none'};">✓</div>
+            </div>`).join('') :
+            `<div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;text-align:center;padding:16px;">
+              All teachers from this school have already joined.
+             </div>`}
+        </div>`;
+      return;
+    }
+
+    // Step 2 — TEACHER: preview
+    if (_obRole === 'teacher' && _obStep === 2) {
+      _obSetDots(3, 1);
+      if (backBtn) backBtn.style.display = 'block';
+      if (nextBtn) nextBtn.textContent = 'Continue to App →';
+      const school = _obSchool;
+      const name   = _obData._teacherName || '';
+      const tObj   = (school.teachers||[]).find(t=>(t.name||t)===name) || {};
+      const subjects = tObj.subjects || [];
+      const classes  = tObj.classes  || [];
+      page.innerHTML = `
+        <div class="ob-emoji">✅</div>
+        <div class="ob-title">Looking good, ${_esc(name)}!</div>
+        <div class="ob-sub">Please confirm your details before continuing.</div>
+        <div style="margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;">
+          ${school.logo?`<img src="${_esc(school.logo)}" style="width:48px;height:48px;border-radius:12px;object-fit:contain;margin-bottom:10px;display:block;">`:''}
+          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.7px;margin-bottom:2px;">School</div>
+          <div style="font-size:16px;font-weight:800;color:var(--text);font-family:'Syne',sans-serif;margin-bottom:10px;">${_esc(school.name||'')}</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;">
+            <span style="padding:3px 10px;background:rgba(124,92,252,.15);border:1px solid rgba(124,92,252,.3);border-radius:20px;font-size:11px;color:var(--accent2);font-family:'DM Mono',monospace;">👨‍🏫 Teacher</span>
+          </div>
+          ${classes.length?`<div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:8px;margin-bottom:3px;">CLASSES</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">${classes.map(c=>`<span class="class-chip">${_esc(c)}</span>`).join('')}</div>`:''}
+          ${subjects.length?`<div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:8px;margin-bottom:3px;">SUBJECTS</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">${subjects.map(s=>`<span class="subject-chip">${_esc(s)}</span>`).join('')}</div>`:''}
+        </div>`;
+      return;
+    }
+
+    // Step 1 — STUDENT: name
+    if (_obRole === 'student' && _obStep === 1) {
+      _obSetDots(4, 0);
+      if (backBtn) backBtn.style.display = 'block';
+      page.innerHTML = `
+        <div class="ob-emoji">👋</div>
+        <div class="ob-title">What's your name?</div>
+        <div class="ob-sub">How should your teachers and Sedy greet you?</div>
+        <input id="ob-name" type="text" class="auth-input" placeholder="Your full name"
+          maxlength="40" value="${_esc(_obData.name||'')}"
+          onkeydown="if(event.key==='Enter')obNext()">`;
+      return;
+    }
+
+    // Step 2 — STUDENT: pick class
+    if (_obRole === 'student' && _obStep === 2) {
+      _obSetDots(4, 1);
+      if (backBtn) backBtn.style.display = 'block';
+      const classes = (_obSchool.classes || []).map(c => typeof c === 'string' ? c : (c.name || c.id || ''));
+      page.innerHTML = `
+        <div class="ob-emoji">🏫</div>
+        <div class="ob-title">Select your class</div>
+        <div class="ob-sub">Which class are you in at ${_esc(_obSchool.name||'your school')}?</div>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto;">
+          ${classes.map(cls => `
+            <div class="ob-teacher-row ${_obData._class===cls?'selected':''}"
+              onclick="obSelectClass(this,'${_esc(cls)}')">
+              <div style="font-size:20px;">🏫</div>
+              <div style="flex:1;font-size:14px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;">Class ${_esc(cls)}</div>
+              <div class="ob-row-check" style="font-size:18px;color:var(--accent2);display:${_obData._class===cls?'block':'none'};">✓</div>
+            </div>`).join('') ||
+            '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;text-align:center;padding:16px;">No classes found for this school.</div>'
+          }
+        </div>`;
+      return;
+    }
+
+    // Step 3 — STUDENT: pick favourite subjects (from their class)
+    if (_obRole === 'student' && _obStep === 3) {
+      _obSetDots(4, 2);
+      if (backBtn) backBtn.style.display = 'block';
+      const chosenClass = _obData._class || '';
+      const school = _obSchool;
+      // Get subjects taught in this class
+      const clsObj = (school.classes||[]).find(c=>(c.name||c.id||c)===chosenClass);
+      let subjectList = [];
+      if (clsObj && clsObj.subjects) {
+        subjectList = clsObj.subjects.map(s => s.name || s).filter(Boolean);
+      }
+      if (!subjectList.length) {
+        // fallback: all teacher subjects for this class
+        (school.teachers||[]).forEach(t=>{
+          if((t.classes||[]).includes(chosenClass)&&t.subjects){
+            t.subjects.forEach(s=>{ if(!subjectList.includes(s)) subjectList.push(s); });
+          }
+        });
+      }
+      if (!subjectList.length) subjectList = ['Mathematics','Physics','Chemistry','Biology','English','History','Geography'];
+      page.innerHTML = `
+        <div class="ob-emoji">📚</div>
+        <div class="ob-title">Favourite subjects?</div>
+        <div class="ob-sub">Pick the subjects you enjoy most. Sedy will focus on these for you.</div>
+        <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;">
+          ${subjectList.map(s=>`
+            <div class="ob-opt multi ${(_obData._favSubjects||[]).includes(s)?'selected':''}"
+              onclick="obToggleSub(this,'${_esc(s)}')" style="flex:0 1 auto;">
+              ${_esc(s)}
+            </div>`).join('')}
+        </div>`;
+      if (nextBtn) nextBtn.textContent = 'Continue to App →';
+      return;
+    }
+  }
+
+  // ── NORMAL FLOW ───────────────────────────────────────────────────────────
+  if (_obFlow === 'normal') {
+
+    // Step 1 — Name
+    if (_obStep === 1) {
+      _obSetDots(3, 0);
+      if (backBtn) backBtn.style.display = 'block';
+      page.innerHTML = `
+        <div class="ob-emoji">👋</div>
+        <div class="ob-title">What's your name?</div>
+        <div class="ob-sub">How should Sedy greet you?</div>
+        <input id="ob-name" type="text" class="auth-input" placeholder="Your name or nickname"
+          maxlength="30" value="${_esc(_obData.name||'')}"
+          onkeydown="if(event.key==='Enter')obNext()">`;
+      return;
+    }
+
+    // Step 2 — Interests
+    if (_obStep === 2) {
+      _obSetDots(3, 1);
+      if (backBtn) backBtn.style.display = 'block';
+      const interests = ['🔢 Mathematics','⚛️ Physics','🧪 Chemistry','🌿 Biology','💻 Coding',
+        '🏛️ History','🌍 Geography','📖 English','🧮 Economics','🎨 Arts','🎵 Music','⚽ Sports'];
+      page.innerHTML = `
+        <div class="ob-emoji">🎯</div>
+        <div class="ob-title">What are your interests?</div>
+        <div class="ob-sub">Pick a few topics — Sedy will focus on these for you.</div>
+        <div class="ob-options-grid" style="margin-top:10px;">
+          ${interests.map(t=>`<div class="ob-opt multi ${(_obData.interest||[]).includes(t.replace(/^[\p{Emoji}\s]+/u,'').trim())?'selected':''}"
+            onclick="obToggle(this,'interest')">${t}</div>`).join('')}
+        </div>`;
+      if (nextBtn) nextBtn.textContent = 'Continue to App →';
+      return;
+    }
   }
 }
 
-function obSelect(el, key) {
-  el.closest('.ob-options-grid').querySelectorAll('.ob-opt').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
-  _obData[key] = el.textContent.replace(/^[\p{Emoji}\s]+/u,'').trim();
+// ── Dot indicator ─────────────────────────────────────
+function _obSetDots(total, current) {
+  const wrap = document.getElementById('ob-dots-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = Array.from({length:total},(_,i)=>
+    `<div class="onboard-step-dot${i<current?' done':i===current?' active':''}"></div>`
+  ).join('');
 }
 
-function obToggle(el, key) {
-  el.classList.toggle('selected');
-  if (!_obData[key]) _obData[key] = [];
-  const val = el.textContent.replace(/^[\p{Emoji}\s]+/u,'').trim();
-  if (el.classList.contains('selected')) {
-    if (!_obData[key].includes(val)) _obData[key].push(val);
-  } else {
-    _obData[key] = _obData[key].filter(v => v !== val);
-  }
+// ── Helper: teacher subjects string ──────────────────
+function _obTeacherSubjects(school, name) {
+  const tObj = (school.teachers||[]).find(t=>(t.name||t)===name);
+  if (!tObj) return '';
+  const subjs = tObj.subjects || [];
+  const clses = tObj.classes  || [];
+  const parts = [];
+  if (subjs.length) parts.push(subjs.join(', '));
+  if (clses.length) parts.push('Class ' + clses.join(', '));
+  return _esc(parts.join(' · '));
 }
 
-// Helpers for ob step 2
+// ── UI helpers ───────────────────────────────────────
 function obShowKeyInput() {
   document.getElementById('ob-key-yes')?.classList.add('selected');
   document.getElementById('ob-key-no')?.classList.remove('selected');
@@ -6295,159 +6471,323 @@ function obShowKeyInput() {
   if (wrap) wrap.style.display = 'block';
   document.getElementById('ob-school-key')?.focus();
   _obData._wantsKey = true;
-  // Update next button
   const next = document.getElementById('ob-next-btn');
-  if (next) next.textContent = "Let's go 🚀";
+  if (next) next.textContent = 'Verify Key →';
 }
 function obKeySkip() {
   document.getElementById('ob-key-no')?.classList.add('selected');
   document.getElementById('ob-key-yes')?.classList.remove('selected');
   const wrap = document.getElementById('ob-key-input-wrap');
   if (wrap) wrap.style.display = 'none';
-  _obData._wantsKey = false;
-  _obData._schoolKey = '';
+  _obData._wantsKey = false; _obData._schoolKey = '';
   const next = document.getElementById('ob-next-btn');
-  if (next) next.textContent = "Let's go 🚀";
+  if (next) next.textContent = 'Skip & Continue →';
 }
-
-async function obNext() {
-  clearAuthError();
-
-  // Step 0 — name
-  if (_obStep === 0) {
-    const name = document.getElementById('ob-name')?.value.trim();
-    if (!name) { showAuthError('Please enter your name.'); return; }
-    _obData.name = name;
-    _obStep = 1;
-    _obRenderStep(1);
-    return;
+function obKeyInput(el) {
+  // Auto-format as user types
+  el.value = el.value.toUpperCase().replace(/[^A-Z0-9-]/g,'');
+}
+function obSelectTeacher(el, name) {
+  document.querySelectorAll('#ob-teacher-list .ob-teacher-row').forEach(r=>{
+    r.classList.remove('selected');
+    const chk = r.querySelector('.ob-row-check');
+    if (chk) chk.style.display='none';
+  });
+  el.classList.add('selected');
+  const chk = el.querySelector('.ob-row-check');
+  if (chk) chk.style.display='block';
+  _obData._teacherName = name;
+}
+function obSelectClass(el, cls) {
+  document.querySelectorAll('#ob-page-dynamic .ob-teacher-row').forEach(r=>{
+    r.classList.remove('selected');
+    const chk = r.querySelector('.ob-row-check');
+    if (chk) chk.style.display='none';
+  });
+  el.classList.add('selected');
+  const chk = el.querySelector('.ob-row-check');
+  if (chk) chk.style.display='block';
+  _obData._class = cls;
+}
+function obToggleSub(el, sub) {
+  el.classList.toggle('selected');
+  if (!_obData._favSubjects) _obData._favSubjects = [];
+  if (el.classList.contains('selected')) {
+    if (!_obData._favSubjects.includes(sub)) _obData._favSubjects.push(sub);
+  } else {
+    _obData._favSubjects = _obData._favSubjects.filter(s=>s!==sub);
   }
-
-  // Step 1 — interests
-  if (_obStep === 1) {
-    if (!_obData.interest || !_obData.interest.length) {
-      showAuthError('Please pick at least one interest.');
-      return;
-    }
-    _obStep = 2;
-    _obRenderStep(2);
-    return;
+}
+function obToggle(el, key) {
+  el.classList.toggle('selected');
+  if (!_obData[key]) _obData[key] = [];
+  const val = el.textContent.replace(/^[\p{Emoji}\s]+/u,'').trim();
+  if (el.classList.contains('selected')) {
+    if (!_obData[key].includes(val)) _obData[key].push(val);
+  } else {
+    _obData[key] = _obData[key].filter(v=>v!==val);
   }
-
-  // Step 2 — school key (optional)
-  if (_obStep === 2) {
-    // If user chose "Yes" and typed a key → validate it
-    if (_obData._wantsKey) {
-      const rawKey = (document.getElementById('ob-school-key')?.value || '').trim().toUpperCase();
-      const errEl  = document.getElementById('ob-key-error');
-      if (!rawKey) {
-        if (errEl) { errEl.textContent = 'Enter your school key or click Skip.'; errEl.style.display = 'block'; }
-        return;
-      }
-      // Verify key in Firestore
-      const fb = window._fb;
-      const btn = document.getElementById('ob-next-btn');
-      if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
-      try {
-        const snap = await fb.getDoc(fb.doc(fb.db, 'schools', rawKey));
-        if (!snap.exists()) {
-          if (errEl) { errEl.textContent = '❌ Key not found. Double-check and try again.'; errEl.style.display = 'block'; }
-          if (btn) { btn.disabled = false; btn.textContent = "Let's go 🚀"; }
-          return;
-        }
-        const school = snap.data();
-        if (school.active === false) {
-          if (errEl) { errEl.textContent = '❌ This key has been deactivated.'; errEl.style.display = 'block'; }
-          if (btn) { btn.disabled = false; btn.textContent = "Let's go 🚀"; }
-          return;
-        }
-        if (errEl) errEl.style.display = 'none';
-        // Show preview
-        const role = (school.keyType === 'teacher') ? 'Teacher' : 'Student';
-        const prev = document.getElementById('ob-key-preview');
-        if (prev) {
-          prev.style.display = 'block';
-          prev.innerHTML = `✓ Joined <strong>${_esc(school.name)}</strong> as <strong>${role}</strong>`;
-        }
-        _obData._schoolKey = rawKey;
-        _obData._schoolData = school;
-        _obData._schoolRole = role.toLowerCase();
-        if (btn) { btn.disabled = false; }
-      } catch(e) {
-        if (errEl) { errEl.textContent = 'Connection error. Try again.'; errEl.style.display = 'block'; }
-        if (btn) { btn.disabled = false; btn.textContent = "Let's go 🚀"; }
-        return;
-      }
-    }
-    // Save profile + optionally join school
-    await _obSave();
-    return;
-  }
+}
+function obSelect(el, key) {
+  el.closest('.ob-options-grid').querySelectorAll('.ob-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  _obData[key] = el.textContent.replace(/^[\p{Emoji}\s]+/u,'').trim();
 }
 
 function obBack() {
-  if (_obStep > 0) { _obStep--; _obRenderStep(_obStep); }
+  if (_obFlow === 'init') return; // nothing to go back to on first screen
+  _obStep--;
+  if (_obStep <= 0) {
+    // Go back to the key / init screen
+    _obFlow = 'init'; _obStep = 0;
+    _obSchool = null; _obRole = '';
+  }
+  _obRenderStep();
+}
+
+// ── Main Next handler ─────────────────────────────────
+async function obNext() {
+  clearAuthError();
+  const nextBtn = document.getElementById('ob-next-btn');
+  const errBox  = document.getElementById('auth-error-ob');
+
+  // ── INIT: verify key or skip ──────────────────────────────────────────────
+  if (_obFlow === 'init') {
+    if (_obData._wantsKey) {
+      // Validate the key
+      const rawKey = (document.getElementById('ob-school-key')?.value || '').trim().toUpperCase();
+      const errEl  = document.getElementById('ob-key-error');
+      if (!rawKey) {
+        if (errEl) { errEl.textContent = 'Please enter your school key.'; errEl.style.display='block'; }
+        return;
+      }
+      // Check key format
+      if (!/^SEDY-[ST]-[A-Z0-9]{4}$/.test(rawKey)) {
+        if (errEl) { errEl.textContent = 'Key should look like SEDY-S-XXXX or SEDY-T-XXXX.'; errEl.style.display='block'; }
+        return;
+      }
+      const fb = window._fb;
+      if (!fb) { if (errEl) { errEl.textContent = 'Firebase not ready. Refresh the page.'; errEl.style.display='block'; } return; }
+      if (nextBtn) { nextBtn.disabled=true; nextBtn.textContent='Verifying…'; }
+      try {
+        const snap = await fb.getDoc(fb.doc(fb.db,'schools',rawKey));
+        if (!snap.exists()) {
+          if (errEl) { errEl.textContent='❌ Key not found. Double-check with your school.'; errEl.style.display='block'; }
+          if (nextBtn) { nextBtn.disabled=false; nextBtn.textContent='Verify Key →'; }
+          return;
+        }
+        const school = snap.data();
+        if (school.active===false) {
+          if (errEl) { errEl.textContent='❌ This key has been deactivated. Contact your principal.'; errEl.style.display='block'; }
+          if (nextBtn) { nextBtn.disabled=false; nextBtn.textContent='Verify Key →'; }
+          return;
+        }
+        if (errEl) errEl.style.display='none';
+        _obSchool = school;
+        _obData._schoolKey  = rawKey;
+        _obData._schoolData = school;
+        _obRole = (school.keyType === 'teacher') ? 'teacher' : 'student';
+
+        // Show school card preview inside the key wrap
+        const prev = document.getElementById('ob-key-preview');
+        if (prev) {
+          prev.style.display = 'block';
+          prev.innerHTML = `
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;">
+              ${school.logo?`<img src="${_esc(school.logo)}" style="width:44px;height:44px;border-radius:10px;object-fit:contain;flex-shrink:0;">`
+                :`<div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,rgba(124,92,252,.3),rgba(79,142,255,.2));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏫</div>`}
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:15px;font-weight:800;color:var(--text);font-family:'Syne',sans-serif;">${_esc(school.name||'')}</div>
+                <div style="font-size:11px;font-family:'DM Mono',monospace;margin-top:3px;">
+                  <span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;
+                    ${_obRole==='teacher'
+                      ?'background:rgba(124,92,252,.18);color:#b39dff;border:1px solid rgba(124,92,252,.35);'
+                      :'background:rgba(79,142,255,.18);color:#82c8ff;border:1px solid rgba(79,142,255,.35);'}">
+                    ${_obRole==='teacher'?'👨‍🏫 Teacher Key':'👩‍🎓 Student Key'}
+                  </span>
+                </div>
+              </div>
+              <div style="font-size:22px;">✅</div>
+            </div>`;
+        }
+
+        // Fetch already-joined teacher names (to exclude from picker)
+        _obJoinedNames = [];
+        if (_obRole === 'teacher') {
+          try {
+            const memSnap = await fb.getDocs(fb.collection(fb.db,'schools',rawKey,'members'));
+            memSnap.forEach(d => { if(d.data().role==='teacher') _obJoinedNames.push(d.data().name); });
+          } catch(e) {}
+        }
+
+        if (nextBtn) { nextBtn.disabled=false; nextBtn.textContent='Continue →'; }
+        // Re-enable next for one more tap to proceed
+        _obData._keyVerified = true;
+        return; // show preview, wait for second tap
+      } catch(e) {
+        console.error('Key verify error:', e);
+        const msg = e.code==='permission-denied' ? 'Permission denied — check Firebase rules.'
+                  : 'Connection error. Check your internet.';
+        if (errEl) { errEl.textContent=msg; errEl.style.display='block'; }
+        if (nextBtn) { nextBtn.disabled=false; nextBtn.textContent='Verify Key →'; }
+        return;
+      }
+    }
+
+    // Key was already verified — advance to school flow
+    if (_obData._keyVerified && _obSchool) {
+      _obFlow = 'school'; _obStep = 1;
+      _obRenderStep();
+      return;
+    }
+
+    // No key — go to normal flow
+    _obFlow = 'normal'; _obStep = 1;
+    _obRenderStep();
+    return;
+  }
+
+  // ── SCHOOL TEACHER FLOW ───────────────────────────────────────────────────
+  if (_obFlow === 'school' && _obRole === 'teacher') {
+    if (_obStep === 1) {
+      if (!_obData._teacherName) {
+        showAuthError('Please select your name from the list.');
+        return;
+      }
+      _obStep = 2; _obRenderStep();
+      return;
+    }
+    if (_obStep === 2) {
+      // Confirmed — save and login
+      await _obSave();
+      return;
+    }
+  }
+
+  // ── SCHOOL STUDENT FLOW ───────────────────────────────────────────────────
+  if (_obFlow === 'school' && _obRole === 'student') {
+    if (_obStep === 1) {
+      const name = document.getElementById('ob-name')?.value.trim();
+      if (!name) { showAuthError('Please enter your name.'); return; }
+      _obData.name = name;
+      _obStep = 2; _obRenderStep();
+      return;
+    }
+    if (_obStep === 2) {
+      if (!_obData._class) { showAuthError('Please select your class.'); return; }
+      _obStep = 3; _obRenderStep();
+      return;
+    }
+    if (_obStep === 3) {
+      // subjects optional — just save
+      await _obSave();
+      return;
+    }
+  }
+
+  // ── NORMAL FLOW ───────────────────────────────────────────────────────────
+  if (_obFlow === 'normal') {
+    if (_obStep === 1) {
+      const name = document.getElementById('ob-name')?.value.trim();
+      if (!name) { showAuthError('Please enter your name.'); return; }
+      _obData.name = name;
+      _obStep = 2; _obRenderStep();
+      return;
+    }
+    if (_obStep === 2) {
+      if (!(_obData.interest && _obData.interest.length)) {
+        showAuthError('Please pick at least one interest.');
+        return;
+      }
+      await _obSave();
+      return;
+    }
+  }
 }
 
 async function _obSave() {
-  const btn = document.getElementById('ob-next-btn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  const nextBtn = document.getElementById('ob-next-btn');
+  if (nextBtn) { nextBtn.disabled=true; nextBtn.textContent='Saving…'; }
   const fb  = window._fb;
   const uid = _currentUser?.uid;
 
   let schoolCode = '';
   let schoolName = '';
   let schoolRole = '';
+  let memberClass = '';
+  let memberName  = _obData.name || '';
 
-  // Join school if key was provided
-  if (fb && uid && _obData._schoolKey && _obData._schoolData) {
+  // ── Teacher: use picked name, classes, subjects ───────────────────────────
+  if (_obFlow === 'school' && _obRole === 'teacher') {
+    memberName = _obData._teacherName || '';
+    // find teacher object for classes/subjects
+    const tObj = (_obSchool?.teachers||[]).find(t=>(t.name||t)===memberName) || {};
+    _obData.name      = memberName;
+    _obData.interest  = tObj.subjects || [];
+    memberClass       = (tObj.classes||[]).join(',');
+  }
+
+  // ── Student: class + fav subjects ────────────────────────────────────────
+  if (_obFlow === 'school' && _obRole === 'student') {
+    memberClass      = _obData._class || '';
+    _obData.interest = _obData._favSubjects || [];
+  }
+
+  // ── Join school ───────────────────────────────────────────────────────────
+  if (fb && uid && _obSchool && _obData._schoolKey) {
     try {
-      const code   = _obData._schoolKey;
-      const school = _obData._schoolData;
-      const role   = _obData._schoolRole || 'student';
-      schoolCode = code;
-      schoolName = school.name || '';
-      schoolRole = role;
+      const code  = _obData._schoolKey;
+      const role  = _obRole || 'student';
+      schoolCode  = code;
+      schoolName  = _obSchool.name || '';
+      schoolRole  = role;
       await fb.setDoc(fb.doc(fb.db,'schools',code,'members',uid), {
-        uid, name: _obData.name || '', email: _currentUser.email || '',
-        photoURL: _currentUser.photoURL || '', role,
-        class: '', joinedAt: Date.now()
+        uid,
+        name:     memberName,
+        email:    _currentUser.email   || '',
+        photoURL: _currentUser.photoURL|| '',
+        role,
+        class:    memberClass,
+        subjects: _obData.interest || [],
+        joinedAt: Date.now()
       });
       _userSchoolCode = code;
       _userSchoolName = schoolName;
       _userSchoolRole = role;
-      _crSchoolData   = school;
+      _crSchoolData   = _obSchool;
     } catch(e) { console.warn('ob school join failed', e); }
   }
 
+  // ── Save profile ──────────────────────────────────────────────────────────
   if (fb && uid) {
     const profileData = {
-      name:       _obData.name     || '',
-      interests:  _obData.interest || [],
+      name:       _obData.name      || '',
+      interests:  _obData.interest  || [],
       language:   'English',
-      email:      _currentUser.email || '',
+      email:      _currentUser.email    || '',
       photoURL:   _currentUser.photoURL || '',
       schoolCode, schoolName, schoolRole,
-      createdAt: Date.now(),
+      class:      memberClass,
+      createdAt:  Date.now(),
     };
     try {
-      await fb.setDoc(fb.doc(fb.db, 'users', uid, 'profile', 'data'), profileData);
-      await fb.updateProfile(_currentUser, { displayName: _obData.name });
+      await fb.setDoc(fb.doc(fb.db,'users',uid,'profile','data'), profileData);
+      await fb.updateProfile(_currentUser, { displayName: _obData.name || memberName });
     } catch(e) { console.warn('Profile save failed:', e); }
   }
   _userPreferredLang = 'English';
   _userProfile = {
-    name:       _obData.name     || '',
-    interests:  _obData.interest || [],
+    name:       _obData.name      || memberName || '',
+    interests:  _obData.interest  || [],
     language:   'English',
-    email:      _currentUser?.email || '',
+    email:      _currentUser?.email    || '',
     photoURL:   _currentUser?.photoURL || '',
     schoolCode, schoolName, schoolRole,
-    createdAt: Date.now(),
+    class:      memberClass,
+    createdAt:  Date.now(),
   };
   _afterLogin(_currentUser, true);
 }
-
 
 // ══════════════════════════════════════════════════════
 // FIRESTORE: load + save user data

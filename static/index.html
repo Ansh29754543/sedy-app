@@ -315,6 +315,32 @@ body::after{
   transition:all .22s cubic-bezier(.4,0,.2,1);flex-shrink:0;
 }
 .sidebar-toggle:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,142,255,.1);transform:scale(1.05);}
+/* ── Home button (top-left, new chat shortcut) ── */
+.home-btn {
+  display: flex; align-items: center; justify-content: center;
+  gap: 5px;
+  height: 36px; padding: 0 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(79,142,255,.15), rgba(124,92,252,.1));
+  border: 1px solid rgba(79,142,255,.3);
+  color: var(--accent); font-size: 13px; font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  cursor: pointer; flex-shrink: 0;
+  transition: all .22s cubic-bezier(.4,0,.2,1);
+  white-space: nowrap;
+}
+.home-btn:hover {
+  background: linear-gradient(135deg, rgba(79,142,255,.28), rgba(124,92,252,.2));
+  border-color: rgba(79,142,255,.7);
+  transform: scale(1.04);
+  box-shadow: 0 0 12px rgba(79,142,255,.25);
+}
+.home-btn .home-icon { font-size: 15px; line-height: 1; }
+@media (max-width: 600px) {
+  .home-btn span { display: none; }
+  .home-btn { padding: 0 10px; }
+}
+
 
 .header-center{flex:1;min-width:0;display:flex;align-items:center;gap:8px;}
 .header-chat-title{
@@ -2259,6 +2285,9 @@ body::after{
     <!-- Header -->
     <div class="header">
       <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+      <button class="home-btn" onclick="goHome()" title="New Chat — go to home">
+        <span class="home-icon">🏠</span><span>Home</span>
+      </button>
       <div class="header-center">
         <div class="header-chat-title" id="header-chat-title" onclick="startInlineRename()" title="Click to rename">
           New Chat
@@ -2790,6 +2819,34 @@ function createNewChat(autoSwitch = true) {
   if (autoSwitch) switchToChat(id);
   else renderChatList();
   return id;
+}
+
+
+// ── goHome: close any open panel and start a fresh new chat ──────────────────
+function goHome() {
+  // Close classroom overlay if open
+  const crOverlay = document.getElementById('cr-overlay');
+  if (crOverlay && crOverlay.classList.contains('open')) {
+    _crDetachListeners && _crDetachListeners();
+    crOverlay.classList.remove('open');
+    _crCurrentClass = null;
+  }
+  // Close school wizard if open
+  const wizOverlay = document.getElementById('school-wizard-overlay');
+  if (wizOverlay && wizOverlay.classList.contains('open')) {
+    wizOverlay.classList.remove('open');
+  }
+  // Close any other overlays / panels
+  try { closeFilesPanel && closeFilesPanel(); } catch(e) {}
+  try { closeVoiceChat && closeVoiceChat(); } catch(e) {}
+  try { closeWhiteboard && closeWhiteboard(); } catch(e) {}
+  try { closeSedyLens && closeSedyLens(); } catch(e) {}
+  try { closeUpgrades && closeUpgrades(); } catch(e) {}
+  try { closeSettings && closeSettings(); } catch(e) {}
+  // Close mobile sidebar
+  try { closeSidebar && closeSidebar(); } catch(e) {}
+  // Create a brand-new chat and switch to it
+  createNewChat(true);
 }
 
 function switchToChat(id) {
@@ -6317,12 +6374,7 @@ async function obNext() {
         _obData._schoolRole = role.toLowerCase();
         if (btn) { btn.disabled = false; }
       } catch(e) {
-        console.error('[Sedy] School key verification failed:', e);
-        if (e.code === 'permission-denied') {
-          if (errEl) { errEl.textContent = '❌ Firebase permission denied. Ask your admin to update security rules.'; errEl.style.display = 'block'; }
-        } else {
-          if (errEl) { errEl.textContent = 'Connection error. Check your internet and try again.'; errEl.style.display = 'block'; }
-        }
+        if (errEl) { errEl.textContent = 'Connection error. Try again.'; errEl.style.display = 'block'; }
         if (btn) { btn.disabled = false; btn.textContent = "Let's go 🚀"; }
         return;
       }
@@ -7988,11 +8040,9 @@ function _wizRenderStep(step) {
     // Change footer button to "Go to Dashboard"
     const nextBtn = document.getElementById('wizard-next-btn');
     if (nextBtn) {
+      nextBtn.disabled = false;
       nextBtn.textContent = '🏫 Go to Dashboard';
-      nextBtn.onclick = function() {
-        closeSchoolWizard();
-        setTimeout(() => openClassroom(), 150);
-      };
+      nextBtn.onclick = _wizGotoDashboard;  // use dedicated function — avoids onclick reset race
     }
     const backBtn = document.getElementById('wizard-back-btn');
     if (backBtn) backBtn.style.display = 'none';
@@ -8171,13 +8221,39 @@ function wizSetClassTeacher(cls, teacherName) {
 function closeSchoolWizard() {
   const overlay = document.getElementById('school-wizard-overlay');
   if (overlay) overlay.classList.remove('open');
-  // Reset the next button onclick in case it was overridden in step 5
+  // Reset wizard step so next open starts fresh
+  _wizStep = 0;
+  // Reset next button text/state cleanly
   const nextBtn = document.getElementById('wizard-next-btn');
-  if (nextBtn) nextBtn.onclick = wizardNext;
+  if (nextBtn) {
+    nextBtn.disabled = false;
+    nextBtn.textContent = 'Next →';
+    nextBtn.onclick = wizardNext;
+  }
+  const backBtn = document.getElementById('wizard-back-btn');
+  if (backBtn) { backBtn.style.display = 'none'; }
+}
+
+function _wizGotoDashboard() {
+  // Close wizard overlay (without resetting onclick mid-click)
+  const overlay = document.getElementById('school-wizard-overlay');
+  if (overlay) overlay.classList.remove('open');
+  // Reset state for future opens
+  _wizStep = 0;
+  const nextBtn = document.getElementById('wizard-next-btn');
+  if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next →'; nextBtn.onclick = wizardNext; }
+  const backBtn = document.getElementById('wizard-back-btn');
+  if (backBtn) backBtn.style.display = 'none';
+  // Now open classroom dashboard
+  setTimeout(() => openClassroom(), 150);
 }
 
 async function wizardNext() {
-  if (_wizStep === 5) return; // handled by button override in step 5
+  // Step 5: "Go to Dashboard" — navigate to classroom
+  if (_wizStep === 5) {
+    _wizGotoDashboard();
+    return;
+  }
 
   // Validation per step
   if (_wizStep === 0 && !_wizData.plan) { alert('Please select a plan.'); return; }
@@ -8198,11 +8274,11 @@ async function wizardNext() {
       if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Confirm & Create'; }
       console.error('School creation failed:', e);
       if (e.code === 'permission-denied') {
-        alert('Permission denied by Firebase. Please make sure you are signed in and your Firebase Firestore security rules allow writes to the "schools" collection. See the browser console for details.');
+        alert('Permission denied by Firebase. Please update your Firestore security rules to allow writes to the "schools" collection. Check the browser console (F12) for details.');
       } else if (e.code === 'unavailable' || (e.message && e.message.toLowerCase().includes('network'))) {
         alert('Network error. Please check your internet connection and try again.');
       } else {
-        alert('Failed to create school: ' + (e.message || 'Unknown error. Open the browser console (F12) for details.'));
+        alert('Failed to create school: ' + (e.message || 'Unknown error. Open browser console (F12) for details.'));
       }
       return;
     }
@@ -8221,67 +8297,40 @@ function wizardBack() {
 
 async function _wizCreateSchool() {
   const fb = window._fb;
-  if (!fb) throw new Error('Firebase not ready. Please refresh the page.');
-  if (!_currentUser) throw new Error('Not signed in. Please sign in and try again.');
+  if (!fb || !_currentUser) throw new Error('Not authenticated');
 
   _wizData.studentKey = _wizGenKey('SEDY-S');
   _wizData.teacherKey = _wizGenKey('SEDY-T');
 
   // Build classes array with subjects
-  const classesArr = (_wizData.classes || []).map(cls => {
-    const subjects = (_wizData.teachers || [])
+  const classesArr = _wizData.classes.map(cls => {
+    const subjects = _wizData.teachers
       .filter(t => (t.classes||[]).includes(cls))
       .map(t => ({ name: t.subjects?.[0] || '', teacher: t.name }));
     return { id: cls, name: cls, subjects };
   });
 
-  // Logo: store only a small thumbnail in Firestore (max 500 chars) to avoid
-  // hitting Firestore's 1 MB document size limit which causes silent write failures.
-  // Full logo should ideally be stored in Firebase Storage instead.
-  const logoSafe = _wizData.logoBase64 ? _wizData.logoBase64.slice(0, 500) : '';
-
   const schoolDoc = {
-    name: _wizData.schoolName || '',
-    logo: logoSafe,
+    name: _wizData.schoolName,
+    logo: _wizData.logoBase64 ? _wizData.logoBase64.slice(0, 2000) : '',
     principalUid: _currentUser.uid,
     studentKey: _wizData.studentKey,
     teacherKey: _wizData.teacherKey,
-    plan: { maxStudents: _wizData.plan || 30, joined: 0 },
-    teachers: (_wizData.teachers || []).map(t => ({ name: t.name, subjects: t.subjects||[], classes: t.classes||[] })),
+    plan: { maxStudents: _wizData.plan, joined: 0 },
+    teachers: _wizData.teachers.map(t => ({ name: t.name, subjects: t.subjects||[], classes: t.classes||[] })),
     classes: classesArr,
-    classTeachers: _wizData.classTeachers || {},
+    classTeachers: _wizData.classTeachers,
     active: true,
     createdAt: Date.now()
   };
 
-  console.log('[Sedy] Creating school — studentKey:', _wizData.studentKey, 'teacherKey:', _wizData.teacherKey);
-
   // Save both keys as separate school docs (each key is a doc ID)
-  try {
-    await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey), { ...schoolDoc, keyType:'student', schoolCode: _wizData.studentKey });
-    console.log('[Sedy] Student school doc written ✓');
-  } catch(e) {
-    console.error('[Sedy] Failed writing student school doc:', e);
-    throw e;
-  }
-
-  try {
-    await fb.setDoc(fb.doc(fb.db,'schools',_wizData.teacherKey), { ...schoolDoc, keyType:'teacher', schoolCode: _wizData.teacherKey });
-    console.log('[Sedy] Teacher school doc written ✓');
-  } catch(e) {
-    console.error('[Sedy] Failed writing teacher school doc:', e);
-    throw e;
-  }
+  await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey), { ...schoolDoc, keyType:'student', schoolCode: _wizData.studentKey });
+  await fb.setDoc(fb.doc(fb.db,'schools',_wizData.teacherKey), { ...schoolDoc, keyType:'teacher', schoolCode: _wizData.teacherKey });
 
   // Create classRooms sub-collections
   for (const cls of classesArr) {
-    try {
-      await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey,'classRooms',cls.id), { classId: cls.id, name: cls.name, createdAt: Date.now() });
-      console.log('[Sedy] classRoom written:', cls.id, '✓');
-    } catch(e) {
-      console.warn('[Sedy] Failed writing classRoom:', cls.id, e);
-      // Non-fatal — continue even if a classroom sub-doc fails
-    }
+    await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey,'classRooms',cls.id), { classId: cls.id, name: cls.name, createdAt: Date.now() });
   }
 
   // Set global state BEFORE returning — this is what openClassroom() checks
@@ -8292,13 +8341,7 @@ async function _wizCreateSchool() {
 
   // Persist to profile
   _userProfile = { ...(_userProfile||{}), schoolCode: _wizData.studentKey, schoolName: _wizData.schoolName, schoolRole: 'principal' };
-  try {
-    await fb.setDoc(fb.doc(fb.db,'users',_currentUser.uid,'profile','data'), _userProfile);
-    console.log('[Sedy] User profile updated ✓');
-  } catch(e) {
-    console.warn('[Sedy] Failed updating user profile:', e);
-    // Non-fatal — school was created, profile update can be retried
-  }
+  await fb.setDoc(fb.doc(fb.db,'users',_currentUser.uid,'profile','data'), _userProfile);
 
   // Update sidebar label
   _crUpdateSidebarBtn();
@@ -8935,6 +8978,10 @@ authInit();
       <div class="cr-topbar-title" id="cr-topbar-title">Sedy Classroom</div>
     </div>
     <div class="cr-school-badge" id="cr-school-badge"></div>
+    <!-- Home button in classroom — takes user back to a fresh chat -->
+    <button class="home-btn" onclick="goHome()" title="New Chat — go to home" style="margin-left:6px;">
+      <span class="home-icon">🏠</span><span>Home</span>
+    </button>
   </div>
 
   <!-- Content area (changes between: class list, room, principal dashboard) -->

@@ -7555,13 +7555,21 @@ function _crRenderSubjects(container) {
     return subjectIcons.default;
   }
 
+  // Subject teachers only see their own subjects
+  const myName = _userProfile?.name || '';
+  const isSubjectTeacher = _userSchoolRole === 'teacher';
+  const visibleSubs = isSubjectTeacher
+    ? subs.filter(s => (s.teacher || '') === myName)
+    : subs;
+
   container.innerHTML = `
     <div class="cr-pane active">
       <div class="cr-pane-header">
-        <div><div class="cr-pane-title">📚 Subjects</div><div class="cr-pane-sub">Tap a subject to see notes</div></div>
+        <div><div class="cr-pane-title">📚 Subjects</div>
+        <div class="cr-pane-sub">${isSubjectTeacher ? 'Your assigned subjects' : 'Tap a subject to open'}</div></div>
       </div>
       <div class="cr-subjects-grid" id="cr-subjects-grid">
-        ${subs.length ? subs.map(s => {
+        ${visibleSubs.length ? visibleSubs.map(s => {
           const name = s.name || s;
           const teacher = s.teacher || '';
           return `<div class="cr-subject-card" onclick="crOpenSubject(${JSON.stringify({name,teacher}).replace(/"/g,'&quot;')})">
@@ -7570,12 +7578,12 @@ function _crRenderSubjects(container) {
             ${teacher ? `<div class="cr-subject-teacher">👤 ${_esc(teacher)}</div>` : ''}
             <div class="cr-subject-notes-count" id="sub-notes-${btoa(name).replace(/=/g,'')}">📎 Loading…</div>
           </div>`;
-        }).join('') : '<div style="padding:30px;text-align:center;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No subjects found for this class.</div>'}
+        }).join('') : `<div style="padding:30px;text-align:center;color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;">${isSubjectTeacher ? 'No subjects assigned to you in this class.' : 'No subjects found for this class.'}</div>`}
       </div>
     </div>`;
 
   // Load notes count per subject
-  subs.forEach(async s => {
+  visibleSubs.forEach(async s => {
     const name = s.name || s;
     const key = btoa(name).replace(/=/g,'');
     try {
@@ -7600,25 +7608,60 @@ async function _crRenderSubjectDetail(sub) {
   const isPrincipal = _userSchoolRole === 'principal';
   const isTeacher = isOwnTeacher; // keep for downstream compat
 
-  content.innerHTML = `
-    <div class="cr-pane active">
-      <div class="cr-pane-header" style="flex-direction:column;align-items:flex-start;gap:6px;">
-        <button class="cr-note-detail-back" onclick="_crCurrentSubject=null;crSwitchTab('subjects')">← Subjects</button>
-        <div class="cr-pane-title">📚 ${_esc(sub.name)}</div>
-        ${sub.teacher ? `<div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">👨‍🏫 ${_esc(sub.teacher)}</div>` : ''}
-      </div>
-      ${isOwnTeacher ? `<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--bg2);">
-        <label class="cr-upload-btn" for="cr-note-upload" style="cursor:pointer;">📎 Upload Note</label>
-        <input type="file" id="cr-note-upload" accept=".pdf,image/*,.docx,.txt" style="display:none" onchange="crUploadNote(this,'${_esc(sub.name)}')">
-        <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">PDF, image, doc</span>
-      </div>` : !isPrincipal && _userSchoolRole === 'teacher' ? `<div style="padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2);">
-        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">🔒 Only ${_esc(sub.teacher||'the assigned teacher')} can upload notes here.</div>
-      </div>` : ''}
-      <div class="cr-pane-scroll" id="cr-notes-list">
-        <div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;">Loading notes…</div>
-      </div>
-    </div>`;
-  _crLoadNotesList(sub.name);
+  let _subTab = 'notes'; // 'notes' | 'doubts'
+
+  function _renderSubjectPanel() {
+    content.innerHTML = `
+      <div class="cr-pane active">
+        <div class="cr-pane-header" style="flex-direction:column;align-items:flex-start;gap:4px;padding-bottom:0;">
+          <button class="cr-note-detail-back" onclick="_crCurrentSubject=null;crSwitchTab('subjects')">← Subjects</button>
+          <div style="display:flex;align-items:center;gap:10px;width:100%;">
+            <div class="cr-pane-title" style="margin:0;">📚 ${_esc(sub.name)}</div>
+            ${sub.teacher ? `<div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-left:auto;">👨‍🏫 ${_esc(sub.teacher)}</div>` : ''}
+          </div>
+          <div style="display:flex;gap:0;margin-top:8px;width:100%;border-bottom:1px solid var(--border);">
+            <button onclick="window._subTabSwitch('notes')" id="sub-tab-notes"
+              style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid ${_subTab==='notes'?'var(--accent2)':'transparent'};
+              color:${_subTab==='notes'?'var(--accent2)':'var(--text3)'};font-size:12px;font-weight:700;cursor:pointer;font-family:\'Syne\',sans-serif;">📎 Notes</button>
+            <button onclick="window._subTabSwitch('doubts')" id="sub-tab-doubts"
+              style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid ${_subTab==='doubts'?'var(--accent2)':'transparent'};
+              color:${_subTab==='doubts'?'var(--accent2)':'var(--text3)'};font-size:12px;font-weight:700;cursor:pointer;font-family:\'Syne\',sans-serif;">❓ Doubts</button>
+          </div>
+        </div>
+        ${_subTab === 'notes' ? `
+          ${isOwnTeacher ? `<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--bg2);">
+            <label class="cr-upload-btn" for="cr-note-upload" style="cursor:pointer;">📎 Upload Note</label>
+            <input type="file" id="cr-note-upload" accept=".pdf,image/*,.docx,.txt" style="display:none" onchange="crUploadNote(this,'${_esc(sub.name)}')">
+            <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">PDF, image, doc</span>
+          </div>` : ''}
+          <div class="cr-pane-scroll" id="cr-notes-list">
+            <div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;padding:16px;">Loading notes…</div>
+          </div>` : `
+          <div class="cr-pane-scroll" id="cr-sub-doubts-list">
+            <div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;padding:16px;">Loading doubts…</div>
+          </div>
+          ${!isOwnTeacher && _userSchoolRole !== 'principal' ? `
+          <div class="cr-doubt-send-row">
+            <input class="cr-chat-input" id="cr-sub-doubt-input" placeholder="Ask a doubt about ${_esc(sub.name)}…"
+              onkeydown="if(event.key==='Enter')crSendSubjectDoubt('${_esc(sub.name)}')">
+            <button class="cr-send-btn" onclick="crSendSubjectDoubt('${_esc(sub.name)}')">➤</button>
+          </div>` : ''}
+        `}
+      </div>`;
+
+    window._subTabSwitch = (t) => { _subTab = t; _renderSubjectPanel(); _loadSubjectTabData(); };
+    _loadSubjectTabData();
+  }
+
+  function _loadSubjectTabData() {
+    if (_subTab === 'notes') {
+      _crLoadNotesList(sub.name);
+    } else {
+      _crLoadSubjectDoubts(sub.name, isOwnTeacher);
+    }
+  }
+
+  _renderSubjectPanel();
 }
 
 async function _crLoadNotesList(subjectName) {
@@ -7694,6 +7737,75 @@ async function crAskNote() {
   } catch(e) { loadDiv.remove(); }
 }
 
+async function _crLoadSubjectDoubts(subjectName, isTeacher) {
+  const fb = window._fb;
+  const list = document.getElementById('cr-sub-doubts-list');
+  if (!list || !fb) return;
+  try {
+    const snap = await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'doubts'));
+    const doubts = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(d => d.subject === subjectName)
+      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    if (!doubts.length) {
+      list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No doubts yet for this subject.</div>';
+      return;
+    }
+    list.innerHTML = doubts.map(d => `
+      <div class="cr-doubt-item">
+        <div class="cr-doubt-q">${_esc(d.question||'')}</div>
+        <div class="cr-doubt-meta">
+          <span>${_esc(d.askedBy||'')}</span>
+          <span>·</span><span>${d.createdAt?new Date(d.createdAt).toLocaleDateString():''}</span>
+        </div>
+        ${d.aiAnswer?`<div class="cr-doubt-ai-answer">✦ ${_esc(d.aiAnswer)}</div>`:''}
+        ${d.teacherReply?`<div class="cr-doubt-teacher-reply"><div class="cr-doubt-reply-label">Teacher Reply</div>${_esc(d.teacherReply)}</div>`:''}
+        ${isTeacher&&!d.teacherReply?`<div style="display:flex;gap:6px;margin-top:8px;">
+          <input class="cr-chat-input" style="flex:1;" placeholder="Reply to this doubt…" id="dr-${d.id}">
+          <button class="cr-send-btn" onclick="crReplySubjectDoubt('${d.id}',document.getElementById('dr-${d.id}').value)">➤</button>
+        </div>`:''}
+      </div>`).join('');
+  } catch(e) { list.innerHTML = '<div style="color:var(--danger);font-size:12px;padding:16px;">Could not load doubts.</div>'; }
+}
+
+async function crSendSubjectDoubt(subjectName) {
+  const input = document.getElementById('cr-sub-doubt-input');
+  if (!input) return;
+  const question = input.value.trim();
+  if (!question) return;
+  input.value = '';
+  const fb = window._fb;
+  if (!fb || !_currentUser) return;
+
+  // Get AI answer
+  let aiAnswer = '';
+  try {
+    const res = await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:question,history:[],systemPrompt:`You are helping a student in class ${_crCurrentClass.name} with subject ${subjectName}. Give a clear, concise educational answer.`,model:'auto'})});
+    const data = await res.json();
+    aiAnswer = data.reply || '';
+  } catch(e) {}
+
+  const doubtId = 'doubt_'+Date.now();
+  await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'doubts',doubtId),{
+    id:doubtId, question,
+    subject: subjectName,
+    askedBy: _userProfile?.name||'Student',
+    askedByUid: _currentUser.uid,
+    aiAnswer,
+    createdAt: Date.now()
+  }).catch(()=>{});
+  _crLoadSubjectDoubts(subjectName, false);
+}
+
+async function crReplySubjectDoubt(doubtId, reply) {
+  if (!reply?.trim()) return;
+  const fb = window._fb;
+  if (!fb) return;
+  await fb.updateDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'doubts',doubtId),
+    {teacherReply: reply.trim()}).catch(()=>{});
+  // Refresh
+  if (_crCurrentSubject) _crLoadSubjectDoubts(_crCurrentSubject.name, true);
+}
+
 async function crUploadNote(input, subjectName) {
   const file = input.files[0];
   if (!file) return;
@@ -7760,14 +7872,25 @@ function _crListenRoomChat() {
   if (!fb || !_crCurrentClass) return;
   if (_crRoomUnsubscribe) { _crRoomUnsubscribe(); _crRoomUnsubscribe = null; }
 
+  const _renderedMsgIds = new Set();
   const chatRef = fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'chat');
-  const q = fb.query(chatRef, fb.orderBy('createdAt','asc'), fb.limit(100));
+  const q = fb.query(chatRef, fb.orderBy('createdAt','asc'), fb.limit(200));
   _crRoomUnsubscribe = fb.onSnapshot(q, snap => {
     const msgs = document.getElementById('cr-room-messages');
     if (!msgs) { _crRoomUnsubscribe && _crRoomUnsubscribe(); return; }
-    msgs.innerHTML = '';
-    snap.forEach(d => _crAppendRoomMsg(msgs, {id:d.id,...d.data()}));
-    msgs.scrollTop = msgs.scrollHeight;
+    let hasNew = false;
+    const atBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 60;
+    snap.docChanges().forEach(change => {
+      if (change.type === 'added') {
+        const msg = {id: change.doc.id, ...change.doc.data()};
+        if (!_renderedMsgIds.has(msg.id)) {
+          _renderedMsgIds.add(msg.id);
+          _crAppendRoomMsg(msgs, msg);
+          hasNew = true;
+        }
+      }
+    });
+    if (hasNew && atBottom) msgs.scrollTop = msgs.scrollHeight;
   }, err => console.warn('CR chat listen error', err));
   _crRoomListeners.push(_crRoomUnsubscribe);
 }
@@ -7778,14 +7901,21 @@ function _crAppendRoomMsg(container, msg) {
   const tagLabel = msg.role === 'principal' ? 'Principal' : msg.isClassTeacher ? 'Class Teacher' : msg.teacherSubject ? msg.teacherSubject+' Teacher' : '';
   const time = msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
 
+  // Group consecutive messages from same sender (no repeated avatar/name)
+  const lastDiv = container.lastElementChild;
+  const lastUid = lastDiv?.dataset?.uid;
+  const showHeader = !isMe && (lastUid !== msg.senderUid);
+
   const div = document.createElement('div');
   div.className = 'cr-room-msg' + (isMe ? ' me' : '');
+  div.dataset.uid = msg.senderUid;
+  div.dataset.id  = msg.id;
   div.innerHTML = `
-    ${!isMe ? `<div class="cr-room-avatar">${(msg.senderName||'?')[0].toUpperCase()}</div>` : ''}
+    ${!isMe ? `<div class="cr-room-avatar" style="${!showHeader ? 'visibility:hidden;' : ''}">${(msg.senderName||'?')[0].toUpperCase()}</div>` : ''}
     <div class="cr-room-bubble-wrap">
-      ${!isMe ? `<div class="cr-room-sender">${_esc(msg.senderName||'Unknown')}${tagLabel?`<span class="cr-room-tag ${tag}">${_esc(tagLabel)}</span>`:''}</div>` : ''}
+      ${showHeader ? `<div class="cr-room-sender">${_esc(msg.senderName||'Unknown')}${tagLabel?`<span class="cr-room-tag ${tag}">${_esc(tagLabel)}</span>`:''}</div>` : ''}
       <div class="cr-room-bubble">${_esc(msg.text||'')}</div>
-      <div class="cr-room-time">${time}</div>
+      <div class="cr-room-time">${time}${isMe ? ' ✓✓' : ''}</div>
     </div>`;
   container.appendChild(div);
 }
@@ -8099,7 +8229,7 @@ async function _crShowPrincipalDashboard() {
         tchEl.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No teachers set up yet.</div>';
       } else {
         tchEl.innerHTML = allTeachers.map(t => {
-          const name = t.name || t;
+          const name = (typeof t === 'string') ? t : (t.name || String(t));
           const hasJoined = joinedTeacherNames.includes(name);
           const joinedObj = joinedTeachers.find(j => j.name === name);
           const lastSeen = joinedObj?.lastSeen ? new Date(joinedObj.lastSeen).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : null;
@@ -8110,7 +8240,7 @@ async function _crShowPrincipalDashboard() {
             </div>
             <div style="flex:1;min-width:0;">
               <div class="cr-teacher-name">${_esc(name)}</div>
-              <div class="cr-teacher-status">${(t.subjects||[]).join(', ')||'—'}</div>
+              <div class="cr-teacher-status">${(typeof t === 'string' ? [] : (t.subjects||[])).join(', ')||'—'}</div>
               ${lastSeen ? `<div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;">Last seen: ${lastSeen}</div>` : ''}
             </div>
             <div class="cr-joined-badge ${hasJoined?'yes':'no'}">${hasJoined?'Joined':'Pending'}</div>

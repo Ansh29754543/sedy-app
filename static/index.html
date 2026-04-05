@@ -7499,7 +7499,6 @@ function _crRenderRoom() {
         <button class="cr-sidenav-btn" id="cr-tab-doubts" onclick="crSwitchTab('doubts')" title="Doubts" style="position:relative;">❓</button>
         <button class="cr-sidenav-btn" id="cr-tab-notes" onclick="crSwitchTab('notes')" title="Notes" style="position:relative;">📄</button>
         <button class="cr-sidenav-btn" id="cr-tab-announce" onclick="crSwitchTab('announce')" title="Announcements" style="position:relative;">📢</button>
-        ${isStudent ? `<button class="cr-sidenav-btn" id="cr-tab-whiteboard" onclick="crSwitchTab('whiteboard')" title="Whiteboard" style="position:relative;">🖊️</button>` : ''}
       </div>
       <div class="cr-content" id="cr-room-content"></div>
     </div>`;
@@ -7514,43 +7513,34 @@ function _crStartBadgeListeners() {
   _crBadgeUnsubs = [];
   const fb = window._fb;
   if (!fb || !_crCurrentClass?.id) return;
-  const base = ['schools', _userSchoolCode, 'classRooms', _crCurrentClass.id];
+  const sc = _userSchoolCode;
+  const cl = _crCurrentClass.id;
 
-  // Chat listener
-  const chatRef = fb.collection(fb.db, ...base, 'chat');
-  const chatQ = fb.query(chatRef, fb.orderBy('createdAt','desc'), fb.limit(1));
-  let _chatInit = true;
-  _crBadgeUnsubs.push(fb.onSnapshot(chatQ, snap => {
-    if (_chatInit) { _chatInit = false; return; }
-    snap.docChanges().forEach(c => { if (c.type==='added') _crBadgeIncrement('chat'); });
-  }, ()=>{}));
+  // Helper: watch a sub-collection, skip initial snapshot, fire badge on new docs (and modified for doubts)
+  function _watch(subCol, tab, onChangeFn) {
+    let inited = false;
+    const ref = fb.collection(fb.db, 'schools', sc, 'classRooms', cl, subCol);
+    const unsub = fb.onSnapshot(ref, snap => {
+      if (!inited) { inited = true; return; } // skip the first load
+      snap.docChanges().forEach(change => onChangeFn(change));
+    }, () => {});
+    _crBadgeUnsubs.push(unsub);
+  }
 
-  // Doubts
-  const doubtRef = fb.collection(fb.db, ...base, 'doubts');
-  let _doubtInit = true;
-  _crBadgeUnsubs.push(fb.onSnapshot(doubtRef, snap => {
-    if (_doubtInit) { _doubtInit = false; return; }
-    snap.docChanges().forEach(c => {
-      if (c.type === 'added') _crBadgeIncrement('doubts');
-      if (c.type === 'modified' && c.doc.data().teacherReply) _crBadgeIncrement('doubts');
-    });
-  }, ()=>{}));
+  // Chat — badge on every new message
+  _watch('chat', 'chat', c => { if (c.type === 'added') _crBadgeIncrement('chat'); });
 
-  // Notes
-  const notesRef = fb.collection(fb.db, ...base, 'notes');
-  let _notesInit = true;
-  _crBadgeUnsubs.push(fb.onSnapshot(notesRef, snap => {
-    if (_notesInit) { _notesInit = false; return; }
-    snap.docChanges().forEach(c => { if (c.type==='added') _crBadgeIncrement('notes'); });
-  }, ()=>{}));
+  // Doubts — badge on new doubt OR when a teacher reply appears
+  _watch('doubts', 'doubts', c => {
+    if (c.type === 'added') _crBadgeIncrement('doubts');
+    if (c.type === 'modified' && c.doc.data().teacherReply) _crBadgeIncrement('doubts');
+  });
 
-  // Announcements
-  const annRef = fb.collection(fb.db, ...base, 'announcements');
-  let _annInit = true;
-  _crBadgeUnsubs.push(fb.onSnapshot(annRef, snap => {
-    if (_annInit) { _annInit = false; return; }
-    snap.docChanges().forEach(c => { if (c.type==='added') _crBadgeIncrement('announce'); });
-  }, ()=>{}));
+  // Notes — badge on new note
+  _watch('notes', 'notes', c => { if (c.type === 'added') _crBadgeIncrement('notes'); });
+
+  // Announcements — badge on new announcement
+  _watch('announcements', 'announce', c => { if (c.type === 'added') _crBadgeIncrement('announce'); });
 }
 
 function crSwitchTab(tab) {
@@ -7559,7 +7549,7 @@ function crSwitchTab(tab) {
   _crCurrentNote = null;
   _crBadgeClear(tab);
   // Update nav
-  ['chat','subjects','room','doubts','notes','announce','whiteboard'].forEach(t => {
+  ['chat','subjects','room','doubts','notes','announce'].forEach(t => {
     document.getElementById('cr-tab-'+t)?.classList.toggle('active', t === tab);
   });
   _crRenderTab(tab);
@@ -7577,7 +7567,6 @@ function _crRenderTab(tab) {
   else if (tab === 'doubts') _crRenderDoubts(content);
   else if (tab === 'notes') _crRenderNotes(content);
   else if (tab === 'announce') _crRenderAnnouncements(content);
-  else if (tab === 'whiteboard') _crRenderWhiteboard(content);
 }
 
 // ── Sedy Chat (private AI per student) ──
@@ -7934,56 +7923,120 @@ async function crReplySubjectDoubt(doubtId, reply) {
 async function crUploadNote(input, subjectName) {
   const file = input.files[0];
   if (!file) return;
-  const fb = window._fb;
-  if (!fb) return;
   input.value = '';
+
+  // Show uploading status inline — find the best status element
+  const statusId = 'cr-upload-status-' + Date.now();
+  const uploadBtn = document.querySelector('.cr-upload-btn') || document.querySelector('label[for="cr-note-upload"]') || document.querySelector('label[for="cr-notes-upload"]');
+  const statusEl = document.createElement('div');
+  statusEl.id = statusId;
+  statusEl.style.cssText = 'font-size:11px;color:var(--accent2);font-family:\'DM Mono\',monospace;padding:4px 0;';
+  statusEl.textContent = '⏳ Uploading…';
+  if (uploadBtn?.parentNode) uploadBtn.parentNode.appendChild(statusEl);
+
+  function setStatus(msg, isErr) {
+    const el = document.getElementById(statusId);
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = isErr ? 'var(--danger)' : 'var(--accent3)';
+    if (!isErr) setTimeout(() => el.remove(), 3000);
+  }
+
+  const fb = window._fb;
+  if (!fb) { setStatus('❌ Not connected.', true); return; }
 
   const title = file.name.replace(/\.[^/.]+$/, '');
   const noteId = 'note_' + Date.now();
 
-  // Read file as ArrayBuffer (needed for both Storage upload and AI)
-  const ab = await new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = e => res(e.target.result);
-    r.onerror = () => rej(new Error('Read failed'));
-    r.readAsArrayBuffer(file);
-  });
+  // Read file as ArrayBuffer
+  let ab;
+  try {
+    ab = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = e => res(e.target.result);
+      r.onerror = () => rej(new Error('Could not read file'));
+      r.readAsArrayBuffer(file);
+    });
+  } catch(e) {
+    setStatus('❌ Could not read file: ' + e.message, true);
+    return;
+  }
 
-  // 1. Upload file to Firebase Storage and get a download URL
+  // 1. Upload to Firebase Storage
+  setStatus('⏳ Uploading file…');
   let fileUrl = '';
   try {
     const path = `schools/${_userSchoolCode}/notes/${noteId}_${file.name}`;
-    const ref  = fb.storageRef(fb.storage, path);
+    const ref = fb.storageRef(fb.storage, path);
     await fb.uploadBytes(ref, ab, { contentType: file.type });
     fileUrl = await fb.getDownloadURL(ref);
-  } catch(err) { console.warn('Storage upload failed, saving without file URL:', err); }
+    setStatus('✅ File uploaded. Getting AI summary…');
+  } catch(err) {
+    console.warn('Storage upload failed:', err);
+    // Don't abort — save note without file URL so at least metadata is stored
+    setStatus('⚠️ File storage failed, saving note info only…');
+  }
 
-  // 2. Get AI summary — send actual file content to the correct endpoint
-  const base64ForAI = btoa(new Uint8Array(ab).reduce((d,b)=>d+String.fromCharCode(b),''));
+  // 2. AI summary — safe base64 using chunked approach to avoid stack overflow on large files
   let summary = '';
   try {
-    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-    const endpoint = isPdf ? '/pdf-chat' : '/chat';
-    const body = isPdf
-      ? JSON.stringify({message:'Summarise this document in 2-3 sentences for students.',pdf_base64:base64ForAI,pdf_name:file.name,history:[],model:'auto'})
-      : JSON.stringify({message:`Summarise this study note titled "${title}" in 2-3 sentences for students.`,history:[],systemPrompt:'You are summarising a study note. Be concise.',model:'auto'});
-    const res = await fetch(API_URL+endpoint, {method:'POST', headers:{'Content-Type':'application/json'}, body});
-    const data = await res.json();
-    summary = data.reply || '';
-  } catch(e) {}
+    const bytes = new Uint8Array(ab);
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    const base64ForAI = btoa(binary);
 
-  // 3. Save note metadata to Firestore
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    const isTxt = file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt');
+
+    let body;
+    if (isPdf) {
+      body = JSON.stringify({ message: 'Summarise this document in 2-3 sentences for students.', pdf_base64: base64ForAI, pdf_name: file.name, history: [], model: 'auto' });
+    } else if (isTxt) {
+      // For text files, decode and send as message content
+      const textContent = new TextDecoder().decode(ab).slice(0, 4000);
+      body = JSON.stringify({ message: `Summarise this study note titled "${title}" in 2-3 sentences:\n\n${textContent}`, history: [], systemPrompt: 'You are summarising a study note. Be concise.', model: 'auto' });
+    } else {
+      body = JSON.stringify({ message: `Summarise this study note titled "${title}" in 2-3 sentences for students.`, history: [], systemPrompt: 'You are summarising a study note. Be concise.', model: 'auto' });
+    }
+
+    const endpoint = isPdf ? '/pdf-chat' : '/chat';
+    const res = await fetch(API_URL + endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+    if (res.ok) {
+      const data = await res.json();
+      summary = data.reply || '';
+    }
+  } catch(e) {
+    console.warn('AI summary failed:', e);
+    // No summary is fine — note still saves
+  }
+
+  // 3. Save to Firestore
   const noteData = {
-    id: noteId, title,
+    id: noteId,
+    title,
     subject: subjectName,
     uploadedBy: _userProfile?.name || '',
-    summary, fileUrl,
+    summary,
+    fileUrl,
     createdAt: Date.now()
   };
+
   try {
-    await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'notes',noteId), noteData);
-    _crLoadNotesList(subjectName);
-  } catch(err) { console.error('Save note to Firestore failed:', err); }
+    await fb.setDoc(fb.doc(fb.db, 'schools', _userSchoolCode, 'classRooms', _crCurrentClass.id, 'notes', noteId), noteData);
+    setStatus('✅ Note saved!');
+    // Reload the right list depending on which tab/view we're in
+    if (document.getElementById('cr-notes-list')) {
+      _crLoadNotesList(subjectName);
+    } else if (document.getElementById('cr-all-notes-list')) {
+      _crLoadAllNotes();
+    }
+  } catch(err) {
+    console.error('Firestore save failed:', err);
+    setStatus('❌ Save failed: ' + (err.message || 'Check console'), true);
+  }
 }
 
 // ── Class Chat (Sedy Room) ──
@@ -8523,161 +8576,6 @@ async function crBroadcastAnnouncement() {
 // ══════════════════════════════════════════════════════
 // WHITEBOARD (students only)
 // ══════════════════════════════════════════════════════
-function _crRenderWhiteboard(container) {
-  if (_userSchoolRole !== 'student') {
-    container.innerHTML = `<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;font-family:'DM Mono',monospace;">Whiteboard is for students only.</div>`;
-    return;
-  }
-  container.innerHTML = `
-    <div class="cr-pane active" style="padding:0;display:flex;flex-direction:column;height:100%;">
-      <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;">
-        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--text);flex:1;">🖊️ Whiteboard</div>
-        <!-- Tool buttons -->
-        <button id="wb-tool-pen" onclick="wbSetTool('pen')" title="Pen" style="padding:6px 10px;border-radius:8px;border:1px solid var(--accent2);background:rgba(124,92,252,.15);color:var(--accent2);cursor:pointer;font-size:14px;">✏️</button>
-        <button id="wb-tool-eraser" onclick="wbSetTool('eraser')" title="Eraser" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-size:14px;">🧹</button>
-        <button id="wb-tool-line" onclick="wbSetTool('line')" title="Line" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-size:14px;">╱</button>
-        <button id="wb-tool-rect" onclick="wbSetTool('rect')" title="Rectangle" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-size:14px;">▭</button>
-        <button id="wb-tool-circle" onclick="wbSetTool('circle')" title="Circle" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-size:14px;">○</button>
-        <!-- Color picker -->
-        <input type="color" id="wb-color" value="#7c5cfc" title="Color" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);cursor:pointer;padding:2px;background:none;" onchange="wbSetColor(this.value)">
-        <!-- Stroke width -->
-        <select id="wb-size" onchange="wbSetSize(this.value)" style="background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:5px 8px;color:var(--text);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;">
-          <option value="2">Thin</option>
-          <option value="4" selected>Normal</option>
-          <option value="8">Thick</option>
-          <option value="16">Bold</option>
-        </select>
-        <button onclick="wbUndo()" title="Undo" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-size:13px;">↩</button>
-        <button onclick="wbClear()" title="Clear" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(255,79,106,.3);background:rgba(255,79,106,.08);color:#ff4f6a;cursor:pointer;font-size:13px;">🗑</button>
-        <button onclick="wbSave()" title="Save as image" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(0,229,192,.3);background:rgba(0,229,192,.08);color:var(--accent3);cursor:pointer;font-size:13px;">💾</button>
-      </div>
-      <div style="flex:1;overflow:hidden;position:relative;background:#fff;" id="wb-canvas-wrap">
-        <canvas id="wb-canvas" style="display:block;touch-action:none;cursor:crosshair;"></canvas>
-      </div>
-    </div>`;
-
-  // Init canvas
-  requestAnimationFrame(() => {
-    const wrap = document.getElementById('wb-canvas-wrap');
-    const canvas = document.getElementById('wb-canvas');
-    if (!canvas || !wrap) return;
-    canvas.width  = wrap.offsetWidth;
-    canvas.height = wrap.offsetHeight;
-    _wbInit(canvas);
-  });
-}
-
-// Whiteboard state
-let _wbTool = 'pen', _wbColor = '#7c5cfc', _wbSize = 4;
-let _wbDrawing = false, _wbStartX = 0, _wbStartY = 0;
-let _wbHistory = []; // snapshots for undo
-let _wbCtx = null, _wbCanvas = null;
-
-function _wbInit(canvas) {
-  _wbCanvas = canvas;
-  _wbCtx = canvas.getContext('2d');
-  _wbCtx.fillStyle = '#ffffff';
-  _wbCtx.fillRect(0, 0, canvas.width, canvas.height);
-  _wbHistory = [_wbCtx.getImageData(0, 0, canvas.width, canvas.height)];
-
-  function getPos(e) {
-    const r = canvas.getBoundingClientRect();
-    const src = e.touches ? e.touches[0] : e;
-    return { x: src.clientX - r.left, y: src.clientY - r.top };
-  }
-
-  canvas.addEventListener('pointerdown', e => {
-    _wbDrawing = true;
-    const p = getPos(e);
-    _wbStartX = p.x; _wbStartY = p.y;
-    _wbCtx.beginPath();
-    _wbCtx.moveTo(p.x, p.y);
-    if (_wbTool === 'pen' || _wbTool === 'eraser') {
-      _wbCtx.strokeStyle = _wbTool === 'eraser' ? '#ffffff' : _wbColor;
-      _wbCtx.lineWidth = _wbTool === 'eraser' ? _wbSize * 4 : _wbSize;
-      _wbCtx.lineCap = 'round';
-      _wbCtx.lineJoin = 'round';
-    }
-    e.preventDefault();
-  });
-
-  canvas.addEventListener('pointermove', e => {
-    if (!_wbDrawing) return;
-    const p = getPos(e);
-    if (_wbTool === 'pen' || _wbTool === 'eraser') {
-      _wbCtx.lineTo(p.x, p.y);
-      _wbCtx.stroke();
-    } else {
-      // Restore snapshot to preview shape
-      if (_wbHistory.length) _wbCtx.putImageData(_wbHistory[_wbHistory.length-1], 0, 0);
-      _wbDrawShape(p.x, p.y);
-    }
-    e.preventDefault();
-  });
-
-  canvas.addEventListener('pointerup', e => {
-    if (!_wbDrawing) return;
-    _wbDrawing = false;
-    const p = getPos(e);
-    if (_wbTool !== 'pen' && _wbTool !== 'eraser') {
-      if (_wbHistory.length) _wbCtx.putImageData(_wbHistory[_wbHistory.length-1], 0, 0);
-      _wbDrawShape(p.x, p.y);
-    }
-    _wbHistory.push(_wbCtx.getImageData(0, 0, _wbCanvas.width, _wbCanvas.height));
-    if (_wbHistory.length > 30) _wbHistory.shift();
-  });
-}
-
-function _wbDrawShape(ex, ey) {
-  const ctx = _wbCtx;
-  ctx.strokeStyle = _wbColor;
-  ctx.lineWidth = _wbSize;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  if (_wbTool === 'line') {
-    ctx.moveTo(_wbStartX, _wbStartY);
-    ctx.lineTo(ex, ey);
-    ctx.stroke();
-  } else if (_wbTool === 'rect') {
-    ctx.strokeRect(_wbStartX, _wbStartY, ex - _wbStartX, ey - _wbStartY);
-  } else if (_wbTool === 'circle') {
-    const rx = Math.abs(ex - _wbStartX) / 2, ry = Math.abs(ey - _wbStartY) / 2;
-    const cx = _wbStartX + (ex - _wbStartX) / 2, cy = _wbStartY + (ey - _wbStartY) / 2;
-    ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
-    ctx.stroke();
-  }
-}
-
-function wbSetTool(t) {
-  _wbTool = t;
-  ['pen','eraser','line','rect','circle'].forEach(id => {
-    const btn = document.getElementById('wb-tool-'+id);
-    if (!btn) return;
-    if (id === t) { btn.style.background = 'rgba(124,92,252,.15)'; btn.style.borderColor = 'var(--accent2)'; btn.style.color = 'var(--accent2)'; }
-    else { btn.style.background = 'none'; btn.style.borderColor = 'var(--border2)'; btn.style.color = 'var(--text2)'; }
-  });
-}
-function wbSetColor(c) { _wbColor = c; }
-function wbSetSize(s) { _wbSize = parseInt(s); }
-function wbUndo() {
-  if (!_wbCtx || _wbHistory.length < 2) return;
-  _wbHistory.pop();
-  _wbCtx.putImageData(_wbHistory[_wbHistory.length-1], 0, 0);
-}
-function wbClear() {
-  if (!_wbCtx || !_wbCanvas) return;
-  _wbCtx.fillStyle = '#ffffff';
-  _wbCtx.fillRect(0, 0, _wbCanvas.width, _wbCanvas.height);
-  _wbHistory = [_wbCtx.getImageData(0, 0, _wbCanvas.width, _wbCanvas.height)];
-}
-function wbSave() {
-  if (!_wbCanvas) return;
-  const a = document.createElement('a');
-  a.href = _wbCanvas.toDataURL('image/png');
-  a.download = 'whiteboard.png';
-  a.click();
-}
-
 // ══════════════════════════════════════════════════════
 // PRINCIPAL ANALYTICS PANEL
 // ══════════════════════════════════════════════════════

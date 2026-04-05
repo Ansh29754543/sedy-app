@@ -6317,7 +6317,12 @@ async function obNext() {
         _obData._schoolRole = role.toLowerCase();
         if (btn) { btn.disabled = false; }
       } catch(e) {
-        if (errEl) { errEl.textContent = 'Connection error. Try again.'; errEl.style.display = 'block'; }
+        console.error('[Sedy] School key verification failed:', e);
+        if (e.code === 'permission-denied') {
+          if (errEl) { errEl.textContent = '❌ Firebase permission denied. Ask your admin to update security rules.'; errEl.style.display = 'block'; }
+        } else {
+          if (errEl) { errEl.textContent = 'Connection error. Check your internet and try again.'; errEl.style.display = 'block'; }
+        }
         if (btn) { btn.disabled = false; btn.textContent = "Let's go 🚀"; }
         return;
       }
@@ -8191,7 +8196,14 @@ async function wizardNext() {
       await _wizCreateSchool();
     } catch(e) {
       if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Confirm & Create'; }
-      alert('Failed to create school. Please check your connection.');
+      console.error('School creation failed:', e);
+      if (e.code === 'permission-denied') {
+        alert('Permission denied by Firebase. Please make sure you are signed in and your Firebase Firestore security rules allow writes to the "schools" collection. See the browser console for details.');
+      } else if (e.code === 'unavailable' || (e.message && e.message.toLowerCase().includes('network'))) {
+        alert('Network error. Please check your internet connection and try again.');
+      } else {
+        alert('Failed to create school: ' + (e.message || 'Unknown error. Open the browser console (F12) for details.'));
+      }
       return;
     }
     _wizStep = 5;
@@ -8209,40 +8221,67 @@ function wizardBack() {
 
 async function _wizCreateSchool() {
   const fb = window._fb;
-  if (!fb || !_currentUser) throw new Error('Not authenticated');
+  if (!fb) throw new Error('Firebase not ready. Please refresh the page.');
+  if (!_currentUser) throw new Error('Not signed in. Please sign in and try again.');
 
   _wizData.studentKey = _wizGenKey('SEDY-S');
   _wizData.teacherKey = _wizGenKey('SEDY-T');
 
   // Build classes array with subjects
-  const classesArr = _wizData.classes.map(cls => {
-    const subjects = _wizData.teachers
+  const classesArr = (_wizData.classes || []).map(cls => {
+    const subjects = (_wizData.teachers || [])
       .filter(t => (t.classes||[]).includes(cls))
       .map(t => ({ name: t.subjects?.[0] || '', teacher: t.name }));
     return { id: cls, name: cls, subjects };
   });
 
+  // Logo: store only a small thumbnail in Firestore (max 500 chars) to avoid
+  // hitting Firestore's 1 MB document size limit which causes silent write failures.
+  // Full logo should ideally be stored in Firebase Storage instead.
+  const logoSafe = _wizData.logoBase64 ? _wizData.logoBase64.slice(0, 500) : '';
+
   const schoolDoc = {
-    name: _wizData.schoolName,
-    logo: _wizData.logoBase64 ? _wizData.logoBase64.slice(0, 2000) : '',
+    name: _wizData.schoolName || '',
+    logo: logoSafe,
     principalUid: _currentUser.uid,
     studentKey: _wizData.studentKey,
     teacherKey: _wizData.teacherKey,
-    plan: { maxStudents: _wizData.plan, joined: 0 },
-    teachers: _wizData.teachers.map(t => ({ name: t.name, subjects: t.subjects||[], classes: t.classes||[] })),
+    plan: { maxStudents: _wizData.plan || 30, joined: 0 },
+    teachers: (_wizData.teachers || []).map(t => ({ name: t.name, subjects: t.subjects||[], classes: t.classes||[] })),
     classes: classesArr,
-    classTeachers: _wizData.classTeachers,
+    classTeachers: _wizData.classTeachers || {},
     active: true,
     createdAt: Date.now()
   };
 
+  console.log('[Sedy] Creating school — studentKey:', _wizData.studentKey, 'teacherKey:', _wizData.teacherKey);
+
   // Save both keys as separate school docs (each key is a doc ID)
-  await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey), { ...schoolDoc, keyType:'student', schoolCode: _wizData.studentKey });
-  await fb.setDoc(fb.doc(fb.db,'schools',_wizData.teacherKey), { ...schoolDoc, keyType:'teacher', schoolCode: _wizData.teacherKey });
+  try {
+    await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey), { ...schoolDoc, keyType:'student', schoolCode: _wizData.studentKey });
+    console.log('[Sedy] Student school doc written ✓');
+  } catch(e) {
+    console.error('[Sedy] Failed writing student school doc:', e);
+    throw e;
+  }
+
+  try {
+    await fb.setDoc(fb.doc(fb.db,'schools',_wizData.teacherKey), { ...schoolDoc, keyType:'teacher', schoolCode: _wizData.teacherKey });
+    console.log('[Sedy] Teacher school doc written ✓');
+  } catch(e) {
+    console.error('[Sedy] Failed writing teacher school doc:', e);
+    throw e;
+  }
 
   // Create classRooms sub-collections
   for (const cls of classesArr) {
-    await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey,'classRooms',cls.id), { classId: cls.id, name: cls.name, createdAt: Date.now() });
+    try {
+      await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey,'classRooms',cls.id), { classId: cls.id, name: cls.name, createdAt: Date.now() });
+      console.log('[Sedy] classRoom written:', cls.id, '✓');
+    } catch(e) {
+      console.warn('[Sedy] Failed writing classRoom:', cls.id, e);
+      // Non-fatal — continue even if a classroom sub-doc fails
+    }
   }
 
   // Set global state BEFORE returning — this is what openClassroom() checks
@@ -8253,7 +8292,13 @@ async function _wizCreateSchool() {
 
   // Persist to profile
   _userProfile = { ...(_userProfile||{}), schoolCode: _wizData.studentKey, schoolName: _wizData.schoolName, schoolRole: 'principal' };
-  await fb.setDoc(fb.doc(fb.db,'users',_currentUser.uid,'profile','data'), _userProfile);
+  try {
+    await fb.setDoc(fb.doc(fb.db,'users',_currentUser.uid,'profile','data'), _userProfile);
+    console.log('[Sedy] User profile updated ✓');
+  } catch(e) {
+    console.warn('[Sedy] Failed updating user profile:', e);
+    // Non-fatal — school was created, profile update can be retried
+  }
 
   // Update sidebar label
   _crUpdateSidebarBtn();

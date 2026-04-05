@@ -25,6 +25,9 @@
     collection, getDocs, writeBatch, serverTimestamp,
     addDoc, query, orderBy, limit, onSnapshot
   } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import {
+    getStorage, ref as storageRef, uploadBytes, getDownloadURL
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
 
   const firebaseConfig = {
     apiKey:            "AIzaSyCtxpf20jeknXotVgBqZsHXpBqceBbw4LY",
@@ -37,12 +40,13 @@
   };
   
 
-  const app  = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
+  const app     = initializeApp(firebaseConfig);
+  const auth    = getAuth(app);
+  const db      = getFirestore(app);
+  const storage = getStorage(app);
 
   window._fb = {
-    auth, db,
+    auth, db, storage,
     GoogleAuthProvider,
     signInWithPopup, signOut, onAuthStateChanged,
     updateProfile,
@@ -50,7 +54,8 @@
     sendEmailVerification,
     doc, getDoc, setDoc, updateDoc, deleteDoc,
     collection, getDocs, writeBatch, serverTimestamp,
-    addDoc, query, orderBy, limit, onSnapshot
+    addDoc, query, orderBy, limit, onSnapshot,
+    storageRef, uploadBytes, getDownloadURL
   };
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -6738,8 +6743,11 @@ async function _obSave() {
   // ── Join school ───────────────────────────────────────────────────────────
   if (fb && uid && _obSchool && _obData._schoolKey) {
     try {
-      const code  = _obData._schoolKey;
+      const enteredKey = _obData._schoolKey;
       const role  = _obRole || 'student';
+      // Always use the canonical studentKey as the school code so members
+      // appear under the same collection the principal dashboard listens to.
+      const code  = _obSchool.studentKey || enteredKey;
       schoolCode  = code;
       schoolName  = _obSchool.name || '';
       schoolRole  = role;
@@ -7025,21 +7033,25 @@ async function settingsJoinSchool() {
     const school = snap.data();
     if (school.active === false) { if (errEl) { errEl.textContent = '❌ This code has been deactivated.'; errEl.style.display = 'block'; } return; }
 
+    // Detect role from keyType
+    const role = (school.keyType === 'teacher') ? 'teacher' : 'student';
+    const canonicalCode = school.studentKey || code;
+
     // Join school
     const uid = _currentUser.uid;
-    _userSchoolCode = code;
+    _userSchoolCode = canonicalCode;
     _userSchoolName = school.name || 'School';
-    _userSchoolRole = 'student';
+    _userSchoolRole = role;
 
-    // Register as member
-    await fb.setDoc(fb.doc(fb.db, 'schools', code, 'members', uid), {
+    // Register as member under canonical studentKey doc
+    await fb.setDoc(fb.doc(fb.db, 'schools', canonicalCode, 'members', uid), {
       uid, name: _userProfile?.name || '', email: _currentUser.email || '',
-      photoURL: _currentUser.photoURL || '', role: 'student',
+      photoURL: _currentUser.photoURL || '', role,
       class: _userProfile?.class || '', joinedAt: Date.now(),
     });
 
     // Update profile
-    _userProfile = { ...(_userProfile || {}), schoolCode: code, schoolName: school.name, schoolRole: 'student' };
+    _userProfile = { ...(_userProfile || {}), schoolCode: canonicalCode, schoolName: school.name, schoolRole: role };
     await fb.setDoc(fb.doc(fb.db, 'users', uid, 'profile', 'data'), _userProfile);
 
     closeSettings();
@@ -7233,18 +7245,19 @@ async function upgJoinSchool() {
     if (school.active === false) { _upgErr('❌ This key has been deactivated.'); _upgBtnReset(btn); return; }
 
     const role = (school.keyType === 'teacher') ? 'teacher' : 'student';
+    const canonicalCode = school.studentKey || code;
     const uid = _currentUser.uid;
-    _userSchoolCode = code;
+    _userSchoolCode = canonicalCode;
     _userSchoolName = school.name || 'School';
     _userSchoolRole = role;
     _crSchoolData = school;
 
-    await fb.setDoc(fb.doc(fb.db,'schools',code,'members',uid), {
+    await fb.setDoc(fb.doc(fb.db,'schools',canonicalCode,'members',uid), {
       uid, name: _userProfile?.name || '', email: _currentUser.email || '',
       photoURL: _currentUser.photoURL || '', role,
       class: _userProfile?.class || '', joinedAt: Date.now()
     });
-    _userProfile = { ...(_userProfile||{}), schoolCode: code, schoolName: school.name, schoolRole: role };
+    _userProfile = { ...(_userProfile||{}), schoolCode: canonicalCode, schoolName: school.name, schoolRole: role };
     await fb.setDoc(fb.doc(fb.db,'users',uid,'profile','data'), _userProfile);
 
     _crUpdateSidebarBtn();
@@ -7464,6 +7477,7 @@ function _crRenderTab(tab) {
 
 // ── Sedy Chat (private AI per student) ──
 function _crRenderSedyChat(container) {
+  _crSedyChatHistory = [];   // reset history for new session
   const cls = _crCurrentClass;
   const subjContext = (cls.subjects || []).map(s => s.name || s).join(', ');
   container.innerHTML = `
@@ -7489,6 +7503,8 @@ function _crRenderSedyChat(container) {
       </div>
     </div>`;
 }
+
+let _crSedyChatHistory = [];   // tracks conversation turns for Sedy classroom chat
 
 async function crSedySend() {
   const input = document.getElementById('cr-sedy-input');
@@ -7522,16 +7538,20 @@ async function crSedySend() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: text,
-        history: [],
+        history: _crSedyChatHistory.slice(-12),   // last 6 turns
         systemPrompt: sysPrompt,
         model: 'auto'
       })
     });
     const data = await res.json();
+    const reply = data.reply || 'I could not respond right now.';
+    // Record this turn in history
+    _crSedyChatHistory.push({ role: 'user', content: text });
+    _crSedyChatHistory.push({ role: 'assistant', content: reply });
     typingDiv.remove();
     const aiDiv = document.createElement('div');
     aiDiv.className = 'msg ai';
-    aiDiv.innerHTML = `<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble">${parseMarkdown(data.reply || 'I could not respond right now.')}</div></div>`;
+    aiDiv.innerHTML = `<div class="msg-avatar">✦</div><div class="msg-content"><div class="msg-bubble">${parseMarkdown(reply)}</div></div>`;
     msgs.appendChild(aiDiv);
     renderMath(aiDiv.querySelector('.msg-bubble'));
     msgs.scrollTop = msgs.scrollHeight;
@@ -7754,7 +7774,7 @@ async function _crLoadSubjectDoubts(subjectName, isTeacher) {
       <div class="cr-doubt-item">
         <div class="cr-doubt-q">${_esc(d.question||'')}</div>
         <div class="cr-doubt-meta">
-          <span>${_esc(d.askedBy||'')}</span>
+          <span>${_esc(d.studentName||d.askedBy||'')}</span>
           <span>·</span><span>${d.createdAt?new Date(d.createdAt).toLocaleDateString():''}</span>
         </div>
         ${d.aiAnswer?`<div class="cr-doubt-ai-answer">✦ ${_esc(d.aiAnswer)}</div>`:''}
@@ -7788,9 +7808,10 @@ async function crSendSubjectDoubt(subjectName) {
   await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'doubts',doubtId),{
     id:doubtId, question,
     subject: subjectName,
-    askedBy: _userProfile?.name||'Student',
-    askedByUid: _currentUser.uid,
+    studentName: _userProfile?.name||'Student',   // unified field name
+    studentUid:  _currentUser.uid,
     aiAnswer,
+    teacherReply: '',
     createdAt: Date.now()
   }).catch(()=>{});
   _crLoadSubjectDoubts(subjectName, false);
@@ -7811,42 +7832,54 @@ async function crUploadNote(input, subjectName) {
   if (!file) return;
   const fb = window._fb;
   if (!fb) return;
+  input.value = '';
 
   const title = file.name.replace(/\.[^/.]+$/, '');
+  const noteId = 'note_' + Date.now();
+
+  // Read file as ArrayBuffer (needed for both Storage upload and AI)
+  const ab = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = () => rej(new Error('Read failed'));
+    r.readAsArrayBuffer(file);
+  });
+
+  // 1. Upload file to Firebase Storage and get a download URL
   let fileUrl = '';
-  let base64ForAI = null;
+  try {
+    const path = `schools/${_userSchoolCode}/notes/${noteId}_${file.name}`;
+    const ref  = fb.storageRef(fb.storage, path);
+    await fb.uploadBytes(ref, ab, { contentType: file.type });
+    fileUrl = await fb.getDownloadURL(ref);
+  } catch(err) { console.warn('Storage upload failed, saving without file URL:', err); }
 
-  // Read file for AI summary
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    const ab = e.target.result;
-    base64ForAI = btoa(new Uint8Array(ab).reduce((d,b)=>d+String.fromCharCode(b),''));
+  // 2. Get AI summary — send actual file content to the correct endpoint
+  const base64ForAI = btoa(new Uint8Array(ab).reduce((d,b)=>d+String.fromCharCode(b),''));
+  let summary = '';
+  try {
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    const endpoint = isPdf ? '/pdf-chat' : '/chat';
+    const body = isPdf
+      ? JSON.stringify({message:'Summarise this document in 2-3 sentences for students.',pdf_base64:base64ForAI,pdf_name:file.name,history:[],model:'auto'})
+      : JSON.stringify({message:`Summarise this study note titled "${title}" in 2-3 sentences for students.`,history:[],systemPrompt:'You are summarising a study note. Be concise.',model:'auto'});
+    const res = await fetch(API_URL+endpoint, {method:'POST', headers:{'Content-Type':'application/json'}, body});
+    const data = await res.json();
+    summary = data.reply || '';
+  } catch(e) {}
 
-    // Get AI summary
-    let summary = '';
-    try {
-      const res = await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'Summarise this document in 2-3 sentences for students.',history:[],systemPrompt:'You are summarising a study note. Be concise.',model:'auto'})});
-      const data = await res.json();
-      summary = data.reply || '';
-    } catch(e) {}
-
-    // Save note to Firestore
-    const noteId = 'note_'+Date.now();
-    const noteData = {
-      id: noteId, title, subjectName,
-      subject: subjectName,
-      uploadedBy: _userProfile?.name || '',
-      summary,
-      fileUrl,
-      createdAt: Date.now()
-    };
-    try {
-      await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'notes',noteId), noteData);
-      _crLoadNotesList(subjectName);
-    } catch(err) { console.error('Upload note failed', err); }
+  // 3. Save note metadata to Firestore
+  const noteData = {
+    id: noteId, title, subjectName,
+    subject: subjectName,
+    uploadedBy: _userProfile?.name || '',
+    summary, fileUrl,
+    createdAt: Date.now()
   };
-  reader.readAsArrayBuffer(file);
-  input.value = '';
+  try {
+    await fb.setDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'notes',noteId), noteData);
+    _crLoadNotesList(subjectName);
+  } catch(err) { console.error('Save note to Firestore failed:', err); }
 }
 
 // ── Class Chat (Sedy Room) ──
@@ -8860,7 +8893,7 @@ async function _wizCreateSchool() {
 
   // Save both keys as separate school docs (each key is a doc ID)
   await fb.setDoc(fb.doc(fb.db,'schools',_wizData.studentKey), { ...schoolDoc, keyType:'student', schoolCode: _wizData.studentKey });
-  await fb.setDoc(fb.doc(fb.db,'schools',_wizData.teacherKey), { ...schoolDoc, keyType:'teacher', schoolCode: _wizData.teacherKey });
+  await fb.setDoc(fb.doc(fb.db,'schools',_wizData.teacherKey), { ...schoolDoc, keyType:'teacher', schoolCode: _wizData.studentKey });
 
   // Create classRooms sub-collections
   for (const cls of classesArr) {
@@ -8923,21 +8956,23 @@ async function settingsJoinSchool() {
     if (code === school.teacherKey || school.keyType === 'teacher') role = 'teacher';
     if (school.keyType === 'student') role = 'student';
 
+    // Always use the canonical studentKey as the members collection root
+    const canonicalCode = school.studentKey || code;
     const uid = _currentUser.uid;
-    _userSchoolCode = code;
+    _userSchoolCode = canonicalCode;
     _userSchoolName = school.name || 'School';
     _userSchoolRole = role;
     _crSchoolData = school;
 
-    // Register as member
-    await fb.setDoc(fb.doc(fb.db, 'schools', code, 'members', uid), {
+    // Register as member under the canonical studentKey school doc
+    await fb.setDoc(fb.doc(fb.db, 'schools', canonicalCode, 'members', uid), {
       uid, name: _userProfile?.name || '', email: _currentUser.email || '',
       photoURL: _currentUser.photoURL || '', role,
       class: _userProfile?.class || '', joinedAt: Date.now(),
     });
 
     // Update profile
-    _userProfile = { ...(_userProfile || {}), schoolCode: code, schoolName: school.name, schoolRole: role };
+    _userProfile = { ...(_userProfile || {}), schoolCode: canonicalCode, schoolName: school.name, schoolRole: role };
     await fb.setDoc(fb.doc(fb.db, 'users', uid, 'profile', 'data'), _userProfile);
 
     _crUpdateSidebarBtn();

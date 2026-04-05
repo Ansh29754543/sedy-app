@@ -60,6 +60,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
   if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -8023,80 +8024,139 @@ function wizUploadLogo(input) {
 async function wizUploadTimetable(input) {
   const file = input.files[0];
   if (!file) return;
-  // For MVP: read as text/csv or show filename, then ask AI to parse
   const zone = input.closest('.upload-drop-zone');
   if (zone) zone.classList.add('has-file');
+  const list = document.getElementById('wiz-teachers-list');
+  if (list) list.innerHTML = '<div style="font-size:12px;color:var(--text3);font-family:DM Mono,monospace;padding:10px 0;">⏳ Parsing timetable…</div>';
+
+  // Subject abbreviation map
+  const SUBJ = {
+    'MATHS':'Mathematics','MATH':'Mathematics','SST':'Social Science',
+    'SC':'Science','SCIENCE':'Science','HINDI':'Hindi','ENG':'English',
+    'ENGLISH':'English','SKT':'Sanskrit','SANSKRIT':'Sanskrit',
+    'CP':'Computer','ACP':'Computer','LIB':'Library','GAMES':'Games',
+    'HE':'Health & PE','PHE':'Health & PE','AE':'Art Education',
+    'VE':'Vocational Ed.','INDL':'Industrial','EVS':'EVS',
+    'GEO':'Geography','HIS':'History','CIV':'Civics','BIO':'Biology',
+    'CHE':'Chemistry','PHY':'Physics',
+  };
+  const CLASS_ROMAN = {'VI':'Class VI','VII':'Class VII','VIII':'Class VIII',
+    'IX':'Class IX','X':'Class X','XI':'Class XI','XII':'Class XII'};
+  const DAYS = new Set(['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY']);
+
+  function parseXLSX(data) {
+    const wb = XLSX.read(data, { type: 'array' });
+    const teachers = [];
+    let currentTeacher = null, currentSubjects = new Set(), currentClasses = new Set();
+
+    for (const sheetName of wb.SheetNames) {
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      for (const row of rows) {
+        const cell0 = String(row[0] || '').trim();
+
+        // Teacher header: contains (ABBR) bracketed code
+        if (/\([A-Z]{1,4}\)/.test(cell0) && !cell0.includes('DAY')) {
+          if (currentTeacher && currentSubjects.size) {
+            teachers.push({
+              name: currentTeacher,
+              subjects: [...currentSubjects],
+              classes: [...currentClasses].sort()
+            });
+          }
+          // Clean name: remove (ABBR) and trailing number*
+          currentTeacher = cell0.replace(/\s*\([^)]+\)\s*\d*\*?\s*$/, '').trim();
+          // Proper case
+          currentTeacher = currentTeacher.split(' ').map(w =>
+            ['MR.','MRS.','MS.','DR.'].includes(w.toUpperCase())
+              ? w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()+'.'
+              : w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()
+          ).join(' ').replace(/\.$/, '.');
+          currentSubjects = new Set(); currentClasses = new Set();
+          continue;
+        }
+
+        // Day row — parse all period cells
+        if (DAYS.has(cell0.toUpperCase()) && currentTeacher) {
+          for (const cellVal of row.slice(1)) {
+            const val = String(cellVal || '').trim();
+            if (!val || val === 'LUNCH' || val === 'CLA') continue;
+
+            // Pattern 1: "VIII MATHS" → roman numeral + subject word
+            const m1 = val.match(/^(VI{0,3}|I{1,3}|IX|X{1,3}I{0,3})\s+([A-Z]{2,}(?:\s+[A-Z]+)?)$/);
+            // Pattern 2: "VI - AE" → roman + dash + abbr
+            const m2 = val.match(/^(VI{0,3}|I{1,3}|IX|X{1,3}I{0,3})\s*[-–]\s*([A-Z]{1,6})$/);
+            const m = m1 || m2;
+            if (m) {
+              const rawCls  = m[1].trim();
+              const rawSubj = m[2].trim();
+              const cls  = CLASS_ROMAN[rawCls]  || ('Class ' + rawCls);
+              const subj = SUBJ[rawSubj] || (rawSubj.charAt(0)+rawSubj.slice(1).toLowerCase());
+              currentClasses.add(cls);
+              currentSubjects.add(subj);
+            }
+          }
+        }
+      }
+    }
+
+    // Last teacher
+    if (currentTeacher && currentSubjects.size) {
+      teachers.push({ name: currentTeacher, subjects: [...currentSubjects], classes: [...currentClasses].sort() });
+    }
+
+    const allClasses = [...new Set(teachers.flatMap(t => t.classes))].sort();
+    return { teachers, classes: allClasses };
+  }
 
   const reader = new FileReader();
   reader.onload = async (e) => {
-    let rawText = '';
-    try { rawText = e.target.result; } catch(err) {}
-
-    // Show loading
-    const list = document.getElementById('wiz-teachers-list');
-    if (list) list.innerHTML = '<div style="font-size:12px;color:var(--text3);font-family:\'DM Mono\',monospace;padding:10px 0;">⏳ AI parsing timetable…</div>';
-
-    // Ask AI to parse
-    let parsed = { teachers: [], classes: [] };
     try {
-      const res = await fetch(API_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-        message: `Parse this school timetable and return ONLY valid JSON in this format (no markdown, no explanation):
-{"teachers":[{"name":"Teacher Name","subjects":["Maths","Science"],"classes":["7A","6B"]}],"classes":["7A","7B","6A","6B"]}
+      const data = new Uint8Array(e.target.result);
+      const parsed = parseXLSX(data);
 
-Timetable data:
-${rawText.slice(0,3000)}`,
-        history:[],model:'auto'
-      })});
-      const data = await res.json();
-      let reply = (data.reply||'').replace(/```json|```/g,'').trim();
-      // Extract JSON
-      const jsonMatch = reply.match(/\{[\s\S]*\}/);
-      if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
-    } catch(e) {
-      // Fallback: demo data
-      parsed = {
-        teachers: [
-          { name:'Mr. Sharma', subjects:['Maths'], classes:['7A','7B'] },
-          { name:'Ms. Priya', subjects:['Science'], classes:['7A','7B'] },
-          { name:'Mr. Ali', subjects:['English'], classes:['6A','6B'] }
-        ],
-        classes: ['7A','7B','6A','6B']
-      };
+      if (parsed.teachers.length === 0) {
+        if (list) list.innerHTML = '<div style="color:var(--warning);font-size:12px;font-family:DM Mono,monospace;padding:10px 0;">⚠️ Could not detect teachers. Check your timetable format.</div>';
+        return;
+      }
+
+      _wizData.teachers = parsed.teachers;
+      _wizData.classes  = parsed.classes;
+      _wizData.timetableText = file.name;
+      _wizRenderTeacherCards();
+    } catch(err) {
+      console.error('Timetable parse error:', err);
+      if (list) list.innerHTML = '<div style="color:var(--warning);font-size:12px;font-family:DM Mono,monospace;padding:10px 0;">⚠️ Could not read file. Please use .xlsx or .csv format.</div>';
     }
-
-    _wizData.teachers = parsed.teachers || [];
-    _wizData.classes  = parsed.classes  || [];
-    _wizData.timetableText = rawText || file.name;
-    _wizRenderTeacherCards();
   };
-
-  if (file.name.endsWith('.pdf')) {
-    _wizData.timetableText = file.name;
-    // For PDF, just use filename as placeholder and set demo data
-    _wizData.teachers = [];
-    _wizData.classes  = [];
-    reader.readAsText(file);
-  } else {
-    reader.readAsText(file);
-  }
+  reader.readAsArrayBuffer(file);
   input.value = '';
 }
 
 function _wizRenderTeacherCards() {
   const list = document.getElementById('wiz-teachers-list');
   if (!list || !_wizData.teachers.length) return;
-  list.innerHTML = `<div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px;">Parsed Teachers (${_wizData.teachers.length})</div>` +
-    _wizData.teachers.map((t,i) => `
+  list.innerHTML =
+    `<div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px;">
+      ✅ Parsed ${_wizData.teachers.length} Teachers · ${_wizData.classes.length} Classes
+    </div>` +
+    _wizData.teachers.map(t => {
+      // support both t.subjects (array) and t.subject (string)
+      const subjs = Array.isArray(t.subjects) ? t.subjects : (t.subject ? t.subject.split(', ') : []);
+      const clses = Array.isArray(t.classes) ? t.classes : [];
+      return `
     <div class="teacher-card">
       <div class="teacher-card-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
         <div class="teacher-name">👤 ${_esc(t.name)}</div>
         <span style="font-size:11px;color:var(--text3);">▼</span>
       </div>
       <div style="display:none;margin-top:8px;">
-        <div class="teacher-subjects">${(t.subjects||[]).map(s=>`<span class="subject-chip">${_esc(s)}</span>`).join('')}</div>
-        <div class="teacher-subjects" style="margin-top:5px;">${(t.classes||[]).map(c=>`<span class="class-chip">Class ${_esc(c)}</span>`).join('')}</div>
+        <div class="teacher-subjects">${subjs.map(s=>`<span class="subject-chip">${_esc(s)}</span>`).join('')}</div>
+        <div class="teacher-subjects" style="margin-top:5px;">${clses.map(c=>`<span class="class-chip">${_esc(c)}</span>`).join('')}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+    }).join('');
 }
 
 function wizSetClassTeacher(cls, teacherName) {

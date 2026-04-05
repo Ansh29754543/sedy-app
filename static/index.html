@@ -7007,6 +7007,16 @@ function openSettings() {
       if (snl) snl.textContent = _userSchoolName || 'Your School';
       if (srl) srl.textContent = (_userSchoolRole || 'student') + ' · ' + (_userSchoolCode || '');
       if (scl) scl.textContent = _userSchoolCode || '';
+      // Show school logo
+      const logoWrap = document.getElementById('settings-school-logo-wrap');
+      if (logoWrap) {
+        const logo = _crSchoolData?.logo;
+        if (logo) { logoWrap.innerHTML = `<img src="${_esc(logo)}" style="width:100%;height:100%;object-fit:contain;">`; }
+        else { logoWrap.innerHTML = '🏫'; }
+      }
+      // Show principal edit button only for principals
+      const princBtn = document.getElementById('settings-principal-edit-btn');
+      if (princBtn) princBtn.style.display = _userSchoolRole === 'principal' ? 'block' : 'none';
     }
   } else {
     if (noSchool)    noSchool.style.display   = 'flex';
@@ -7347,6 +7357,7 @@ async function _crLoadSchoolAndShow() {
 
   document.getElementById('cr-school-badge').textContent = _userSchoolName || _userSchoolCode;
   document.getElementById('cr-topbar-title').textContent = 'Sedy Classroom';
+  _crShowSchoolLogo();
 
   try {
     const snap = await fb.getDoc(fb.doc(fb.db, 'schools', _userSchoolCode));
@@ -7437,32 +7448,118 @@ function crOpenClass(cls) {
 }
 
 // ══════════════════════════════════════════════════════
-// CLASSROOM ROOM (tabs: Sedy Chat / Subjects / Room Chat / Doubts / Notes / Announce)
+// CLASSROOM ROOM (tabs: Sedy Chat / Subjects / Room Chat / Doubts / Notes / Announce / Whiteboard)
 // ══════════════════════════════════════════════════════
+
+// Badge counters per tab (updated by real-time listeners)
+let _crTabBadges = { chat: 0, doubts: 0, notes: 0, announce: 0 };
+let _crTabBadgeSeens = { chat: 0, doubts: 0, notes: 0, announce: 0 };
+
+function _crBadgeIncrement(tab) {
+  if (_crCurrentTab === tab) return; // user is already on this tab
+  _crTabBadges[tab] = (_crTabBadges[tab] || 0) + 1;
+  _crUpdateTabBadges();
+}
+
+function _crBadgeClear(tab) {
+  _crTabBadges[tab] = 0;
+  _crUpdateTabBadges();
+}
+
+function _crUpdateTabBadges() {
+  const badgeColors = { chat: '#4f8eff', doubts: '#ffb547', notes: '#00e5c0', announce: '#ff4f6a' };
+  Object.entries(_crTabBadges).forEach(([tab, count]) => {
+    const btn = document.getElementById('cr-tab-' + tab);
+    if (!btn) return;
+    let badge = btn.querySelector('.cr-tab-badge');
+    if (!count) { if (badge) badge.remove(); return; }
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'cr-tab-badge';
+      badge.style.cssText = `position:absolute;top:3px;right:3px;min-width:14px;height:14px;border-radius:7px;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 3px;font-family:'DM Mono',monospace;color:#fff;pointer-events:none;background:${badgeColors[tab]||'var(--accent2)'};`;
+      btn.style.position = 'relative';
+      btn.appendChild(badge);
+    }
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.background = badgeColors[tab] || 'var(--accent2)';
+  });
+}
+
 function _crRenderRoom() {
   _crCurrentTab = 'chat';
+  _crTabBadges = { chat: 0, doubts: 0, notes: 0, announce: 0 };
+  const isStudent = _userSchoolRole === 'student';
   const content = document.getElementById('cr-main-content');
   content.innerHTML = `
     <div class="cr-room">
       <div class="cr-sidenav">
-        <button class="cr-sidenav-btn active" id="cr-tab-chat" onclick="crSwitchTab('chat')" title="Sedy Chat">✦</button>
-        <button class="cr-sidenav-btn" id="cr-tab-subjects" onclick="crSwitchTab('subjects')" title="Subjects">📚</button>
-        <button class="cr-sidenav-btn" id="cr-tab-room" onclick="crSwitchTab('room')" title="Class Chat">💬</button>
-        <button class="cr-sidenav-btn" id="cr-tab-doubts" onclick="crSwitchTab('doubts')" title="Doubts">❓</button>
-        <button class="cr-sidenav-btn" id="cr-tab-notes" onclick="crSwitchTab('notes')" title="Notes">📄</button>
-        <button class="cr-sidenav-btn" id="cr-tab-announce" onclick="crSwitchTab('announce')" title="Announcements">📢</button>
+        <button class="cr-sidenav-btn active" id="cr-tab-chat" onclick="crSwitchTab('chat')" title="Sedy Chat" style="position:relative;">✦</button>
+        <button class="cr-sidenav-btn" id="cr-tab-subjects" onclick="crSwitchTab('subjects')" title="Subjects" style="position:relative;">📚</button>
+        <button class="cr-sidenav-btn" id="cr-tab-room" onclick="crSwitchTab('room')" title="Class Chat" style="position:relative;">💬</button>
+        <button class="cr-sidenav-btn" id="cr-tab-doubts" onclick="crSwitchTab('doubts')" title="Doubts" style="position:relative;">❓</button>
+        <button class="cr-sidenav-btn" id="cr-tab-notes" onclick="crSwitchTab('notes')" title="Notes" style="position:relative;">📄</button>
+        <button class="cr-sidenav-btn" id="cr-tab-announce" onclick="crSwitchTab('announce')" title="Announcements" style="position:relative;">📢</button>
+        ${isStudent ? `<button class="cr-sidenav-btn" id="cr-tab-whiteboard" onclick="crSwitchTab('whiteboard')" title="Whiteboard" style="position:relative;">🖊️</button>` : ''}
       </div>
       <div class="cr-content" id="cr-room-content"></div>
     </div>`;
   _crSwitchTab('chat');
+  // Start real-time badge listeners for chat, doubts, notes, announcements
+  _crStartBadgeListeners();
+}
+
+let _crBadgeUnsubs = [];
+function _crStartBadgeListeners() {
+  _crBadgeUnsubs.forEach(fn => { try { fn(); } catch(e){} });
+  _crBadgeUnsubs = [];
+  const fb = window._fb;
+  if (!fb || !_crCurrentClass?.id) return;
+  const base = ['schools', _userSchoolCode, 'classRooms', _crCurrentClass.id];
+
+  // Chat listener
+  const chatRef = fb.collection(fb.db, ...base, 'chat');
+  const chatQ = fb.query(chatRef, fb.orderBy('createdAt','desc'), fb.limit(1));
+  let _chatInit = true;
+  _crBadgeUnsubs.push(fb.onSnapshot(chatQ, snap => {
+    if (_chatInit) { _chatInit = false; return; }
+    snap.docChanges().forEach(c => { if (c.type==='added') _crBadgeIncrement('chat'); });
+  }, ()=>{}));
+
+  // Doubts
+  const doubtRef = fb.collection(fb.db, ...base, 'doubts');
+  let _doubtInit = true;
+  _crBadgeUnsubs.push(fb.onSnapshot(doubtRef, snap => {
+    if (_doubtInit) { _doubtInit = false; return; }
+    snap.docChanges().forEach(c => {
+      if (c.type === 'added') _crBadgeIncrement('doubts');
+      if (c.type === 'modified' && c.doc.data().teacherReply) _crBadgeIncrement('doubts');
+    });
+  }, ()=>{}));
+
+  // Notes
+  const notesRef = fb.collection(fb.db, ...base, 'notes');
+  let _notesInit = true;
+  _crBadgeUnsubs.push(fb.onSnapshot(notesRef, snap => {
+    if (_notesInit) { _notesInit = false; return; }
+    snap.docChanges().forEach(c => { if (c.type==='added') _crBadgeIncrement('notes'); });
+  }, ()=>{}));
+
+  // Announcements
+  const annRef = fb.collection(fb.db, ...base, 'announcements');
+  let _annInit = true;
+  _crBadgeUnsubs.push(fb.onSnapshot(annRef, snap => {
+    if (_annInit) { _annInit = false; return; }
+    snap.docChanges().forEach(c => { if (c.type==='added') _crBadgeIncrement('announce'); });
+  }, ()=>{}));
 }
 
 function crSwitchTab(tab) {
   _crCurrentTab = tab;
   _crCurrentSubject = null;
   _crCurrentNote = null;
+  _crBadgeClear(tab);
   // Update nav
-  ['chat','subjects','room','doubts','notes','announce'].forEach(t => {
+  ['chat','subjects','room','doubts','notes','announce','whiteboard'].forEach(t => {
     document.getElementById('cr-tab-'+t)?.classList.toggle('active', t === tab);
   });
   _crRenderTab(tab);
@@ -7480,6 +7577,7 @@ function _crRenderTab(tab) {
   else if (tab === 'doubts') _crRenderDoubts(content);
   else if (tab === 'notes') _crRenderNotes(content);
   else if (tab === 'announce') _crRenderAnnouncements(content);
+  else if (tab === 'whiteboard') _crRenderWhiteboard(content);
 }
 
 // ── Sedy Chat (private AI per student) ──
@@ -7629,10 +7727,10 @@ function crOpenSubject(sub) {
 
 async function _crRenderSubjectDetail(sub) {
   const content = document.getElementById('cr-room-content');
-  // Only the subject's own teacher can upload/edit notes
+  // Only the subject's own teacher can upload/edit notes; principal CANNOT upload notes
   const isOwnTeacher = _userSchoolRole === 'teacher' && sub.teacher === (_userProfile?.name || '');
   const isPrincipal = _userSchoolRole === 'principal';
-  const isTeacher = isOwnTeacher; // keep for downstream compat
+  const isTeacher = isOwnTeacher;
 
   let _subTab = 'notes'; // 'notes' | 'doubts'
 
@@ -7992,13 +8090,16 @@ async function crRoomSend() {
 // ── Doubts ──
 function _crRenderDoubts(container) {
   const isTeacher = _userSchoolRole === 'teacher';
+  const isPrincipal = _userSchoolRole === 'principal';
+  // Teachers see doubts only for their assigned subjects in this class
+  const mySubjects = isTeacher ? (_crCurrentClass.subjects||[]).filter(s=>s.teacher===(_userProfile?.name||'')).map(s=>s.name||s) : [];
   container.innerHTML = `
     <div class="cr-pane active">
       <div class="cr-pane-header">
-        <div><div class="cr-pane-title">❓ Sedy Doubts</div><div class="cr-pane-sub">${isTeacher ? 'All doubts from students' : 'Your doubts'}</div></div>
+        <div><div class="cr-pane-title">❓ Sedy Doubts</div><div class="cr-pane-sub">${isTeacher ? 'Doubts for your subjects' : isPrincipal ? 'All doubts (read-only)' : 'Your doubts'}</div></div>
       </div>
       <div class="cr-pane-scroll" id="cr-doubts-list"><div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;">Loading…</div></div>
-      ${!isTeacher ? `<div class="cr-doubt-send-row">
+      ${(!isTeacher && !isPrincipal) ? `<div class="cr-doubt-send-row">
         <select id="cr-doubt-subject" style="background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--text);font-family:'DM Mono',monospace;outline:none;flex-shrink:0;">
           ${(_crCurrentClass.subjects||[]).map(s=>`<option>${_esc(s.name||s)}</option>`).join('')}
         </select>
@@ -8006,13 +8107,15 @@ function _crRenderDoubts(container) {
         <button class="cr-send-btn" onclick="crSendDoubt()">➤</button>
       </div>` : ''}
     </div>`;
-  _crLoadDoubts();
+  _crLoadDoubts(mySubjects);
 }
 
-async function _crLoadDoubts() {
+async function _crLoadDoubts(mySubjectsFilter) {
   const fb = window._fb;
   const list = document.getElementById('cr-doubts-list');
   if (!list || !fb) return;
+  const isTeacher = _userSchoolRole === 'teacher';
+  const isPrincipal = _userSchoolRole === 'principal';
   try {
     const snap = await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'doubts'));
     let doubts = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
@@ -8021,8 +8124,12 @@ async function _crLoadDoubts() {
     if (_userSchoolRole === 'student') {
       doubts = doubts.filter(d => d.studentUid === _currentUser?.uid);
     }
+    // Teachers see only doubts for their own subjects
+    if (isTeacher && mySubjectsFilter?.length) {
+      doubts = doubts.filter(d => mySubjectsFilter.includes(d.subject));
+    }
 
-    if (!doubts.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No doubts yet.<br>Ask one below!</div>'; return; }
+    if (!doubts.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No doubts yet.<br>' + (isPrincipal ? '' : 'Ask one below!') + '</div>'; return; }
 
     list.innerHTML = doubts.map(d => `
       <div class="cr-doubt-item">
@@ -8034,7 +8141,7 @@ async function _crLoadDoubts() {
         <div class="cr-doubt-q"><strong>Q:</strong> ${_esc(d.question||'')}</div>
         ${d.aiAnswer?`<div class="cr-doubt-ai-answer"><div class="cr-doubt-reply-label">✦ Instant AI Answer</div>${parseMarkdown(d.aiAnswer)}</div>`:''}
         ${d.teacherReply?`<div class="cr-doubt-teacher-reply"><div class="cr-doubt-reply-label">👤 Teacher Reply</div>${_esc(d.teacherReply)}</div>`:''}
-        ${(_userSchoolRole==='teacher'&&!d.teacherReply)?`<div style="display:flex;gap:6px;margin-top:8px;">
+        ${(isTeacher&&!d.teacherReply)?`<div style="display:flex;gap:6px;margin-top:8px;">
           <input id="reply-${d.id}" class="cr-chat-input" style="height:34px;resize:none;" placeholder="Reply to this doubt…" onkeydown="if(event.key==='Enter')crReplyDoubt('${d.id}',this.value)">
           <button class="cr-send-btn" onclick="crReplyDoubt('${d.id}',document.getElementById('reply-${d.id}').value)" style="flex-shrink:0;">➤</button>
         </div>`:''}
@@ -8079,18 +8186,20 @@ async function crReplyDoubt(doubtId, reply) {
   const fb = window._fb;
   if (!fb) return;
   await fb.updateDoc(fb.doc(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'doubts',doubtId),{teacherReply:reply.trim()}).catch(()=>{});
-  _crLoadDoubts();
+  // Reload with subject filter for teacher
+  const mySubjects = _userSchoolRole === 'teacher' ? (_crCurrentClass.subjects||[]).filter(s=>s.teacher===(_userProfile?.name||'')).map(s=>s.name||s) : [];
+  _crLoadDoubts(mySubjects);
 }
 
 // ── Sedy Notes (teacher uploads, students view) ──
 function _crRenderNotes(container) {
   const isTeacher = _userSchoolRole === 'teacher';
-  const isPrincipal = _userSchoolRole === 'principal';
+  // Principal cannot upload notes
   container.innerHTML = `
     <div class="cr-pane active">
       <div class="cr-pane-header" style="justify-content:space-between;">
         <div><div class="cr-pane-title">📄 Sedy Notes</div><div class="cr-pane-sub">Study materials for ${_esc(_crCurrentClass.name)}</div></div>
-        ${isTeacher||isPrincipal?`<label class="cr-upload-btn" for="cr-notes-upload" style="cursor:pointer;font-size:12px;padding:8px 14px;">📎 Upload</label>
+        ${isTeacher?`<label class="cr-upload-btn" for="cr-notes-upload" style="cursor:pointer;font-size:12px;padding:8px 14px;">📎 Upload</label>
         <input type="file" id="cr-notes-upload" accept=".pdf,image/*,.docx,.txt" style="display:none" onchange="crUploadNote(this,'General')">`:``}
       </div>
       <div class="cr-pane-scroll" id="cr-all-notes-list"><div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;">Loading…</div></div>
@@ -8139,27 +8248,40 @@ function _crRenderAnnouncements(container) {
       </div>`:''}
       <div class="cr-pane-scroll" id="cr-ann-list"><div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;">Loading…</div></div>
     </div>`;
-  _crLoadAnnouncements();
+  _crListenAnnouncements();
 }
 
-async function _crLoadAnnouncements() {
+let _crAnnUnsub = null;
+function _crListenAnnouncements() {
   const fb = window._fb;
-  const list = document.getElementById('cr-ann-list');
-  if (!list || !fb) return;
-  try {
-    const snap = await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'announcements'));
-    const anns = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  if (!fb || !_crCurrentClass?.id) return;
+  if (_crAnnUnsub) { _crAnnUnsub(); _crAnnUnsub = null; }
+  const annRef = fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',_crCurrentClass.id,'announcements');
+  const q = fb.query(annRef, fb.orderBy('createdAt','desc'), fb.limit(50));
+  _crAnnUnsub = fb.onSnapshot(q, snap => {
+    const list = document.getElementById('cr-ann-list');
+    if (!list) { _crAnnUnsub && _crAnnUnsub(); return; }
+    const anns = snap.docs.map(d=>({id:d.id,...d.data()}));
     if (!anns.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No announcements yet.</div>'; return; }
-    list.innerHTML = anns.map(a => `
-      <div class="cr-announcement-item">
-        <div style="display:flex;align-items:center;margin-bottom:4px;">
+    list.innerHTML = anns.map(a => {
+      const isPrincipalPost = a.role === 'principal';
+      const tagColor = isPrincipalPost ? '#ffb547' : '#4f8eff';
+      const tagLabel = isPrincipalPost ? 'Principal' : 'Teacher';
+      return `
+      <div class="cr-announcement-item" style="${isPrincipalPost ? 'border-left:3px solid #ffb547;' : ''}">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <span style="font-size:10px;font-weight:700;color:${tagColor};background:${tagColor}22;border:1px solid ${tagColor}44;padding:2px 8px;border-radius:10px;font-family:'DM Mono',monospace;">${tagLabel}</span>
           <div class="cr-ann-from">${_esc(a.from||'')}</div>
-          <div class="cr-ann-time">${a.createdAt?new Date(a.createdAt).toLocaleString([],{dateStyle:'short',timeStyle:'short'}):''}</div>
+          <div class="cr-ann-time" style="margin-left:auto;">${a.createdAt?new Date(a.createdAt).toLocaleString([],{dateStyle:'short',timeStyle:'short'}):''}</div>
         </div>
         <div class="cr-ann-text">${_esc(a.text||'')}</div>
-      </div>`).join('');
-  } catch(e) { list.innerHTML = '<div style="color:var(--danger);font-size:12px;">Could not load announcements.</div>'; }
+      </div>`;
+    }).join('');
+  }, err => console.warn('Ann listen error', err));
+  _crRoomListeners.push(_crAnnUnsub);
 }
+
+async function _crLoadAnnouncements() { _crListenAnnouncements(); }
 
 async function crPostAnnouncement() {
   const ta = document.getElementById('cr-ann-text');
@@ -8176,7 +8298,7 @@ async function crPostAnnouncement() {
     classId: _crCurrentClass.id,
     createdAt: Date.now()
   }).catch(()=>{});
-  _crLoadAnnouncements();
+  // listener will auto-refresh
 }
 
 // ── Detach real-time listeners ──
@@ -8184,6 +8306,8 @@ function _crDetachListeners() {
   if (_crRoomUnsubscribe) { _crRoomUnsubscribe(); _crRoomUnsubscribe = null; }
   _crRoomListeners.forEach(fn => { try { fn(); } catch(e) {} });
   _crRoomListeners = [];
+  _crBadgeUnsubs.forEach(fn => { try { fn(); } catch(e) {} });
+  _crBadgeUnsubs = [];
 }
 
 // ══════════════════════════════════════════════════════
@@ -8192,6 +8316,9 @@ function _crDetachListeners() {
 async function _crShowPrincipalDashboard() {
   document.getElementById('cr-back-btn').textContent = '✕';
   document.getElementById('cr-topbar-title').textContent = 'Principal Dashboard';
+
+  // Show school logo in badge area
+  _crShowSchoolLogo();
 
   const content = document.getElementById('cr-main-content');
   content.innerHTML = `
@@ -8202,10 +8329,20 @@ async function _crShowPrincipalDashboard() {
         <div style="background:linear-gradient(135deg,rgba(255,181,71,.13),rgba(255,181,71,.04));border:1px solid rgba(255,181,71,.3);border-radius:16px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
           <div style="font-size:28px;flex-shrink:0;">🏫</div>
           <div style="flex:1;min-width:0;">
-            <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--warning);margin-bottom:2px;">School Setup &amp; Upgrades</div>
-            <div style="font-size:11px;color:var(--text2);line-height:1.4;">Reconfigure your school, manage keys &amp; plan.</div>
+            <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--warning);margin-bottom:2px;">School Settings</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.4;">Edit school name, logo &amp; keys.</div>
           </div>
-          <button onclick="openUpgrades()" style="flex-shrink:0;padding:8px 14px;background:rgba(255,181,71,.18);border:1px solid rgba(255,181,71,.4);border-radius:10px;color:var(--warning);font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap;">⚙️ Set Up</button>
+          <button onclick="crOpenSchoolSettings()" style="flex-shrink:0;padding:8px 14px;background:rgba(255,181,71,.18);border:1px solid rgba(255,181,71,.4);border-radius:10px;color:var(--warning);font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap;">⚙️ Settings</button>
+        </div>
+
+        <!-- Analytics CTA -->
+        <div style="background:linear-gradient(135deg,rgba(79,142,255,.1),rgba(0,229,192,.05));border:1px solid rgba(79,142,255,.25);border-radius:16px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:28px;flex-shrink:0;">📊</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#4f8eff;margin-bottom:2px;">School Analytics</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.4;">Doubts by class, subject &amp; teacher reports.</div>
+          </div>
+          <button onclick="crOpenAnalytics()" style="flex-shrink:0;padding:8px 14px;background:rgba(79,142,255,.15);border:1px solid rgba(79,142,255,.35);border-radius:10px;color:#4f8eff;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap;">📊 View</button>
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:20px;" id="cr-principal-stats"></div>
@@ -8381,6 +8518,459 @@ async function crBroadcastAnnouncement() {
   });
   await Promise.all(promises).catch(()=>{});
   alert('✅ Announcement sent to all classes!');
+}
+
+// ══════════════════════════════════════════════════════
+// WHITEBOARD (students only)
+// ══════════════════════════════════════════════════════
+function _crRenderWhiteboard(container) {
+  if (_userSchoolRole !== 'student') {
+    container.innerHTML = `<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;font-family:'DM Mono',monospace;">Whiteboard is for students only.</div>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="cr-pane active" style="padding:0;display:flex;flex-direction:column;height:100%;">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;">
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--text);flex:1;">🖊️ Whiteboard</div>
+        <!-- Tool buttons -->
+        <button id="wb-tool-pen" onclick="wbSetTool('pen')" title="Pen" style="padding:6px 10px;border-radius:8px;border:1px solid var(--accent2);background:rgba(124,92,252,.15);color:var(--accent2);cursor:pointer;font-size:14px;">✏️</button>
+        <button id="wb-tool-eraser" onclick="wbSetTool('eraser')" title="Eraser" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-size:14px;">🧹</button>
+        <button id="wb-tool-line" onclick="wbSetTool('line')" title="Line" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-size:14px;">╱</button>
+        <button id="wb-tool-rect" onclick="wbSetTool('rect')" title="Rectangle" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-size:14px;">▭</button>
+        <button id="wb-tool-circle" onclick="wbSetTool('circle')" title="Circle" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-size:14px;">○</button>
+        <!-- Color picker -->
+        <input type="color" id="wb-color" value="#7c5cfc" title="Color" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);cursor:pointer;padding:2px;background:none;" onchange="wbSetColor(this.value)">
+        <!-- Stroke width -->
+        <select id="wb-size" onchange="wbSetSize(this.value)" style="background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:5px 8px;color:var(--text);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;">
+          <option value="2">Thin</option>
+          <option value="4" selected>Normal</option>
+          <option value="8">Thick</option>
+          <option value="16">Bold</option>
+        </select>
+        <button onclick="wbUndo()" title="Undo" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-size:13px;">↩</button>
+        <button onclick="wbClear()" title="Clear" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(255,79,106,.3);background:rgba(255,79,106,.08);color:#ff4f6a;cursor:pointer;font-size:13px;">🗑</button>
+        <button onclick="wbSave()" title="Save as image" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(0,229,192,.3);background:rgba(0,229,192,.08);color:var(--accent3);cursor:pointer;font-size:13px;">💾</button>
+      </div>
+      <div style="flex:1;overflow:hidden;position:relative;background:#fff;" id="wb-canvas-wrap">
+        <canvas id="wb-canvas" style="display:block;touch-action:none;cursor:crosshair;"></canvas>
+      </div>
+    </div>`;
+
+  // Init canvas
+  requestAnimationFrame(() => {
+    const wrap = document.getElementById('wb-canvas-wrap');
+    const canvas = document.getElementById('wb-canvas');
+    if (!canvas || !wrap) return;
+    canvas.width  = wrap.offsetWidth;
+    canvas.height = wrap.offsetHeight;
+    _wbInit(canvas);
+  });
+}
+
+// Whiteboard state
+let _wbTool = 'pen', _wbColor = '#7c5cfc', _wbSize = 4;
+let _wbDrawing = false, _wbStartX = 0, _wbStartY = 0;
+let _wbHistory = []; // snapshots for undo
+let _wbCtx = null, _wbCanvas = null;
+
+function _wbInit(canvas) {
+  _wbCanvas = canvas;
+  _wbCtx = canvas.getContext('2d');
+  _wbCtx.fillStyle = '#ffffff';
+  _wbCtx.fillRect(0, 0, canvas.width, canvas.height);
+  _wbHistory = [_wbCtx.getImageData(0, 0, canvas.width, canvas.height)];
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return { x: src.clientX - r.left, y: src.clientY - r.top };
+  }
+
+  canvas.addEventListener('pointerdown', e => {
+    _wbDrawing = true;
+    const p = getPos(e);
+    _wbStartX = p.x; _wbStartY = p.y;
+    _wbCtx.beginPath();
+    _wbCtx.moveTo(p.x, p.y);
+    if (_wbTool === 'pen' || _wbTool === 'eraser') {
+      _wbCtx.strokeStyle = _wbTool === 'eraser' ? '#ffffff' : _wbColor;
+      _wbCtx.lineWidth = _wbTool === 'eraser' ? _wbSize * 4 : _wbSize;
+      _wbCtx.lineCap = 'round';
+      _wbCtx.lineJoin = 'round';
+    }
+    e.preventDefault();
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    if (!_wbDrawing) return;
+    const p = getPos(e);
+    if (_wbTool === 'pen' || _wbTool === 'eraser') {
+      _wbCtx.lineTo(p.x, p.y);
+      _wbCtx.stroke();
+    } else {
+      // Restore snapshot to preview shape
+      if (_wbHistory.length) _wbCtx.putImageData(_wbHistory[_wbHistory.length-1], 0, 0);
+      _wbDrawShape(p.x, p.y);
+    }
+    e.preventDefault();
+  });
+
+  canvas.addEventListener('pointerup', e => {
+    if (!_wbDrawing) return;
+    _wbDrawing = false;
+    const p = getPos(e);
+    if (_wbTool !== 'pen' && _wbTool !== 'eraser') {
+      if (_wbHistory.length) _wbCtx.putImageData(_wbHistory[_wbHistory.length-1], 0, 0);
+      _wbDrawShape(p.x, p.y);
+    }
+    _wbHistory.push(_wbCtx.getImageData(0, 0, _wbCanvas.width, _wbCanvas.height));
+    if (_wbHistory.length > 30) _wbHistory.shift();
+  });
+}
+
+function _wbDrawShape(ex, ey) {
+  const ctx = _wbCtx;
+  ctx.strokeStyle = _wbColor;
+  ctx.lineWidth = _wbSize;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  if (_wbTool === 'line') {
+    ctx.moveTo(_wbStartX, _wbStartY);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+  } else if (_wbTool === 'rect') {
+    ctx.strokeRect(_wbStartX, _wbStartY, ex - _wbStartX, ey - _wbStartY);
+  } else if (_wbTool === 'circle') {
+    const rx = Math.abs(ex - _wbStartX) / 2, ry = Math.abs(ey - _wbStartY) / 2;
+    const cx = _wbStartX + (ex - _wbStartX) / 2, cy = _wbStartY + (ey - _wbStartY) / 2;
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+    ctx.stroke();
+  }
+}
+
+function wbSetTool(t) {
+  _wbTool = t;
+  ['pen','eraser','line','rect','circle'].forEach(id => {
+    const btn = document.getElementById('wb-tool-'+id);
+    if (!btn) return;
+    if (id === t) { btn.style.background = 'rgba(124,92,252,.15)'; btn.style.borderColor = 'var(--accent2)'; btn.style.color = 'var(--accent2)'; }
+    else { btn.style.background = 'none'; btn.style.borderColor = 'var(--border2)'; btn.style.color = 'var(--text2)'; }
+  });
+}
+function wbSetColor(c) { _wbColor = c; }
+function wbSetSize(s) { _wbSize = parseInt(s); }
+function wbUndo() {
+  if (!_wbCtx || _wbHistory.length < 2) return;
+  _wbHistory.pop();
+  _wbCtx.putImageData(_wbHistory[_wbHistory.length-1], 0, 0);
+}
+function wbClear() {
+  if (!_wbCtx || !_wbCanvas) return;
+  _wbCtx.fillStyle = '#ffffff';
+  _wbCtx.fillRect(0, 0, _wbCanvas.width, _wbCanvas.height);
+  _wbHistory = [_wbCtx.getImageData(0, 0, _wbCanvas.width, _wbCanvas.height)];
+}
+function wbSave() {
+  if (!_wbCanvas) return;
+  const a = document.createElement('a');
+  a.href = _wbCanvas.toDataURL('image/png');
+  a.download = 'whiteboard.png';
+  a.click();
+}
+
+// ══════════════════════════════════════════════════════
+// PRINCIPAL ANALYTICS PANEL
+// ══════════════════════════════════════════════════════
+async function crOpenAnalytics() {
+  const content = document.getElementById('cr-main-content');
+  if (!content) return;
+  document.getElementById('cr-topbar-title').textContent = '📊 Analytics';
+  document.getElementById('cr-back-btn').textContent = '‹';
+
+  content.innerHTML = `
+    <div style="flex:1;overflow-y:auto;padding:16px;" id="cr-analytics-body">
+      <div style="color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;">Loading analytics…</div>
+    </div>`;
+
+  const fb = window._fb;
+  if (!fb || !_crSchoolData) return;
+  const school = _crSchoolData;
+  const classes = school.classes || [];
+
+  // Fetch all doubts across all classes
+  const allDoubts = [];
+  const allNotes = [];
+  for (const cls of classes) {
+    try {
+      const ds = await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',cls.id,'doubts'));
+      ds.docs.forEach(d => allDoubts.push({...d.data(), _className: cls.name}));
+      const ns = await fb.getDocs(fb.collection(fb.db,'schools',_userSchoolCode,'classRooms',cls.id,'notes'));
+      ns.docs.forEach(n => allNotes.push({...n.data(), _className: cls.name}));
+    } catch(e) {}
+  }
+
+  // Doubts by class
+  const doubtsByClass = {};
+  classes.forEach(c => { doubtsByClass[c.name] = 0; });
+  allDoubts.forEach(d => { if (doubtsByClass[d._className] !== undefined) doubtsByClass[d._className]++; });
+
+  // Doubts by subject
+  const doubtsBySubject = {};
+  allDoubts.forEach(d => {
+    const s = d.subject || 'General';
+    doubtsBySubject[s] = (doubtsBySubject[s]||0) + 1;
+  });
+
+  // Doubts by teacher (via subject→teacher lookup)
+  const subjectTeacherMap = {};
+  classes.forEach(c => (c.subjects||[]).forEach(s => { if (s.teacher) subjectTeacherMap[s.name] = s.teacher; }));
+  const doubtsByTeacher = {};
+  allDoubts.forEach(d => {
+    const teacher = subjectTeacherMap[d.subject] || 'Unknown';
+    doubtsByTeacher[teacher] = (doubtsByTeacher[teacher]||0) + 1;
+  });
+
+  // Unanswered doubts
+  const unanswered = allDoubts.filter(d => !d.teacherReply);
+  const unansweredByTeacher = {};
+  unanswered.forEach(d => {
+    const teacher = subjectTeacherMap[d.subject] || 'Unknown';
+    unansweredByTeacher[teacher] = (unansweredByTeacher[teacher]||0) + 1;
+  });
+
+  // Notes by subject
+  const notesBySubject = {};
+  allNotes.forEach(n => {
+    const s = n.subject || 'General';
+    notesBySubject[s] = (notesBySubject[s]||0) + 1;
+  });
+
+  function barChart(data, color) {
+    const max = Math.max(...Object.values(data), 1);
+    return Object.entries(data).sort((a,b)=>b[1]-a[1]).map(([label, val]) => `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;" title="${_esc(label)}">${_esc(label)}</div>
+        <div style="flex:1;background:var(--bg3);border-radius:4px;height:14px;overflow:hidden;">
+          <div style="height:100%;background:${color};border-radius:4px;width:${Math.round(val/max*100)}%;transition:width .4s;"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text);font-family:'DM Mono',monospace;width:24px;text-align:right;flex-shrink:0;">${val}</div>
+      </div>`).join('');
+  }
+
+  const body = document.getElementById('cr-analytics-body');
+  if (!body) return;
+  body.innerHTML = `
+    <!-- Summary cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:20px;">
+      <div class="cr-stat-card"><div class="cr-stat-num">${allDoubts.length}</div><div class="cr-stat-label">Total Doubts</div></div>
+      <div class="cr-stat-card"><div class="cr-stat-num">${unanswered.length}</div><div class="cr-stat-label" style="color:#ff4f6a;">Unanswered</div></div>
+      <div class="cr-stat-card"><div class="cr-stat-num">${allNotes.length}</div><div class="cr-stat-label">Notes Uploaded</div></div>
+      <div class="cr-stat-card"><div class="cr-stat-num">${classes.length}</div><div class="cr-stat-label">Classes</div></div>
+    </div>
+
+    <!-- Doubts by class -->
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;">❓ Doubts by Class</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px;">
+      ${Object.keys(doubtsByClass).length ? barChart(doubtsByClass, 'var(--accent2)') : '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No doubts yet.</div>'}
+    </div>
+
+    <!-- Doubts by subject -->
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;">📚 Doubts by Subject</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px;">
+      ${Object.keys(doubtsBySubject).length ? barChart(doubtsBySubject, '#4f8eff') : '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No doubts yet.</div>'}
+    </div>
+
+    <!-- Doubts per teacher -->
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;">👨‍🏫 Doubts Received by Teacher</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px;">
+      ${Object.keys(doubtsByTeacher).length ? barChart(doubtsByTeacher, '#00e5c0') : '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No doubts yet.</div>'}
+    </div>
+
+    <!-- Unanswered per teacher -->
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;">⚠️ Unanswered Doubts per Teacher</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px;">
+      ${Object.keys(unansweredByTeacher).length ? barChart(unansweredByTeacher, '#ff4f6a') : '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">All doubts answered! ✅</div>'}
+    </div>
+
+    <!-- Notes by subject -->
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;">📎 Notes Uploaded by Subject</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:20px;">
+      ${Object.keys(notesBySubject).length ? barChart(notesBySubject, '#ffb547') : '<div style="color:var(--text3);font-size:12px;font-family:\'DM Mono\',monospace;">No notes yet.</div>'}
+    </div>`;
+}
+
+// ── School logo in classroom topbar ──
+function _crShowSchoolLogo() {
+  const badge = document.getElementById('cr-school-badge');
+  if (!badge) return;
+  const logo = _crSchoolData?.logo;
+  if (logo) {
+    badge.innerHTML = `<img src="${_esc(logo)}" style="width:28px;height:28px;border-radius:8px;object-fit:contain;display:block;" onerror="this.parentElement.textContent='${_esc(_userSchoolName||_userSchoolCode)}'">`;
+    badge.style.padding = '3px';
+    badge.style.background = 'transparent';
+    badge.style.border = 'none';
+  } else {
+    badge.textContent = _userSchoolName || _userSchoolCode;
+    badge.style.padding = '';
+    badge.style.background = '';
+    badge.style.border = '';
+  }
+}
+
+// ── Principal School Settings (edit only — no full re-setup) ──
+function crOpenSchoolSettings() {
+  const school = _crSchoolData;
+  if (!school) return;
+  const content = document.getElementById('cr-main-content');
+  document.getElementById('cr-topbar-title').textContent = '⚙️ School Settings';
+  content.innerHTML = `
+    <div style="flex:1;overflow-y:auto;padding:20px;" id="cr-school-settings-body">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);margin-bottom:16px;">Edit School Info</div>
+
+      <!-- School name -->
+      <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">School Name</div>
+      <input class="wizard-input" id="crs-school-name" type="text" value="${_esc(school.name||'')}" placeholder="School name" style="margin-bottom:14px;">
+
+      <!-- Logo -->
+      <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">School Logo</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div id="crs-logo-preview" style="width:48px;height:48px;border-radius:12px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex-shrink:0;">
+          ${school.logo ? `<img src="${_esc(school.logo)}" style="width:100%;height:100%;object-fit:contain;">` : '🏫'}
+        </div>
+        <label style="padding:8px 14px;background:var(--card);border:1px solid var(--border2);border-radius:10px;color:var(--text2);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace;" for="crs-logo-input">
+          📷 Change Logo
+          <input type="file" id="crs-logo-input" accept="image/*" style="display:none;" onchange="crsUploadLogo(this)">
+        </label>
+        ${school.logo ? `<button onclick="crsRemoveLogo()" style="padding:8px 12px;background:rgba(255,79,106,.08);border:1px solid rgba(255,79,106,.3);border-radius:10px;color:#ff4f6a;font-size:12px;cursor:pointer;font-family:'DM Mono',monospace;">Remove</button>` : ''}
+      </div>
+
+      <!-- Timetable re-parse (teachers/subjects) -->
+      <div style="background:rgba(124,92,252,.06);border:1px solid rgba(124,92,252,.2);border-radius:12px;padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--accent2);font-family:'Syne',sans-serif;margin-bottom:4px;">Re-upload Timetable</div>
+        <div style="font-size:11px;color:var(--text3);font-family:'DM Sans',sans-serif;margin-bottom:8px;">This will update teacher assignments and subjects without deleting existing student data.</div>
+        <label style="padding:8px 14px;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.25);border-radius:10px;color:var(--accent2);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace;" for="crs-tt-input">
+          📊 Upload New Timetable
+          <input type="file" id="crs-tt-input" accept=".xlsx,.xls,.csv,.pdf" style="display:none;" onchange="crsUploadTimetable(this)">
+        </label>
+        <div id="crs-tt-status" style="margin-top:8px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"></div>
+      </div>
+
+      <!-- Keys (read-only display) -->
+      <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px;">School Keys</div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;">Student Key</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <code style="font-size:13px;color:var(--accent2);font-family:'DM Mono',monospace;">${_esc(school.studentKey||'—')}</code>
+            <button onclick="navigator.clipboard.writeText('${_esc(school.studentKey||'')}');this.textContent='✓'" style="font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-family:'DM Mono',monospace;">Copy</button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;">Teacher Key</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <code style="font-size:13px;color:var(--accent2);font-family:'DM Mono',monospace;">${_esc(school.teacherKey||'—')}</code>
+            <button onclick="navigator.clipboard.writeText('${_esc(school.teacherKey||'')}');this.textContent='✓'" style="font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-family:'DM Mono',monospace;">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="crs-save-error" style="display:none;font-size:11px;color:var(--danger);font-family:'DM Mono',monospace;margin-bottom:8px;"></div>
+      <button onclick="crsSaveSettings()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">💾 Save Changes</button>
+    </div>`;
+}
+
+let _crsNewLogo = null; // new logo base64 if changed
+function crsUploadLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    _crsNewLogo = e.target.result;
+    const preview = document.getElementById('crs-logo-preview');
+    if (preview) preview.innerHTML = `<img src="${_esc(_crsNewLogo)}" style="width:100%;height:100%;object-fit:contain;">`;
+  };
+  reader.readAsDataURL(file);
+}
+function crsRemoveLogo() {
+  _crsNewLogo = '';
+  const preview = document.getElementById('crs-logo-preview');
+  if (preview) preview.innerHTML = '🏫';
+}
+
+async function crsUploadTimetable(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('crs-tt-status');
+  if (status) status.textContent = '⏳ Parsing timetable…';
+  input.value = '';
+  // Re-use wizard timetable parser — temporarily write to wizData then read back
+  const _prevWizData = JSON.parse(JSON.stringify(_wizData));
+  _wizData.teachers = []; _wizData.classes = [];
+  const fakeInput = { files: [file] };
+  // Use a promise wrapper around the async wizard function
+  try {
+    await wizUploadTimetable(fakeInput);
+    await new Promise(r => setTimeout(r, 1200)); // allow parse to complete
+    if (_wizData.teachers.length) {
+      const fb = window._fb;
+      if (!fb) throw new Error('Not connected');
+      // Build updated classes array
+      const classesArr = _wizData.classes.map(cls => {
+        const subjects = _wizData.teachers
+          .filter(t => (t.classes||[]).includes(cls))
+          .flatMap(t => (t.subjects||[]).map(s => ({ name: s, teacher: t.name })));
+        return { id: cls, name: cls, subjects };
+      });
+      const updates = {
+        teachers: _wizData.teachers.map(t => ({ name: t.name, subjects: t.subjects||[], classes: t.classes||[] })),
+        classes: classesArr
+      };
+      await fb.updateDoc(fb.doc(fb.db,'schools',_userSchoolCode), updates);
+      // Update teacher key doc too
+      if (_crSchoolData?.teacherKey) {
+        await fb.updateDoc(fb.doc(fb.db,'schools',_crSchoolData.teacherKey), updates).catch(()=>{});
+      }
+      _crSchoolData = { ..._crSchoolData, ...updates };
+      if (status) status.innerHTML = `<span style="color:var(--accent3);">✅ Timetable updated — ${_wizData.teachers.length} teachers, ${_wizData.classes.length} classes.</span>`;
+    } else {
+      if (status) status.innerHTML = `<span style="color:var(--warning);">⚠️ Could not detect teachers. Check format.</span>`;
+    }
+  } catch(e) {
+    if (status) status.innerHTML = `<span style="color:var(--danger);">❌ Failed: ${e.message}</span>`;
+  }
+  // Restore wizData
+  _wizData = _prevWizData;
+}
+
+async function crsSaveSettings() {
+  const nameEl = document.getElementById('crs-school-name');
+  const name = nameEl?.value.trim();
+  if (!name) {
+    const err = document.getElementById('crs-save-error');
+    if (err) { err.textContent = 'School name cannot be empty.'; err.style.display = 'block'; }
+    return;
+  }
+  const fb = window._fb;
+  if (!fb) return;
+  const updates = { name };
+  if (_crsNewLogo !== null) updates.logo = _crsNewLogo ? _crsNewLogo.slice(0, 2000) : '';
+  try {
+    await fb.updateDoc(fb.doc(fb.db,'schools',_userSchoolCode), updates);
+    if (_crSchoolData?.teacherKey) {
+      await fb.updateDoc(fb.doc(fb.db,'schools',_crSchoolData.teacherKey), updates).catch(()=>{});
+    }
+    _crSchoolData = { ..._crSchoolData, ...updates };
+    _userSchoolName = name;
+    _userProfile = { ..._userProfile, schoolName: name };
+    await fb.setDoc(fb.doc(fb.db,'users',_currentUser.uid,'profile','data'), _userProfile);
+    _crUpdateSidebarBtn();
+    _crsNewLogo = null;
+    // Go back to dashboard
+    _crShowPrincipalDashboard();
+  } catch(e) {
+    const err = document.getElementById('crs-save-error');
+    if (err) { err.textContent = 'Save failed: ' + (e.message||'Unknown error'); err.style.display = 'block'; }
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -9377,7 +9967,7 @@ authInit();
       <!-- Already joined -->
       <div id="settings-has-school" style="display:none;flex-direction:column;gap:8px;">
         <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
-          <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏫</div>
+          <div id="settings-school-logo-wrap" style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden;">🏫</div>
           <div style="flex:1;min-width:0;">
             <div id="settings-school-name-label" style="font-size:14px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;">Your School</div>
             <div id="settings-school-role-label" style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;">student</div>
@@ -9385,6 +9975,9 @@ authInit();
           <div id="settings-school-code-label" style="font-size:10px;color:var(--accent2);font-family:'DM Mono',monospace;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.2);border-radius:8px;padding:3px 8px;white-space:nowrap;"></div>
         </div>
         <button onclick="openClassroom();closeSettings();" style="padding:10px 18px;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.25);border-radius:12px;color:var(--accent2);font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">🏫 Open Classroom →</button>
+        <div id="settings-principal-edit-btn" style="display:none;">
+          <button onclick="openClassroom();closeSettings();setTimeout(crOpenSchoolSettings,300);" style="width:100%;padding:10px 18px;background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.3);border-radius:12px;color:var(--warning);font-size:13px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">⚙️ Edit School Settings</button>
+        </div>
       </div>
     </div>
 
